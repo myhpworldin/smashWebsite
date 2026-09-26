@@ -1,0 +1,78 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.order {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  line-height: 2.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.description {
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Frosted step cards on the dark Growth Engine band. */
+.glass .item {
+  justify-content: flex-end;
+  min-height: 288px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  color: #fff;
+}
+
+.glass .order {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.glass .title {
+  text-transform: uppercase;
+}
+
+.glass .description {
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

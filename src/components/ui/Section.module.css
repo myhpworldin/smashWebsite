@@ -1,0 +1,13 @@
+.section {
+  padding-block: var(--space-8);
+}
+
+.tight {
+  padding-block: var(--space-6);
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-block: 100px;
+  }
+}

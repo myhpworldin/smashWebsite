@@ -1,0 +1,58 @@
+.navList {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 50px;
+  font-size: 1.125rem;
+}
+
+.navList a {
+  white-space: nowrap;
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.navList a[aria-current="page"] {
+  font-weight: 600;
+}
+
+.mobileNav {
+  position: relative;
+}
+
+.menuButton {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.mobilePanel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  background: var(--color-background);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-width: 200px;
+  z-index: 50;
+}
+
+.mobilePanel .navList {
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: 1rem;
+}
+
+/* Desktop nav (Tailwind `lg`, 1024px) replaces the mobile toggle. */
+@media (min-width: 1024px) {
+  .mobileNav {
+    display: none;
+  }
+}

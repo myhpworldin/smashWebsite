@@ -1,0 +1,24 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+}
+
+.list li:not(:last-child)::after {
+  content: "/";
+  margin-left: var(--space-2);
+}
+
+.list a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.current {
+  color: var(--color-foreground);
+}

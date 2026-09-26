@@ -1,0 +1,72 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-small);
+  line-height: normal;
+}
+
+.mark {
+  color: var(--color-error);
+}
+
+.input {
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: 300;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: #f8f8f8;
+  color: var(--color-foreground);
+}
+
+.input::placeholder {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.textarea {
+  height: 120px;
+  min-height: 120px;
+  padding-block: 14px;
+  resize: vertical;
+}
+
+.select {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("/media/figma/chevron-down.svg");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  background-size: 12px 12px;
+  text-overflow: ellipsis;
+}
+
+/* A select showing its placeholder option reads like the design's placeholder text. */
+.select[data-empty] {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.select option {
+  color: var(--color-foreground);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--font-size-small);
+}

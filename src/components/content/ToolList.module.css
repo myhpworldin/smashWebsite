@@ -1,0 +1,31 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.name {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+}
+
+/* A real (non-seed) tool logo's intrinsic size isn't controlled by us; cap the rendered box so it can never dominate the list (Stage 3, Phase 8 finding, same class of bug as TestimonialCard's avatar). */
+.logo {
+  max-width: 80px;
+  max-height: 40px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}

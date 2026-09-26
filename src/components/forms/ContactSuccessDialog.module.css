@@ -1,0 +1,72 @@
+.close {
+  position: absolute;
+  top: 29px;
+  right: 31px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.art {
+  position: relative;
+  width: 205px;
+  height: 156px;
+  margin: 50px auto 0;
+}
+
+.sparkles {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 205px;
+  height: 140px;
+}
+
+.tick {
+  position: absolute;
+  left: 47px;
+  top: 46px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 36px auto 0;
+  padding-inline: 20px;
+  max-width: 394px;
+  text-align: center;
+}
+
+.text h2 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: normal;
+  color: var(--brand-deep-blue);
+}
+
+.text p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* `.text ~ .action` outranks Button's `.button` so the design's 16px / 18px-padding size applies. */
+.text ~ .action {
+  display: flex;
+  width: fit-content;
+  margin: 23px auto 42px;
+  min-height: 48px;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 500;
+}

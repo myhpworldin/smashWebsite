@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-smash-red: var(--brand-smash-red);
+  --color-deep-blue: var(--brand-deep-blue);
+  --color-bright-blue: var(--brand-bright-blue);
+  --color-main-black: var(--brand-main-black);
+  --color-eyebrow: var(--brand-eyebrow);
+  --color-ink: var(--brand-ink);
+  --color-navy: var(--brand-navy);
+  --color-soft-grey: #f8f8f8;
+  --font-inter: var(--font-sans);
+  --font-manrope: var(--font-heading);
+}
+
+/**
+ * Design tokens. No designer values exist yet (Stage 3, Phase 1 — see
+ * DESIGN_SYSTEM_MAPPING.md §"Pending designer input"): every value below is a
+ * neutral placeholder chosen only so components have something consistent to
+ * render against. Replace values here when the design system is approved;
+ * component code should never need to change, because components only ever
+ * reference the custom property, never a literal value.
+ */
+:root {
+  /* Color — semantic names, neutral placeholder values */
+  --color-background: #ffffff;
+  --color-surface: #f7f7f8;
+  --color-foreground: #000000;
+  --color-muted: rgba(16, 24, 40, 0.7);
+  --color-primary: #e90101;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #eef0f3;
+  --color-secondary-foreground: #14151a;
+  --color-accent: #0058c8;
+  --color-border: rgba(0, 0, 0, 0.2);
+  --color-success: #1e7d4c;
+  --color-warning: #a05a00;
+  --color-error: #b3261e;
+  --color-focus-ring: #0058c8;
+
+  /* Typography — semantic scale, system font stack until fonts are approved */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-manrope), var(--font-sans);
+  --font-size-display: clamp(2.5rem, 4vw + 1rem, 4.5rem);
+  --font-size-h1: clamp(2rem, 2.5vw + 1rem, 3rem);
+  --font-size-h2: clamp(1.5rem, 1.5vw + 1rem, 2.25rem);
+  --font-size-h3: clamp(1.25rem, 1vw + 1rem, 1.75rem);
+  --font-size-body: 1rem;
+  --font-size-small: 0.875rem;
+  --font-size-button: 1rem;
+  --font-size-caption: 0.75rem;
+  --line-height-heading: 1.15;
+  --line-height-body: 1.6;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* Layout */
+  --container-max-width: 1320px;
+  --container-padding-inline: var(--space-4);
+
+  /* Brand — the Figma file's variables (Smash Red / Deep Blue / Bright Blue / Main Black) plus the eyebrow, heading and footer colors used directly in the frames. */
+  --brand-smash-red: #e90101;
+  --brand-deep-blue: #01124a;
+  --brand-bright-blue: #0058c8;
+  --brand-main-black: #000000;
+  --brand-eyebrow: #e50012;
+  --brand-ink: #0b0f19;
+  --brand-navy: #121b33;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Motion — disabled by default until the designer supplies motion specs (PAGE_CONTENT_MATRIX.md flags this per section) */
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 250ms;
+  --motion-easing: ease;
+
+  color-scheme: light;
+}
+
+/* Breakpoints (documented, not custom properties — CSS cannot vary a property by breakpoint;
+   these match the required QA widths: 1440, 1366, 1024, 768, 430, 390, 360). Components use
+   the same fixed values via the tokens in src/lib/breakpoints.ts to keep CSS and JS in sync. */
+
+@layer base {
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+}
+
+img, picture, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+/* Never allow an overflowing element to introduce horizontal scroll (phase brief §14). */
+html, body {
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+}
+
+/* Accessible, visible focus state for every interactive element (phase brief §15). */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Skip-to-content link: visually hidden until focused. */
+.skip-link {
+  position: absolute;
+  left: var(--space-2);
+  top: -100%;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  z-index: 100;
+  transition: top var(--motion-duration-fast) var(--motion-easing);
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+}

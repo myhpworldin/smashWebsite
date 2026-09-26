@@ -1,0 +1,61 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 30px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  background: #fff;
+  /* Scopes .honeypot's absolute positioning to the form itself, so its off-screen
+     offset can never widen the page's own scrollable area. */
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .form {
+    padding: 30px;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px 20px;
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* `.form .submit` outranks Button's own `.button` rule so the design's full-width 56px-radius CTA applies. */
+.form .submit {
+  width: 100%;
+  padding-block: 18px;
+  border-radius: 56px;
+  gap: 12px;
+  line-height: 1.21;
+}
+
+.note {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  line-height: normal;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.formError {
+  margin: 0;
+  color: var(--color-error);
+}

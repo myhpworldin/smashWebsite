@@ -1,0 +1,27 @@
+.metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: 288px;
+  height: 100%;
+  padding: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2.25rem;
+  color: var(--brand-smash-red);
+}
+
+.label {
+  font-size: 1rem;
+  line-height: 1.25rem;
+  color: rgba(0, 0, 0, 0.8);
+}

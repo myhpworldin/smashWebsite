@@ -1,0 +1,30 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
+  max-width: 819px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--brand-eyebrow);
+  text-transform: uppercase;
+}
+
+.heading {
+  font-size: clamp(2rem, 2vw + 1.25rem, 3rem);
+  line-height: 1.12;
+  font-weight: var(--font-weight-medium);
+  color: var(--brand-ink);
+  margin: 0;
+}
+
+.description {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: var(--color-muted);
+}
