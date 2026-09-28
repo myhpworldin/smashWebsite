@@ -74,18 +74,31 @@ export async function syncTeamRoster(db: Db) {
   const existing = await findRows(db, teamMembers);
   const byOrder = new Map(existing.map((row) => [row.displayOrder, row]));
   const wanted = new Set(TEAM_ROSTER.map((p) => p.order));
+  const idByOrder = new Map<number, string>();
 
   for (const person of TEAM_ROSTER) {
     const row = byOrder.get(person.order);
     if (row && !person.photo && row.photo) await col(db, teamMembers).updateOne({ _id: row.id as never }, { $unset: { photo: "" } });
     const photo = person.photo ? img(`/media/${person.photo}`, `Portrait of ${person.name}`, 290, 298) : undefined;
     const fields = { name: person.name, role: person.role ?? "Designation", group: person.group, photo, status: "published" as const };
-    if (row) await updateTeamMember(db, row.id, fields);
-    else await createTeamMember(db, { ...fields, displayOrder: person.order });
+    const saved = row ? await updateTeamMember(db, row.id, fields) : await createTeamMember(db, { ...fields, displayOrder: person.order });
+    idByOrder.set(person.order, saved.id);
   }
 
   for (const row of existing) {
     if (!wanted.has(row.displayOrder) && row.status === "published") await updateTeamMember(db, row.id, { status: "draft" });
+  }
+
+  /**
+   * Home's team section references members by id, like every other Home section (services, case studies, …) —
+   * so a roster change here has to be mirrored into `home_page.teamIds` too, or Home silently drifts out of sync
+   * with `team_members` (this is exactly how Abhirami ended up showing on About but not Home: her row was
+   * created by a sync that ran after Home's `teamIds` was last set, and nothing ever refreshed it).
+   * Skipped on a fresh database with no Home record yet — `importHomeDesignContent` sets `teamIds` itself.
+   */
+  if (await findOneRow(db, homePage, { _id: SINGLETON_ID as never })) {
+    const teamIds = [...TEAM_ROSTER].sort((a, b) => a.order - b.order).map((p) => idByOrder.get(p.order)!);
+    await saveHomePage(db, { teamIds });
   }
 }
 
