@@ -1,5 +1,5 @@
 import type { Db } from "@/server/db/helpers";
-import { col, findOneRow, findRows } from "@/server/db/helpers";
+import { findOneRow, findRows } from "@/server/db/helpers";
 import { homePage, SINGLETON_ID, teamMembers } from "@/server/db/schema";
 import { createService } from "@/server/modules/services/services.service";
 import { createCaseStudy } from "@/server/modules/work/work.service";
@@ -43,22 +43,24 @@ const SOURCE = "Approved Figma homepage design (Smash Website Design); confirm w
 const img = (url: string, alt: string, width: number, height: number) => ({ url, alt, width, height });
 const decorative = (url: string, width: number, height: number) => ({ url, alt: "", decorative: true, width, height });
 
+/** The generic silhouette shown until a person has a real headshot (`photo` omitted in `TEAM_ROSTER`). */
+const GENERIC_AVATAR = "team-avatar-generic.png";
+
 /**
  * The single source of truth for the team grid (About + Home). Edit this array, then run `npm run db:sync-team`
  * to push it to the database — editing this file alone never changes the live site (see `syncTeamRoster` below).
- * `role` defaults to "Designation" when omitted. `photo` is a filename under `public/media/`; every entry currently
- * points at a generated initials avatar (`team-avatar-*.png`, on-brand navy/blue, no face) rather than one of the
- * design's stock photos, since those were random people, not this person — an honest placeholder, not a fabricated
- * likeness. TODO (client): replace with real headshots as they come in.
+ * `role` defaults to "Designation" when omitted. `photo` is a filename under `public/media/`; leave it out to get
+ * `GENERIC_AVATAR` (a plain silhouette, not one of the design's stock photos — those were random people, not this
+ * person). TODO (client): replace with real headshots as they come in.
  */
 export const TEAM_ROSTER: { name: string; group: string; order: number; role?: string; photo?: string }[] = [
-  { name: "Ratheesh AR", group: "Founders & Partners", order: 1, role: "Managing Director", photo: "team-avatar-ratheesh.png" },
-  { name: "Akhil V.T", group: "Founders & Partners", order: 2, role: "Business Development Manager", photo: "team-avatar-akhil.png" },
-  { name: "Rilna K", group: "Founders & Partners", order: 3, role: "Marketing Head", photo: "team-avatar-rilna.png" },
-  { name: "Anand S", group: "Team Members", order: 4, role: "Web Developer", photo: "team-avatar-anand.png" },
-  { name: "Amritha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer", photo: "team-avatar-amritha.png" },
-  { name: "Indrajith K.A", group: "Team Members", order: 6, role: "Video Editor", photo: "team-avatar-indrajith.png" },
-  { name: "Abhirami G.M", group: "Team Members", order: 7, role: "Content Creator & Video Presenter", photo: "team-avatar-abhirami.png" },
+  { name: "Ratheesh AR", group: "Founders & Partners", order: 1, role: "Managing Director" },
+  { name: "Akhil V.T", group: "Founders & Partners", order: 2, role: "Business Development Manager" },
+  { name: "Rilna K", group: "Founders & Partners", order: 3, role: "Marketing Head" },
+  { name: "Anand S", group: "Team Members", order: 4, role: "Web Developer" },
+  { name: "Amritha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer" },
+  { name: "Indrajith K.A", group: "Team Members", order: 6, role: "Video Editor" },
+  { name: "Abhirami G.M", group: "Team Members", order: 7, role: "Content Creator & Video Presenter" },
 ];
 
 /**
@@ -66,10 +68,6 @@ export const TEAM_ROSTER: { name: string; group: string; order: number; role?: s
  * name/role/group/photo in place, creates any new `order` that has no row yet, and un-publishes (never deletes) any
  * published row whose `displayOrder` is no longer in the roster — so removing someone from the array takes them off
  * the site without losing their record. Safe to run repeatedly (`npm run db:sync-team`).
- *
- * `updateTeamMember`'s `$set` skips `undefined` fields (so a partial edit never wipes what it doesn't mention), which
- * means a roster entry with no `photo` can't clear one a previous entry at that `order` left behind — this unsets
- * it directly first so a person with no photo yet never inherits a stale, wrong one.
  */
 export async function syncTeamRoster(db: Db) {
   const existing = await findRows(db, teamMembers);
@@ -79,8 +77,7 @@ export async function syncTeamRoster(db: Db) {
 
   for (const person of TEAM_ROSTER) {
     const row = byOrder.get(person.order);
-    if (row && !person.photo && row.photo) await col(db, teamMembers).updateOne({ _id: row.id as never }, { $unset: { photo: "" } });
-    const photo = person.photo ? img(`/media/${person.photo}`, `Portrait of ${person.name}`, 290, 298) : undefined;
+    const photo = img(`/media/${person.photo ?? GENERIC_AVATAR}`, `Portrait of ${person.name}`, 290, 298);
     const fields = { name: person.name, role: person.role ?? "Designation", group: person.group, photo, status: "published" as const };
     const saved = row ? await updateTeamMember(db, row.id, fields) : await createTeamMember(db, { ...fields, displayOrder: person.order });
     idByOrder.set(person.order, saved.id);
@@ -142,7 +139,7 @@ export async function importHomeDesignContent(db: Db) {
 
   const team = [];
   for (const p of TEAM_ROSTER) {
-    const photo = p.photo ? img(`/media/${p.photo}`, `Portrait of ${p.name}`, 290, 298) : undefined;
+    const photo = img(`/media/${p.photo ?? GENERIC_AVATAR}`, `Portrait of ${p.name}`, 290, 298);
     team.push(await createTeamMember(db, { name: p.name, role: p.role ?? "Designation", group: p.group, photo, displayOrder: p.order, status: "published" }));
   }
 
