@@ -28,10 +28,10 @@ export function CultureBanner({ className = "" }: { className?: string }) {
   return (
     <section aria-label="How we work" className={`${WRAP} ${className}`}>
       <div className="flex flex-col gap-[22px] md:flex-row md:h-[240px]">
-        <div className="flex h-[240px] shrink-0 flex-col justify-between rounded-[28px] bg-deep-blue p-[25px] text-white md:w-[406px] lg:w-[510px]">
+        <div className="flex h-[240px] shrink-0 flex-col justify-between rounded-[28px] bg-deep-blue p-[25px] text-white md:w-[350px] lg:w-[430px]">
           <p className="font-inter text-sm font-semibold uppercase leading-[normal]">Built to move</p>
           <p className="font-inter text-[26px] font-medium leading-[1.35] md:text-[30px] md:leading-[41px]">
-            We Plan . We Create . We Grow Brands .
+            We Plan .<br/> We Create .<br />We Grow Brands .
           </p>
         </div>
         <div className="relative h-[220px] shrink-0 overflow-hidden rounded-[20px] md:h-[240px] md:w-[406px]">
