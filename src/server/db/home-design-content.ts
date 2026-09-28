@@ -35,6 +35,8 @@ export const SITE_IDENTITY = {
     email: "hello@smash.international",
     address: "Smash Address line 1 & line 2",
   },
+  /** SMASH logo mark (Figma "Favicon"), used as the browser tab icon and what Google shows beside the site in search results. */
+  favicon: { url: "/media/Favicon.svg", alt: "", decorative: true as const, width: 600, height: 588 },
 } as const;
 
 /** Recorded on every imported figure: the numbers come from the approved Figma design and still need the client's confirmation. */
