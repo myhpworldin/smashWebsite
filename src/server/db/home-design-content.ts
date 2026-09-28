@@ -46,18 +46,19 @@ const decorative = (url: string, width: number, height: number) => ({ url, alt: 
 /**
  * The single source of truth for the team grid (About + Home). Edit this array, then run `npm run db:sync-team`
  * to push it to the database — editing this file alone never changes the live site (see `syncTeamRoster` below).
- * `role` defaults to "Designation" when omitted. `photo` is a filename under `public/media/` (the stock photos
- * are shared/reused across people, so it is not derived from `order`); omit it to leave no photo yet rather
- * than guess one (TODO (client): replace with real headshots).
+ * `role` defaults to "Designation" when omitted. `photo` is a filename under `public/media/`; every entry currently
+ * points at a generated initials avatar (`team-avatar-*.png`, on-brand navy/blue, no face) rather than one of the
+ * design's stock photos, since those were random people, not this person — an honest placeholder, not a fabricated
+ * likeness. TODO (client): replace with real headshots as they come in.
  */
 export const TEAM_ROSTER: { name: string; group: string; order: number; role?: string; photo?: string }[] = [
-  { name: "Ratheesh AR", group: "Founders & Partners", order: 1, role: "Managing Director", photo: "team-1.png" },
-  { name: "Akhil V.T", group: "Founders & Partners", order: 2, role: "Business Development Manager", photo: "team-2.png" },
-  { name: "Rilna K", group: "Founders & Partners", order: 3, role: "Marketing Head", photo: "team-3.png" },
-  { name: "Anand S", group: "Team Members", order: 4, role: "Web Developer", photo: "team-4.png" },
-  { name: "Amritha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer", photo: "team-5.png" },
-  { name: "Indrajith K.A", group: "Team Members", order: 6, role: "Video Editor" },
-  { name: "Abhirami G.M", group: "Team Members", order: 7, role: "Content Creator & Video Presenter", photo: "team-6.png" },
+  { name: "Ratheesh AR", group: "Founders & Partners", order: 1, role: "Managing Director", photo: "team-avatar-ratheesh.png" },
+  { name: "Akhil V.T", group: "Founders & Partners", order: 2, role: "Business Development Manager", photo: "team-avatar-akhil.png" },
+  { name: "Rilna K", group: "Founders & Partners", order: 3, role: "Marketing Head", photo: "team-avatar-rilna.png" },
+  { name: "Anand S", group: "Team Members", order: 4, role: "Web Developer", photo: "team-avatar-anand.png" },
+  { name: "Amritha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer", photo: "team-avatar-amritha.png" },
+  { name: "Indrajith K.A", group: "Team Members", order: 6, role: "Video Editor", photo: "team-avatar-indrajith.png" },
+  { name: "Abhirami G.M", group: "Team Members", order: 7, role: "Content Creator & Video Presenter", photo: "team-avatar-abhirami.png" },
 ];
 
 /**
