@@ -1,9 +1,9 @@
 import type { Db } from "@/server/db/helpers";
-import { findOneRow } from "@/server/db/helpers";
-import { homePage, SINGLETON_ID } from "@/server/db/schema";
+import { findOneRow, findRows } from "@/server/db/helpers";
+import { homePage, SINGLETON_ID, teamMembers } from "@/server/db/schema";
 import { createService } from "@/server/modules/services/services.service";
 import { createCaseStudy } from "@/server/modules/work/work.service";
-import { createTeamMember } from "@/server/modules/team/team.service";
+import { createTeamMember, updateTeamMember } from "@/server/modules/team/team.service";
 import { saveHomePage } from "@/server/modules/home/home.service";
 import { getSiteSettings, saveSiteSettings } from "@/server/modules/site-settings/site-settings.service";
 import { AppError } from "@/server/lib/errors";
@@ -44,6 +44,45 @@ const img = (url: string, alt: string, width: number, height: number) => ({ url,
 const decorative = (url: string, width: number, height: number) => ({ url, alt: "", decorative: true, width, height });
 
 /**
+ * The single source of truth for the team grid (About + Home). Edit this array, then run `npm run db:sync-team`
+ * to push it to the database — editing this file alone never changes the live site (see `syncTeamRoster` below).
+ * `order` also selects the placeholder photo (`/media/team-<order>.png`) until real headshots replace them
+ * (TODO (client)). `role` defaults to "Designation" when omitted.
+ */
+export const TEAM_ROSTER: { name: string; group: string; order: number; role?: string }[] = [
+  { name: "Rajesh", group: "Founders & Partners", order: 1 },
+  { name: "Michelle Jones", group: "Founders & Partners", order: 2 },
+  { name: "Peter Parker", group: "Founders & Partners", order: 3 },
+  { name: "Anand S", group: "Team Members", order: 4, role: "Website Developer" },
+  { name: "Amrutha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer" },
+  { name: "Michelle Jones", group: "Team Members", order: 6 },
+];
+
+/**
+ * Pushes `TEAM_ROSTER` into the `team_members` collection: matches existing rows by `displayOrder`, updates their
+ * name/role/group/photo in place, creates any new `order` that has no row yet, and un-publishes (never deletes) any
+ * published row whose `displayOrder` is no longer in the roster — so removing someone from the array takes them off
+ * the site without losing their record. Safe to run repeatedly (`npm run db:sync-team`).
+ */
+export async function syncTeamRoster(db: Db) {
+  const existing = await findRows(db, teamMembers);
+  const byOrder = new Map(existing.map((row) => [row.displayOrder, row]));
+  const wanted = new Set(TEAM_ROSTER.map((p) => p.order));
+
+  for (const person of TEAM_ROSTER) {
+    const photo = img(`/media/team-${person.order}.png`, `Portrait of ${person.name}`, 290, 298);
+    const fields = { name: person.name, role: person.role ?? "Designation", group: person.group, photo, status: "published" as const };
+    const row = byOrder.get(person.order);
+    if (row) await updateTeamMember(db, row.id, fields);
+    else await createTeamMember(db, { ...fields, displayOrder: person.order });
+  }
+
+  for (const row of existing) {
+    if (!wanted.has(row.displayOrder) && row.status === "published") await updateTeamMember(db, row.id, { status: "draft" });
+  }
+}
+
+/**
  * Loads the copy of the approved Figma homepage into the CMS through the same services the admin API uses, so the
  * homepage can be edited from then on. The design's own placeholders are kept as they are and marked: the team
  * (names and "Designation"), and the case-study blurb (it ends mid-sentence in the design). Fields the design does not
@@ -80,17 +119,10 @@ export async function importHomeDesignContent(db: Db) {
     await caseStudy("Mobile Garage", "mobile-garage", img("/media/case-mobile-garage-warm-red.png", "A technician repairing a phone with a screwdriver", 640, 448)),
   ];
 
-  // TODO (client): photos are still the design's placeholders; names/roles below are the real team.
-  const person = (name: string, group: string, n: number, role = "Designation") =>
-    createTeamMember(db, { name, role, group, photo: img(`/media/team-${n}.png`, `Portrait of ${name}`, 290, 298), displayOrder: n, status: "published" });
-  const team = [
-    await person("Rajesh", "Founders & Partners", 1),
-    await person("Michelle Jones", "Founders & Partners", 2),
-    await person("Peter Parker", "Founders & Partners", 3),
-    await person("Anand S", "Team Members", 4, "Website Developer"),
-    await person("Amrutha", "Team Members", 5, "UI/UX Designer"),
-    await person("Michelle Jones", "Team Members", 6),
-  ];
+  const team = [];
+  for (const p of TEAM_ROSTER) {
+    team.push(await createTeamMember(db, { name: p.name, role: p.role ?? "Designation", group: p.group, photo: img(`/media/team-${p.order}.png`, `Portrait of ${p.name}`, 290, 298), displayOrder: p.order, status: "published" }));
+  }
 
   const step = (title: string, description: string) => ({ title, description });
   const metric = (label: string, value: string, description: string) => ({ label, value, description, source: SOURCE });
