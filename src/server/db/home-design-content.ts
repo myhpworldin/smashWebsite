@@ -20,10 +20,21 @@ export const HOME_SEO = {
   metaDescription: "SMASH is an agency built from real business experience. We combine strategy, creativity, technology and performance marketing to help businesses grow.",
 } as const;
 
-/** Global identity only; contact details and social links are left out until approved values exist. */
+/**
+ * Global identity plus the design's own footer contact placeholders (Figma "footer-variation-3": phone, email,
+ * "Smash Address line 1 & line 2"). Like the team members below, these are the design's stand-in values, not a
+ * confirmed business phone/email/address — replace them in the CMS once the client provides the real ones.
+ * Social links are left out entirely since the design gives icons only, no handles/URLs.
+ */
 export const SITE_IDENTITY = {
   siteName: "SMASH International",
   siteDescription: "Strategy, creativity, technology and performance marketing built from real business experience.",
+  contact: {
+    phone: "+91 1234567890",
+    whatsapp: "+91 1234567890",
+    email: "hello@smash.international",
+    address: "Smash Address line 1 & line 2",
+  },
 } as const;
 
 /** Recorded on every imported figure: the numbers come from the approved Figma design and still need the client's confirmation. */
