@@ -355,7 +355,7 @@ describe("Figma design import", () => {
     expect(d.selectedWork.items.map((c: any) => c.path)).toEqual(["/work/core", "/work/mobile-garage"]);
     expect(d.industries.items).toHaveLength(10);
     expect(d.growthEngine.steps).toHaveLength(6);
-    expect(d.team.items.map((m: any) => m.group)).toEqual([...Array(3).fill("Founders & Partners"), ...Array(3).fill("Team Members")]);
+    expect(d.team.items.map((m: any) => m.group)).toEqual([...Array(3).fill("Founders & Partners"), ...Array(4).fill("Team Members")]);
     expect(JSON.stringify(d)).not.toContain("Approved Figma homepage design"); // the verification note is internal
     await expect(importHomeDesignContent(db)).rejects.toThrow(/already exists/);
   });

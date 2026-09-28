@@ -304,7 +304,8 @@ describe("route integrity", () => {
 
   it("has no hardcoded production host in application code", () => {
     const walk = (d: string): string[] => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));
-    const offenders = walk(join(process.cwd(), "src")).filter((f) => /smash\.international/.test(readFileSync(f, "utf8")));
+    // URLs only (the concern is bypassing getSiteUrl()); a plain "@smash.international" contact email is legitimate content, not a hardcoded host.
+    const offenders = walk(join(process.cwd(), "src")).filter((f) => /:\/\/[^\s"'<>]*smash\.international/.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
 });
