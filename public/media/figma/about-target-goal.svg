@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Target goal icon">
+<circle id="Target ring" cx="14" cy="14" r="12" stroke="#01124A" stroke-width="2"/>
+<circle id="Target ring_2" cx="14" cy="14" r="6" stroke="#01124A" stroke-width="2"/>
+<circle id="Goal center" cx="14" cy="14" r="2.5" fill="#01124A"/>
+<rect id="Top marker" x="13" width="2" height="5" rx="1" fill="#01124A"/>
+<rect id="Bottom marker" x="13" y="23" width="2" height="5" rx="1" fill="#01124A"/>
+<rect id="Left marker" y="13" width="5" height="2" rx="1" fill="#01124A"/>
+<rect id="Right marker" x="23" y="13" width="5" height="2" rx="1" fill="#01124A"/>
+</g>
+</svg>

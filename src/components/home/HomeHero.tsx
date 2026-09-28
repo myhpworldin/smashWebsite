@@ -14,7 +14,7 @@ const PILLS = [
 export function HomeHero({ hero, pills }: { hero: HomeSection<"hero">; pills: string[] }) {
   const { primaryCta, secondaryCta } = hero;
   return (
-    <section aria-labelledby="hero-heading" className="relative isolate flex min-h-[720px] items-start overflow-hidden rounded-b-[20px] bg-navy text-white lg:h-[884px]">
+    <section aria-labelledby="hero-heading" className="relative isolate flex min-h-[720px] items-start overflow-hidden bg-navy text-white lg:h-[884px]">
       {hero.image ? <FillImage media={hero.image} sizes="100vw" className="-z-30 object-cover" /> : null}
 
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 -z-20 h-full w-[1440px] -translate-x-1/2">
@@ -33,7 +33,7 @@ export function HomeHero({ hero, pills }: { hero: HomeSection<"hero">; pills: st
           </div>
         </div>
       </div>
-      <div aria-hidden="true" className="absolute inset-0 -z-10 rounded-b-[20px] bg-[rgba(50,50,50,0.4)] backdrop-blur-[7.5px]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[rgba(50,50,50,0.4)] backdrop-blur-[7.5px]" />
 
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-[1440px] -translate-x-1/2 min-[1200px]:block">
         {pills.slice(0, PILLS.length).map((text, i) => (

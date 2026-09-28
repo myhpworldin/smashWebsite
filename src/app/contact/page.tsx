@@ -58,6 +58,7 @@ export default async function ContactPage() {
         title="Ready to Grow? Let’s Connect."
         description="Whether you’re looking to build your brand, generate more leads, or scale your business, our team is ready to hear what you’re working towards."
         descriptionWidth="max-w-[826px]"
+        image={{ url: "/media/contactus-banner.png", alt: "" }}
       />
 
       <section aria-labelledby="request-heading" className={`${WRAP} py-16 lg:py-[120px]`}>

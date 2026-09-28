@@ -1,27 +1,35 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { Asset } from "@/components/home/shared";
 
 /**
- * The deep-blue page banner shared by Contact, Services and Careers (Figma: 1440 × 546/568, 20px bottom radius,
- * three glow ellipses, centred H1 + intro). The glows are positioned on the design's 1440px canvas and, as in the
- * design, spill faintly past the banner's bottom edge (their layer is 700px tall and clips only at the sides). The global header floats over
- * it (`HeaderFrame`). `children` is the optional action row under the intro (search box, button).
+ * The deep-blue page banner shared by Contact, Services, Careers and About (Figma: 1440 × 546/568, square
+ * corners, three glow ellipses, centred H1 + intro). The glows are positioned on the design's 1440px canvas and, as
+ * in the design, spill faintly past the banner's bottom edge (their layer is 700px tall and clips only at the
+ * sides). The global header floats over it (`HeaderFrame`). `children` is the optional action row under the intro
+ * (search box, button). `image` is the optional full-bleed background photo behind the glows (About/Services/Contact
+ * only — Careers has none); `centerGlow` hides the middle glow when the design omits it (About).
  */
-export function PageHero({ id, title, description, descriptionWidth, children }: {
+export function PageHero({ id, title, description, descriptionWidth, image, centerGlow = true, children }: {
   id: string;
   title: string;
   description: string;
   /** The intro's max width in the design (px, as a Tailwind class such as `max-w-[760px]`). */
   descriptionWidth: string;
+  image?: { url: string; alt: string };
+  centerGlow?: boolean;
   children?: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="relative isolate rounded-b-[20px] bg-deep-blue text-white">
+    <section aria-labelledby={id} className="relative isolate overflow-hidden bg-deep-blue text-white">
+      {image ? <Image src={image.url} alt={image.alt} fill priority sizes="100vw" className="absolute inset-0 -z-30 object-cover" /> : null}
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[700px] overflow-hidden">
         <div className="absolute left-1/2 top-0 h-full w-[1440px] -translate-x-1/2">
-        <div className="absolute left-[369px] top-[221px] h-[376px] w-[702px]">
-          <Asset name="contact-glow-center.svg" width={702} height={376} className="absolute inset-[-148.94%_-79.77%] size-auto max-w-none" />
-        </div>
+        {centerGlow ? (
+          <div className="absolute left-[369px] top-[221px] h-[376px] w-[702px]">
+            <Asset name="contact-glow-center.svg" width={702} height={376} className="absolute inset-[-148.94%_-79.77%] size-auto max-w-none" />
+          </div>
+        ) : null}
         <div className="absolute left-[-100px] top-[130px] h-[269px] w-[400px]">
           <Asset name="contact-glow-left.svg" width={400} height={269} className="absolute inset-[-111.52%_-75%] size-auto max-w-none" />
         </div>

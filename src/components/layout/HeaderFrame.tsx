@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-/** Pages whose full-bleed hero sits behind the header (Home, Contact, Services, Careers). */
-const HERO_PATHS = ["/", "/contact", "/services", "/careers"];
+/** Pages whose full-bleed hero sits behind the header (Home, About, Contact, Services, Careers). */
+const HERO_PATHS = ["/", "/about", "/contact", "/services", "/careers"];
 
 /**
  * On those pages the header floats over the hero (transparent, white text);

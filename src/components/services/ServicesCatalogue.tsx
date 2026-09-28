@@ -33,7 +33,13 @@ export function ServicesCatalogue({ groups }: { groups: CatalogueGroup[] }) {
 
   return (
     <>
-      <PageHero id="services-heading" title="Our Services" description="Everything you need to build a stronger brand, attract more customers, and scale with confidence." descriptionWidth="max-w-[614px]">
+      <PageHero
+        id="services-heading"
+        title="Our Services"
+        description="Everything you need to build a stronger brand, attract more customers, and scale with confidence."
+        descriptionWidth="max-w-[614px]"
+        image={{ url: "/media/services-hero-banner.png", alt: "" }}
+      >
         <form role="search" onSubmit={(e) => e.preventDefault()} className="relative h-[50px] w-full max-w-[471px] rounded-[60px] bg-white/[0.28] backdrop-blur-[12px]">
           <label htmlFor={searchId} className="sr-only">Search services</label>
           <input
