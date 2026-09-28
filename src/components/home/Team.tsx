@@ -5,7 +5,7 @@ type Person = HomeSection<"team">["items"][number];
 function PersonCard({ person }: { person: Person }) {
   return (
     <article className="flex w-[290px] max-w-full shrink-0 flex-col gap-4">
-      <div className="relative h-[298px] w-full overflow-hidden rounded-2xl">
+      <div className="relative h-[298px] w-full overflow-hidden rounded-2xl border border-black/10">
         {person.photo ? <FillImage media={person.photo} sizes="290px" className="object-cover" /> : <div aria-hidden="true" className="size-full bg-black/5" />}
       </div>
       <div className="flex items-start justify-between">
