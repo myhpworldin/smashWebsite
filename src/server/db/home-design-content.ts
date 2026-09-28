@@ -80,15 +80,15 @@ export async function importHomeDesignContent(db: Db) {
     await caseStudy("Mobile Garage", "mobile-garage", img("/media/case-mobile-garage-warm-red.png", "A technician repairing a phone with a screwdriver", 640, 448)),
   ];
 
-  // TODO (client): names, designations and photos are the design's placeholders.
-  const person = (name: string, group: string, n: number) =>
-    createTeamMember(db, { name, role: "Designation", group, photo: img(`/media/team-${n}.png`, `Portrait of ${name}`, 290, 298), displayOrder: n, status: "published" });
+  // TODO (client): photos are still the design's placeholders; names/roles below are the real team.
+  const person = (name: string, group: string, n: number, role = "Designation") =>
+    createTeamMember(db, { name, role, group, photo: img(`/media/team-${n}.png`, `Portrait of ${name}`, 290, 298), displayOrder: n, status: "published" });
   const team = [
-    await person("Peter Parker", "Founders & Partners", 1),
+    await person("Rajesh", "Founders & Partners", 1),
     await person("Michelle Jones", "Founders & Partners", 2),
     await person("Peter Parker", "Founders & Partners", 3),
-    await person("Michelle Jones", "Team Members", 4),
-    await person("Peter Parker", "Team Members", 5),
+    await person("Anand S", "Team Members", 4, "Website Developer"),
+    await person("Amrutha", "Team Members", 5, "UI/UX Designer"),
     await person("Michelle Jones", "Team Members", 6),
   ];
 
