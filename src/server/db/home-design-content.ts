@@ -1,5 +1,5 @@
 import type { Db } from "@/server/db/helpers";
-import { findOneRow, findRows } from "@/server/db/helpers";
+import { col, findOneRow, findRows } from "@/server/db/helpers";
 import { homePage, SINGLETON_ID, teamMembers } from "@/server/db/schema";
 import { createService } from "@/server/modules/services/services.service";
 import { createCaseStudy } from "@/server/modules/work/work.service";
@@ -46,16 +46,18 @@ const decorative = (url: string, width: number, height: number) => ({ url, alt: 
 /**
  * The single source of truth for the team grid (About + Home). Edit this array, then run `npm run db:sync-team`
  * to push it to the database — editing this file alone never changes the live site (see `syncTeamRoster` below).
- * `order` also selects the placeholder photo (`/media/team-<order>.png`) until real headshots replace them
- * (TODO (client)). `role` defaults to "Designation" when omitted.
+ * `role` defaults to "Designation" when omitted. `photo` is a filename under `public/media/` (the stock photos
+ * are shared/reused across people, so it is not derived from `order`); omit it to leave no photo yet rather
+ * than guess one (TODO (client): replace with real headshots).
  */
-export const TEAM_ROSTER: { name: string; group: string; order: number; role?: string }[] = [
-  { name: "Rajesh", group: "Founders & Partners", order: 1 },
-  { name: "Michelle Jones", group: "Founders & Partners", order: 2 },
-  { name: "Peter Parker", group: "Founders & Partners", order: 3 },
-  { name: "Anand S", group: "Team Members", order: 4, role: "Website Developer" },
-  { name: "Amrutha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer" },
-  { name: "Michelle Jones", group: "Team Members", order: 6 },
+export const TEAM_ROSTER: { name: string; group: string; order: number; role?: string; photo?: string }[] = [
+  { name: "Ratheesh AR", group: "Founders & Partners", order: 1, role: "Managing Director", photo: "team-1.png" },
+  { name: "Akhil V.T", group: "Founders & Partners", order: 2, role: "Business Development Manager", photo: "team-2.png" },
+  { name: "Rilna K", group: "Founders & Partners", order: 3, role: "Marketing Head", photo: "team-3.png" },
+  { name: "Anand S", group: "Team Members", order: 4, role: "Web Developer", photo: "team-4.png" },
+  { name: "Amritha Jayan", group: "Team Members", order: 5, role: "UI/UX Designer", photo: "team-5.png" },
+  { name: "Indrajith K.A", group: "Team Members", order: 6, role: "Video Editor" },
+  { name: "Abhirami G.M", group: "Team Members", order: 7, role: "Content Creator & Video Presenter", photo: "team-6.png" },
 ];
 
 /**
@@ -63,6 +65,10 @@ export const TEAM_ROSTER: { name: string; group: string; order: number; role?: s
  * name/role/group/photo in place, creates any new `order` that has no row yet, and un-publishes (never deletes) any
  * published row whose `displayOrder` is no longer in the roster — so removing someone from the array takes them off
  * the site without losing their record. Safe to run repeatedly (`npm run db:sync-team`).
+ *
+ * `updateTeamMember`'s `$set` skips `undefined` fields (so a partial edit never wipes what it doesn't mention), which
+ * means a roster entry with no `photo` can't clear one a previous entry at that `order` left behind — this unsets
+ * it directly first so a person with no photo yet never inherits a stale, wrong one.
  */
 export async function syncTeamRoster(db: Db) {
   const existing = await findRows(db, teamMembers);
@@ -70,9 +76,10 @@ export async function syncTeamRoster(db: Db) {
   const wanted = new Set(TEAM_ROSTER.map((p) => p.order));
 
   for (const person of TEAM_ROSTER) {
-    const photo = img(`/media/team-${person.order}.png`, `Portrait of ${person.name}`, 290, 298);
-    const fields = { name: person.name, role: person.role ?? "Designation", group: person.group, photo, status: "published" as const };
     const row = byOrder.get(person.order);
+    if (row && !person.photo && row.photo) await col(db, teamMembers).updateOne({ _id: row.id as never }, { $unset: { photo: "" } });
+    const photo = person.photo ? img(`/media/${person.photo}`, `Portrait of ${person.name}`, 290, 298) : undefined;
+    const fields = { name: person.name, role: person.role ?? "Designation", group: person.group, photo, status: "published" as const };
     if (row) await updateTeamMember(db, row.id, fields);
     else await createTeamMember(db, { ...fields, displayOrder: person.order });
   }
@@ -121,7 +128,8 @@ export async function importHomeDesignContent(db: Db) {
 
   const team = [];
   for (const p of TEAM_ROSTER) {
-    team.push(await createTeamMember(db, { name: p.name, role: p.role ?? "Designation", group: p.group, photo: img(`/media/team-${p.order}.png`, `Portrait of ${p.name}`, 290, 298), displayOrder: p.order, status: "published" }));
+    const photo = p.photo ? img(`/media/${p.photo}`, `Portrait of ${p.name}`, 290, 298) : undefined;
+    team.push(await createTeamMember(db, { name: p.name, role: p.role ?? "Designation", group: p.group, photo, displayOrder: p.order, status: "published" }));
   }
 
   const step = (title: string, description: string) => ({ title, description });
