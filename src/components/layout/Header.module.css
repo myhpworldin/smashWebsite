@@ -15,6 +15,7 @@
 
 .navList a[aria-current="page"] {
   font-weight: 600;
+  color: var(--brand-smash-red);
 }
 
 .mobileNav {
