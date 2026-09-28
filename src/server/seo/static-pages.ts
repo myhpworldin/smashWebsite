@@ -12,12 +12,18 @@ type StaticPage = {
   searchIntent: (typeof searchIntentValues)[number];
   /** Omitted (indexable) by default; set false for a built page with no approved content yet. */
   robotsIndex?: boolean;
+  /** Approved page-specific description; omit to fall back to the site default rather than invent copy. */
+  metaDescription?: string;
 };
 
 export const STATIC_PAGES: Record<string, StaticPage> = {
   [ROUTES.ABOUT]: { title: "About", searchIntent: "navigational" },
   [ROUTES.SERVICES]: { title: "Services", searchIntent: "commercial" },
-  [ROUTES.WORK]: { title: "Work", searchIntent: "commercial" },
+  [ROUTES.WORK]: {
+    title: "Our Work",
+    searchIntent: "commercial",
+    metaDescription: "Real SMASH case studies across growth, performance marketing, social & creative, technology and customer engagement — real work for real businesses.",
+  },
   [ROUTES.INSIGHTS]: { title: "Insights", searchIntent: "informational" },
   [ROUTES.CAREERS]: { title: "Careers", searchIntent: "navigational" },
   [ROUTES.CONTACT]: { title: "Contact", searchIntent: "transactional" },
@@ -34,5 +40,5 @@ export const HOME_LABEL = "Home";
 export function staticPageSource(path: string): SeoSource | null {
   const page = STATIC_PAGES[path];
   if (!page) return null;
-  return { path, status: "published", title: page.title, seo: { searchIntent: page.searchIntent, robotsIndex: page.robotsIndex } };
+  return { path, status: "published", title: page.title, seo: { searchIntent: page.searchIntent, robotsIndex: page.robotsIndex, metaDescription: page.metaDescription } };
 }

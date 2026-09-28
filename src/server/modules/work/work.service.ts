@@ -69,9 +69,11 @@ export async function updateCaseStudy(db: Db, id: string, patch: unknown) {
   return row;
 }
 
-/** Card-level projection; the client is joined only when it is itself published. */
+/** Card-level projection; the client and related services are joined only when themselves published. */
 const summaryStages = (): Document[] => [
   { $lookup: { from: clients, localField: "clientId", foreignField: "_id", pipeline: [{ $match: isPublished() }, { $project: { name: 1, logo: 1 } }], as: "client" } },
+  { $lookup: { from: serviceCaseStudies, localField: "_id", foreignField: "caseStudyId", as: "serviceLinks" } },
+  { $lookup: { from: services, localField: "serviceLinks.serviceId", foreignField: "_id", pipeline: [{ $match: isPublished() }, { $project: { name: 1 } }], as: "relatedServices" } },
   {
     $project: {
       title: 1,
@@ -83,6 +85,7 @@ const summaryStages = (): Document[] => [
       /** First (headline) result only; every result of a published case study is verified. */
       keyResult: { $arrayElemAt: ["$results", 0] },
       client: { $arrayElemAt: ["$client", 0] },
+      serviceNames: "$relatedServices.name",
     },
   },
 ];
@@ -98,6 +101,7 @@ const caseStudySummary = (doc: Document) => ({
   keyResult: (doc.keyResult ?? null) as Metric | null,
   clientName: (doc.client?.name ?? null) as string | null,
   clientLogo: doc.client?.logo ?? null,
+  serviceNames: (doc.serviceNames ?? []) as string[],
 });
 
 export async function listPublishedCaseStudies(db: Db, page: PageParams = DEFAULT_PAGE) {

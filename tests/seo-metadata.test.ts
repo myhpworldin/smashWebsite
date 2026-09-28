@@ -145,7 +145,7 @@ describe("static pages and breadcrumbs", () => {
   it("follows the route hierarchy", () => {
     expect(buildBreadcrumbs("/")).toEqual([{ name: "Home", path: "/" }]);
     expect(buildBreadcrumbs("/services/performance-marketing", "Performance Marketing").map((c) => c.name)).toEqual(["Home", "Services", "Performance Marketing"]);
-    expect(buildBreadcrumbs("/work/acme").map((c) => c.name)).toEqual(["Home", "Work", "acme"]);
+    expect(buildBreadcrumbs("/work/acme").map((c) => c.name)).toEqual(["Home", "Our Work", "acme"]);
     expect(buildBreadcrumbs("/about").map((c) => c.path)).toEqual(["/", "/about"]);
     expect(buildBreadcrumbs("/services/performance-marketing", "Performance Marketing").map((c) => c.path)).toEqual(["/", "/services", "/services/performance-marketing"]);
   });

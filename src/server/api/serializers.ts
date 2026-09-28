@@ -71,7 +71,7 @@ export const serviceDetailDto = (
 
 type CaseSummary = {
   title: string; slug: string; summary: string; industry: string | null; heroImage: Media | null; publishedAt: Date | null;
-  clientName: string | null; clientLogo: Media | null; keyResult: Metric | null;
+  clientName: string | null; clientLogo: Media | null; keyResult: Metric | null; serviceNames: string[];
 };
 export const caseStudySummaryDto = (c: CaseSummary) => ({
   title: c.title,
@@ -82,6 +82,8 @@ export const caseStudySummaryDto = (c: CaseSummary) => ({
   client: clientCard(c.clientName, c.clientLogo),
   /** The headline verified result, if the case study has one. */
   keyResult: c.keyResult ? { label: c.keyResult.label, value: c.keyResult.value, description: c.keyResult.description ?? null } : null,
+  /** The real SMASH services this case study is linked to (never invented — see work.service.ts's summaryStages). */
+  services: c.serviceNames,
   publishedAt: c.publishedAt,
 });
 

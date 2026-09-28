@@ -109,7 +109,7 @@ describe("Home data contract", () => {
     expect(Object.keys(d.technology.items[0])).toEqual(["order", "name", "logo", "description", "url"]);
     expect(Object.keys(d.cta)).toEqual(["eyebrow", "heading", "description", "primaryCta", "secondaryCta"]);
     expect(Object.keys(d.services.items[0])).toEqual(["name", "slug", "path", "shortDescription", "image", "highlights"]);
-    expect(Object.keys(d.selectedWork.items[0])).toEqual(["title", "slug", "path", "summary", "industry", "image", "client", "keyResult", "publishedAt"]);
+    expect(Object.keys(d.selectedWork.items[0])).toEqual(["title", "slug", "path", "summary", "industry", "image", "client", "keyResult", "services", "publishedAt"]);
     expect(Object.keys(d.testimonials.items[0])).toEqual(["quote", "personName", "personRole", "companyName", "photo"]);
     expect(Object.keys(d.insights.items[0])).toEqual(["title", "slug", "path", "excerpt", "image", "category", "tags", "author", "publishedAt", "updatedAt"]);
   });
