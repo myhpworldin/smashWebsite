@@ -50,6 +50,19 @@ export async function buildSitemap(db: Db, site: SiteSeoContext): Promise<Sitema
     const rows = (await findPicked(db, t, isPublished(), ["slug", "updatedAt", "seo"] as const, { sort: { slug: 1 } })) as { slug: string; updatedAt: Date; seo: Seo | null }[];
     for (const r of rows) add(CONTENT_ROUTES[type].build(r.slug), r.seo, r.updatedAt);
   }
+
+  // Stage 1, Phase 1: individual service offerings live nested inside each published category's `deliverables[]`
+  // (not their own top-level rows, so they don't fit the one-row-per-URL loop above) — only those with a `slug`
+  // on their `offering` are routable at all.
+  const categories = (await findPicked(db, services, isPublished(), ["slug", "updatedAt", "deliverables"] as const, { sort: { slug: 1 } })) as
+    { slug: string; updatedAt: Date; deliverables: { offering?: { slug?: string; seo?: Seo | null } }[] }[];
+  for (const category of categories) {
+    for (const d of category.deliverables ?? []) {
+      if (!d.offering?.slug) continue;
+      add(ROUTES.SERVICE_OFFERING(category.slug, d.offering.slug), d.offering.seo, category.updatedAt);
+    }
+  }
+
   return [...entries.values()].sort((a, b) => (a.url < b.url ? -1 : a.url > b.url ? 1 : 0)); // stable, home first
 }
 

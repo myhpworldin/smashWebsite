@@ -7,6 +7,7 @@ import {
   DEFAULT_PAGE,
   findOneRow,
   findPicked,
+  findRows,
   getRowById,
   homeRefStages,
   insertRow,
@@ -27,7 +28,7 @@ import { AppError } from "@/server/lib/errors";
 import { ROUTES } from "@/lib/routes";
 import type { Document } from "mongodb";
 import { recordPathChange } from "@/server/seo/redirects";
-import { serviceInputSchema, serviceUpdateSchema } from "./services.schema";
+import { serviceInputSchema, serviceUpdateSchema, type ServiceDeliverable } from "./services.schema";
 
 const links = (serviceId: string, ids: string[]) => ids.map((caseStudyId) => ({ serviceId, caseStudyId }));
 
@@ -84,10 +85,13 @@ export async function listPublishedServiceCatalogue(db: Db) {
     name: doc.name as string,
     slug: doc.slug as string,
     eyebrow: (doc.hero?.label as string | undefined) ?? null,
-    cards: ((doc.deliverables ?? []) as { title: string; shortTitle?: string; description?: string; icon?: { url: string } }[]).map((d) => ({
+    cards: ((doc.deliverables ?? []) as ServiceDeliverable[]).map((d) => ({
       title: d.shortTitle ?? d.title,
       description: d.description ?? null,
       iconUrl: d.icon?.url ?? null,
+      // Stage 1, Phase 1: a card links to its own page once its deliverable has one (`offering.slug`); otherwise it
+      // still links to the category page as before — existing deliverables with no offering are unaffected.
+      offeringSlug: d.offering?.slug ?? null,
     })),
   }));
 }
@@ -110,4 +114,60 @@ export async function getPublishedServiceBySlug(db: Db, slug: string, { includeD
     ? await findPicked(db, insights, publishedAnd({ _id: { $in: insightIds } as never }), ["title", "slug", "excerpt"] as const, { sort: { publishedAt: -1 } })
     : [];
   return { ...toPublic(row), relatedCaseStudies: related, relatedInsights };
+}
+
+/**
+ * Stage 1, Phase 1 — an individual deliverable's own detail page. A deliverable is only found this way once it has
+ * both a `slug` on its `offering` (the deliverable's own individual-page content) and its parent category is
+ * published; the category being published does not by itself make an unslugged deliverable routable, and an
+ * unpublished category makes every one of its deliverables unreachable, matching how the category page itself
+ * already behaves.
+ *
+ * `relatedServices` are resolved from `offering.relatedServiceSlugs` against every published category's
+ * deliverables, not just this offering's own category (Stage 1, Phase 4 fix — Technology's brief called for
+ * cross-category relationships like Landing Pages → Meta Ads/Google Ads, which the original same-category-only
+ * lookup could never resolve; Phases 2–3 never exercised this because their relationships happened to stay within
+ * one category each). A slug that resolves in more than one category is treated as a data ambiguity, not
+ * disambiguated silently: the first match wins, deterministically, by category `displayOrder`.
+ */
+export async function getPublishedServiceOffering(db: Db, categorySlug: string, offeringSlug: string) {
+  const category = await findOneRow(db, services, publishedAnd({ slug: categorySlug }));
+  if (!category) throw AppError.notFound("Service");
+  const deliverables = (category.deliverables ?? []) as ServiceDeliverable[];
+  const deliverable = deliverables.find((d) => d.offering?.slug === offeringSlug);
+  if (!deliverable?.offering) throw AppError.notFound("Service");
+  const offering = deliverable.offering;
+
+  const caseIds = offering.relatedCaseStudyIds ?? [];
+  const relatedCaseStudies = caseIds.length
+    ? await findPicked(db, caseStudies, publishedAnd({ _id: { $in: caseIds } as never }), ["title", "slug", "summary", "heroImage"] as const)
+    : [];
+
+  const wantedSlugs = new Set(offering.relatedServiceSlugs ?? []);
+  const relatedServices: { title: string; slug: string; categorySlug: string }[] = [];
+  if (wantedSlugs.size) {
+    const allCategories = (await findRows(db, services, isPublished(), { sort: { displayOrder: 1 } })) as (typeof category)[];
+    const seen = new Set<string>();
+    for (const cat of allCategories) {
+      for (const d of (cat.deliverables ?? []) as ServiceDeliverable[]) {
+        const slug = d.offering?.slug;
+        if (!slug || slug === offeringSlug || seen.has(slug) || !wantedSlugs.has(slug)) continue;
+        seen.add(slug);
+        relatedServices.push({ title: d.shortTitle ?? d.title, slug, categorySlug: cat.slug });
+      }
+    }
+  }
+
+  return {
+    category: { name: category.name, slug: category.slug },
+    title: deliverable.shortTitle ?? deliverable.title,
+    slug: offering.slug!,
+    headline: offering.headline ?? deliverable.title,
+    shortDescription: deliverable.description ?? null,
+    icon: deliverable.icon ?? null,
+    offering,
+    relatedServices,
+    relatedCaseStudies,
+    updatedAt: category.updatedAt,
+  };
 }

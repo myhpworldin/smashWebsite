@@ -17,7 +17,10 @@ export function CaseStudyCard({ caseStudy }: { caseStudy: CaseStudySummary }) {
     >
       {caseStudy.image ? (
         <div className="absolute inset-0 -z-20 overflow-hidden">
-          <div className="size-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
+          {/* `FillImage` uses next/image `fill`, which requires a positioned parent (Phase 9: was `static`, the default —
+              Next flagged it at runtime; happened to still lay out correctly only because the further `inset-0` ancestor
+              above is itself positioned, which `fill`'s implicit absolute positioning was falling back to). */}
+          <div className="relative size-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
             <FillImage media={caseStudy.image} sizes="(min-width: 1440px) 640px, (min-width: 768px) 50vw, 100vw" className="object-cover" />
           </div>
         </div>

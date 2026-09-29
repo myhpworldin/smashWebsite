@@ -7,6 +7,8 @@ export const ROUTES = {
   ABOUT: "/about",
   SERVICES: "/services",
   SERVICE: (slug: string) => `/services/${slug}`,
+  /** Stage 1, Phase 1: an individual offering within a category, e.g. `/services/growth/meta-ads`. Deliberately nested rather than flat — avoids any slug collision with the 4 category routes above, which share this same `services` collection. */
+  SERVICE_OFFERING: (categorySlug: string, slug: string) => `/services/${categorySlug}/${slug}`,
   WORK: "/work",
   CASE_STUDY: (slug: string) => `/work/${slug}`,
   INSIGHTS: "/insights",

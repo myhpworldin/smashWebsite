@@ -16,7 +16,7 @@ export function CaseStudyHeader({ caseStudy }: { caseStudy: CaseStudyDetail }) {
         ) : null}
         <h1 className={styles.heading}>{caseStudy.title}</h1>
         <p className={styles.summary}>{caseStudy.summary}</p>
-        <Media media={caseStudy.heroImage} sizes="100vw" />
+        <Media media={caseStudy.heroImage} sizes="100vw" className={styles.image} />
       </div>
     </Container>
   );

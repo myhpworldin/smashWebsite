@@ -11,7 +11,7 @@ export function MediaGallery({ items }: { items: CaseStudyDetail["media"] }) {
     <Section spacing="tight">
       <Container>
         <div className={styles.grid}>
-          {items.map((item, i) => <Media key={i} media={item} sizes="(min-width: 768px) 50vw, 100vw" />)}
+          {items.map((item, i) => <Media key={i} media={item} sizes="(min-width: 768px) 50vw, 100vw" className={styles.image} />)}
         </div>
       </Container>
     </Section>

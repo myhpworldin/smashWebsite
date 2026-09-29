@@ -4,7 +4,7 @@ import { getDb } from "@/server/db/client";
 import { indexingFromEnv } from "@/server/seo/env-context";
 import { loadSiteSeoContext } from "@/server/seo/site-context";
 import { getPublishedHome } from "@/server/modules/home/home.service";
-import { getPublishedServiceBySlug, listPublishedServices } from "@/server/modules/services/services.service";
+import { getPublishedServiceBySlug, getPublishedServiceOffering, listPublishedServices } from "@/server/modules/services/services.service";
 import { getPublishedCaseStudyBySlug } from "@/server/modules/work/work.service";
 import { getPublishedInsightBySlug } from "@/server/modules/insights/insights.service";
 import { getPublishedCareerBySlug } from "@/server/modules/careers/careers.service";
@@ -47,6 +47,8 @@ export const getServiceNavItems = cache(async (): Promise<{ label: string; path:
   }
 });
 export const getService = cache((slug: string) => getPublishedServiceBySlug(getDb(), slug));
+/** Stage 1, Phase 1 — cache key includes both slugs since an offering slug alone isn't unique across categories. */
+export const getServiceOffering = cache((categorySlug: string, slug: string) => getPublishedServiceOffering(getDb(), categorySlug, slug));
 export const getCaseStudy = cache((slug: string) => getPublishedCaseStudyBySlug(getDb(), slug));
 export const getInsight = cache((slug: string) => getPublishedInsightBySlug(getDb(), slug));
 export const getCareer = cache((slug: string) => getPublishedCareerBySlug(getDb(), slug));

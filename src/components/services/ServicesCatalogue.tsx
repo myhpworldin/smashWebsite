@@ -12,7 +12,7 @@ export type CatalogueGroup = {
   name: string;
   slug: string;
   eyebrow: string | null;
-  cards: { title: string; description: string | null; iconUrl: string | null }[];
+  cards: { title: string; description: string | null; iconUrl: string | null; offeringSlug: string | null }[];
 };
 
 const matches = (query: string, ...fields: (string | null)[]) => fields.some((f) => f?.toLowerCase().includes(query));
@@ -75,7 +75,7 @@ export function ServicesCatalogue({ groups }: { groups: CatalogueGroup[] }) {
                     <h3 className="mt-6 font-manrope text-[22px] font-bold leading-[30px] text-deep-blue">{card.title}</h3>
                     {card.description ? <p className="mt-3 font-inter text-[15px] leading-[22px] text-black/80">{card.description}</p> : null}
                     <Link
-                      href={ROUTES.SERVICE(group.slug)}
+                      href={card.offeringSlug ? ROUTES.SERVICE_OFFERING(group.slug, card.offeringSlug) : ROUTES.SERVICE(group.slug)}
                       className="mt-auto pt-3 font-inter text-[15px] font-medium leading-[22px] text-bright-blue no-underline after:absolute after:inset-0 after:rounded-2xl after:content-['']"
                     >
                       Know More<span className="sr-only"> about {card.title}</span>

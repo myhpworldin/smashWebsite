@@ -2,11 +2,11 @@ import "server-only";
 import type { Metadata } from "next";
 import { AppError } from "@/server/lib/errors";
 import { logger } from "@/server/lib/logger";
-import { careerSource, caseStudySource, homeSource, insightSource, serviceSource } from "@/server/seo/adapters";
+import { careerSource, caseStudySource, homeSource, insightSource, serviceOfferingSource, serviceSource } from "@/server/seo/adapters";
 import { resolveMetadata, type SeoSource } from "@/server/seo/metadata";
 import { toNextMetadata } from "@/server/seo/to-next-metadata";
 import { toleratesOutages } from "@/server/seo/env-context";
-import { getCareer, getCaseStudy, getHome, getInsight, getService, getSiteContext } from "@/server/seo/request-cache";
+import { getCareer, getCaseStudy, getHome, getInsight, getService, getServiceOffering, getSiteContext } from "@/server/seo/request-cache";
 import { staticPageSource } from "@/server/seo/static-pages";
 
 async function build(load: () => Promise<SeoSource>, onMissing: Metadata): Promise<Metadata> {
@@ -21,6 +21,15 @@ async function build(load: () => Promise<SeoSource>, onMissing: Metadata): Promi
 
 // Unknown slug: the page itself issues the 404/redirect, so emit nothing here.
 export const serviceMetadata = (slug: string) => build(async () => serviceSource(await getService(slug)), {});
+/** Stage 1, Phase 1 — an individual offering's own metadata (falls back to the site default, same as every other unknown-slug case, if the category/offering isn't found or isn't routable yet). */
+export const serviceOfferingMetadata = (categorySlug: string, slug: string) =>
+  build(async () => {
+    const o = await getServiceOffering(categorySlug, slug);
+    return serviceOfferingSource({
+      title: o.title, slug: o.slug, categorySlug: o.category.slug, headline: o.headline,
+      shortDescription: o.shortDescription, visual: o.offering.introduction?.visual, seo: o.offering.seo, updatedAt: o.updatedAt,
+    });
+  }, {});
 export const caseStudyMetadata = (slug: string) => build(async () => caseStudySource(await getCaseStudy(slug)), {});
 export const insightMetadata = (slug: string) => build(async () => insightSource(await getInsight(slug)), {});
 export const careerMetadata = (slug: string) => build(async () => careerSource(await getCareer(slug)), {});

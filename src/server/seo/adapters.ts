@@ -27,6 +27,18 @@ export const serviceSource = (s: Common & { name: string; slug: string; shortDes
   seo: s.seo,
 });
 
+/** Stage 1, Phase 1 — an individual service offering's own page (`/services/[category]/[slug]`). */
+export const serviceOfferingSource = (
+  o: Common & { title: string; slug: string; categorySlug: string; headline: string; shortDescription: string | null; visual?: Media | null },
+): SeoSource => ({
+  path: ROUTES.SERVICE_OFFERING(o.categorySlug, o.slug),
+  status: o.status ?? "published",
+  title: o.headline || o.title,
+  summary: o.shortDescription ?? undefined,
+  image: o.visual,
+  seo: o.seo,
+});
+
 export const caseStudySource = (c: Common & { title: string; slug: string; summary: string; heroImage?: Media | null }): SeoSource => ({
   path: ROUTES.CASE_STUDY(c.slug),
   status: c.status ?? "published",

@@ -24,6 +24,11 @@ const DEFAULT_SIZES = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
 export function Media({ media, sizes, className }: { media: PublicMedia | null; sizes?: string; className?: string }) {
   if (!media) return null;
   const { url, alt, width, height, decorative, loading } = media;
+  // Phase 8: `loading: "eager"` already marks exactly the above-the-fold hero media
+  // (`eagerKeys` in publicizeMedia) — the LCP candidate on a case-study page. Removing
+  // native lazy-loading alone doesn't get it fetched sooner; `priority` additionally
+  // sets fetchPriority="high" and preloads it, which `loading="eager"` alone does not.
+  const priority = loading === "eager";
   return (
     <Image
       src={url}
@@ -32,6 +37,7 @@ export function Media({ media, sizes, className }: { media: PublicMedia | null; 
       width={width ?? 1200}
       height={height ?? 800}
       loading={loading}
+      priority={priority}
       sizes={sizes ?? DEFAULT_SIZES}
       className={className}
     />

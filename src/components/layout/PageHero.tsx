@@ -9,13 +9,19 @@ import { Asset } from "@/components/home/shared";
  * sides). The global header floats over it (`HeaderFrame`). `children` is the optional action row under the intro
  * (search box, button). `image` is the optional full-bleed background photo behind the glows (About/Services/Contact
  * only — Careers has none); `centerGlow` hides the middle glow when the design omits it (About).
+ *
+ * `description` is optional (Stage 1, Phase 1 — Service Detail hero, Figma node 165:306): that hero is just the
+ * two-line headline, no intro paragraph beneath it, unlike every other `PageHero` caller so far. A visible
+ * breadcrumb trail was tried inside this hero and reverted — the approved Figma hero (node 165:306) is nav +
+ * centred title only; Service Detail offering pages carry the same Home → Category → Service hierarchy purely
+ * as invisible `BreadcrumbList` structured data instead (`src/server/seo/page-jsonld.ts`).
  */
 export function PageHero({ id, title, description, descriptionWidth, image, centerGlow = true, children }: {
   id: string;
   title: string;
-  description: string;
-  /** The intro's max width in the design (px, as a Tailwind class such as `max-w-[760px]`). */
-  descriptionWidth: string;
+  description?: string;
+  /** The intro's max width in the design (px, as a Tailwind class such as `max-w-[760px]`). Unused when `description` is omitted. */
+  descriptionWidth?: string;
   image?: { url: string; alt: string };
   centerGlow?: boolean;
   children?: ReactNode;
@@ -42,7 +48,7 @@ export function PageHero({ id, title, description, descriptionWidth, image, cent
       <div className={`mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 px-4 pb-16 pt-32 text-center md:px-10 ${children ? "xl:pb-[100px] xl:pt-[228px]" : "xl:pb-[140px] xl:pt-[256px]"}`}>
         <div className="flex flex-col items-center gap-[18px]">
           <h1 id={id} className="font-inter text-[36px] font-bold capitalize leading-[1.2] md:text-6xl md:leading-[76px]">{title}</h1>
-          <p className={`font-inter text-lg leading-7 md:text-xl ${descriptionWidth}`}>{description}</p>
+          {description ? <p className={`font-inter text-lg leading-7 md:text-xl ${descriptionWidth ?? ""}`}>{description}</p> : null}
         </div>
         {children}
       </div>

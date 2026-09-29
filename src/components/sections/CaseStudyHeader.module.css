@@ -22,3 +22,15 @@
   color: var(--color-muted);
   max-width: 60ch;
 }
+
+/*
+ * Phase 7 fix: `Media` renders at its stored intrinsic size (640×448) unless a
+ * caller opts into filling its container. Without this, the hero image never
+ * grows past 640px on any viewport wider than that (Container is 1320px), so
+ * desktop showed a small fixed-size image with a large empty gap beside it —
+ * not scaled down, since `max-width: 100%` (globals.css) only ever shrinks.
+ */
+.image {
+  width: 100%;
+  height: auto;
+}

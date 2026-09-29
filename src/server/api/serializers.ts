@@ -5,6 +5,7 @@ import { ctaDto, itemDto, heroDto } from "@/server/api/sections";
 import type { ResolvedMetadata } from "@/server/seo/metadata";
 import type { Cta, Media, Metric, TitledItem } from "@/server/validation/common";
 import type { FaqItem, HeroContent, TitledCopy, Tool } from "@/server/validation/content";
+import type { ServiceOffering } from "@/server/modules/services/services.schema";
 import type { Publicize } from "@/server/api/publicize-type";
 
 /**
@@ -66,6 +67,52 @@ export const serviceDetailDto = (
   updatedAt: s.updatedAt,
   seo,
 });
+
+/* ── service offerings (Stage 1, Phase 1 — an individual deliverable's own page) ── */
+
+const sectionIntroDto = (s: { eyebrow?: string; heading?: string; description?: string }) => ({
+  eyebrow: s.eyebrow ?? null,
+  heading: s.heading ?? null,
+  description: s.description ?? null,
+});
+
+export const serviceOfferingDetailDto = (
+  o: {
+    category: { name: string; slug: string };
+    title: string; slug: string; headline: string; shortDescription: string | null; icon: Media | null;
+    offering: ServiceOffering;
+    relatedServices: { title: string; slug: string; categorySlug: string }[];
+    relatedCaseStudies: { title: string; slug: string; summary: string; heroImage: Media | null }[];
+    updatedAt: Date;
+  },
+  seo: PublicSeo,
+) => {
+  const off = o.offering;
+  return {
+    name: o.title,
+    slug: o.slug,
+    path: ROUTES.SERVICE_OFFERING(o.category.slug, o.slug),
+    headline: o.headline,
+    shortDescription: o.shortDescription,
+    icon: o.icon,
+    category: { name: o.category.name, slug: o.category.slug, path: ROUTES.SERVICE(o.category.slug) },
+    introduction: off.introduction ? { ...sectionIntroDto(off.introduction), visual: off.introduction.visual ?? null } : null,
+    importance: off.importance
+      ? { ...sectionIntroDto(off.importance), visual: off.importance.visual ?? null, takeaways: (off.importance.takeaways ?? []).map(itemDto) }
+      : null,
+    capabilities: off.capabilities ? { ...sectionIntroDto(off.capabilities), items: (off.capabilities.items ?? []).map(itemDto) } : null,
+    process: off.process ? { ...sectionIntroDto(off.process), stages: (off.process.stages ?? []).map(itemDto) } : null,
+    outcome: off.outcome
+      ? { ...sectionIntroDto(off.outcome), highlight: off.outcome.highlight ?? null, items: (off.outcome.items ?? []).map(itemDto) }
+      : null,
+    relatedServices: o.relatedServices.map((s) => ({ title: s.title, ...ref((slug) => ROUTES.SERVICE_OFFERING(s.categorySlug, slug), s) })),
+    relatedCaseStudies: o.relatedCaseStudies.map((c) => ({ title: c.title, ...ref(ROUTES.CASE_STUDY, c), summary: c.summary, image: c.heroImage })),
+    faqs: (off.faqs ?? []).map(faqDto),
+    cta: ctaDto(off.cta),
+    updatedAt: o.updatedAt,
+    seo,
+  };
+};
 
 /* ── case studies ─────────────────────────────────────────── */
 
@@ -247,6 +294,7 @@ export type ServiceDetail = Publicize<ReturnType<typeof serviceDetailDto>>;
 export type ServiceTitledCopy = Publicize<ReturnType<typeof titledCopyDto>>;
 export type ServiceTool = Publicize<ReturnType<typeof toolDto>>;
 export type ServiceFaq = ReturnType<typeof faqDto>;
+export type ServiceOfferingDetail = Publicize<ReturnType<typeof serviceOfferingDetailDto>>;
 export type CaseStudySummary = Publicize<ReturnType<typeof caseStudySummaryDto>>;
 export type CaseStudyDetail = Publicize<ReturnType<typeof caseStudyDetailDto>>;
 export type InsightSummary = Publicize<ReturnType<typeof insightSummaryDto>>;
