@@ -12,7 +12,7 @@ export function Industries({ data, className = "" }: { data: HomeSection<"indust
         <SectionHeading eyebrow={data.eyebrow} heading={data.heading} id="industries-heading" align="center" />
         <div className="flex flex-col items-center gap-[30px]">
           {rows.map((row, r) => (
-            <ul key={r} className="flex flex-wrap justify-center gap-[30px] lg:flex-nowrap">
+            <ul key={r} data-reveal-group className="flex flex-wrap justify-center gap-[30px] lg:flex-nowrap">
               {row.map(({ name }) => (
                 <li key={name} className="flex h-[76px] shrink-0 items-center whitespace-nowrap rounded-[18px] border border-black/20 bg-white px-[30px] font-manrope text-2xl font-semibold leading-[1.4] text-deep-blue">
                   {name}

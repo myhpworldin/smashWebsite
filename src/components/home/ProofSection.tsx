@@ -8,7 +8,7 @@ export function ProofSection({ data, className = "" }: { data: HomeSection<"busi
     <section aria-labelledby="proof-heading" className={className}>
       <div className={WRAP}>
         <SectionHeading eyebrow={data.eyebrow} heading={data.heading} id="proof-heading" className="max-w-[819px]" />
-        <div className="mt-[50px] grid max-w-[1272px] gap-[30px] md:grid-cols-2 lg:grid-cols-[354fr_380fr_478fr]">
+        <div data-reveal-group className="mt-[50px] grid max-w-[1272px] gap-[30px] md:grid-cols-2 lg:grid-cols-[354fr_380fr_478fr]">
           {data.items.map((card, i) => (
             <article key={`${card.label}-${card.value}`} className="relative flex min-h-[298px] flex-col justify-end gap-2 rounded-2xl border border-black/30 p-[22px]">
               <IconTile className="absolute right-[22px] top-[22px]">

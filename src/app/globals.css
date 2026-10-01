@@ -102,6 +102,11 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Native smooth scroll (anchor nav, browser back/forward with a hash) — no extra library needed; the
+     existing prefers-reduced-motion rule below already forces this back to `auto` for that case.
+     Paired with `data-scroll-behavior="smooth"` on <html> (layout.tsx) — Next's own App Router route-transition
+     scroll restoration checks for that attribute and otherwise warns it might fight this rule. */
+  scroll-behavior: smooth;
 }
 
 body {

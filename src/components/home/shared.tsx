@@ -10,9 +10,24 @@ export type HomeSection<K extends keyof HomeResponse> = NonNullable<HomeResponse
 /** A call to action as the API returns it. */
 export type HomeCta = { label: string; target: string };
 
-/** A CMS image filling its (relatively positioned) parent. Alt text and eager/lazy loading come from the media record. */
-export function FillImage({ media, sizes, className }: { media: PublicMedia; sizes: string; className?: string }) {
-  return <Image src={media.url} alt={media.decorative ? "" : media.alt} fill sizes={sizes} priority={media.loading === "eager"} className={className} />;
+/**
+ * A CMS image filling its (relatively positioned) parent. Alt text and eager/lazy loading come from the media
+ * record. `reveal: true` tags it `data-reveal="image"` for `HomeAnimations`' generic scroll-reveal system (a
+ * gentle fade + scale-in the first time it enters the viewport) — opt-in and omitted by default so this stays a
+ * no-op everywhere outside Home, and skipped on the Hero's own background photo (priority/LCP) deliberately.
+ */
+export function FillImage({ media, sizes, className, reveal }: { media: PublicMedia; sizes: string; className?: string; reveal?: boolean }) {
+  return (
+    <Image
+      src={media.url}
+      alt={media.decorative ? "" : media.alt}
+      fill
+      sizes={sizes}
+      priority={media.loading === "eager"}
+      className={className}
+      {...(reveal ? { "data-reveal": "image" } : {})}
+    />
+  );
 }
 
 /** Paragraphs from a stored text block: blank-line separated. */
@@ -36,15 +51,24 @@ const TONES: Record<Tone, string> = {
   white: "bg-white text-bright-blue font-medium",
 };
 
-/** The design's pill button (Manrope 18, 50px, fully rounded), with the design's arrow where it has one. */
+/**
+ * The design's pill button (Manrope 18, 50px, fully rounded), with the design's arrow where it has one.
+ * A restrained, site-wide hover: a slight lift + opacity dip, with the arrow (where present) nudging forward —
+ * pure CSS transitions (no GSAP/JS), so every button on every page gets the same consistent interaction language
+ * for free, including outside Home. Dimensions are untouched; only transform/opacity move.
+ */
 export function PillLink({ href, tone, arrow, children, className = "" }: { href: string; tone: Tone; arrow?: "white" | "blue"; children: ReactNode; className?: string }) {
   return (
     <Link
       href={href}
-      className={`inline-flex h-[50px] items-center justify-center gap-2.5 whitespace-nowrap rounded-[36px] px-5 py-3 font-manrope text-lg leading-none no-underline transition-opacity hover:opacity-90 ${TONES[tone]} ${className}`}
+      className={`group inline-flex h-[50px] items-center justify-center gap-2.5 whitespace-nowrap rounded-[36px] px-5 py-3 font-manrope text-lg leading-none no-underline transition-[opacity,transform] duration-200 ease-out hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0 ${TONES[tone]} ${className}`}
     >
       {children}
-      {arrow ? <Asset name={arrow === "white" ? "arrow-1.svg" : "arrow-2.svg"} width={16} height={10} /> : null}
+      {arrow ? (
+        <span className="inline-flex transition-transform duration-200 ease-out group-hover:translate-x-1">
+          <Asset name={arrow === "white" ? "arrow-1.svg" : "arrow-2.svg"} width={16} height={10} />
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -60,7 +84,7 @@ export function SectionHeading({ eyebrow, heading, id, align = "left", tone = "d
 }) {
   const centered = align === "center";
   return (
-    <div className={`flex flex-col gap-4 ${centered ? "items-center text-center" : "items-start"} ${className}`}>
+    <div data-reveal="fade-up" className={`flex flex-col gap-4 ${centered ? "items-center text-center" : "items-start"} ${className}`}>
       {eyebrow ? <p className={`font-inter text-sm font-semibold uppercase leading-[normal] ${tone === "light" ? "text-white" : "text-eyebrow"}`}>{eyebrow}</p> : null}
       {heading ? (
         <h2 id={id} className={`font-inter text-[28px] font-medium leading-[1.2] md:text-[42px] ${tone === "light" ? "text-white" : "text-ink"}`}>

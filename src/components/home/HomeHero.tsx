@@ -37,7 +37,7 @@ export function HomeHero({ hero, pills }: { hero: HomeSection<"hero">; pills: st
 
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-[1440px] -translate-x-1/2 min-[1200px]:block">
         {pills.slice(0, PILLS.length).map((text, i) => (
-          <div key={text} className={`absolute flex h-[66px] w-[331px] items-center rounded-2xl border-[0.81px] border-white bg-white/10 px-6 backdrop-blur-[29.83px] ${PILLS[i].className}`}>
+          <div key={text} data-hero-el="pill" className={`absolute flex h-[66px] w-[331px] items-center rounded-2xl border-[0.81px] border-white bg-white/10 px-6 backdrop-blur-[29.83px] ${PILLS[i].className}`}>
             <span className="whitespace-nowrap font-inter text-xl font-medium">{text}</span>
           </div>
         ))}
@@ -47,15 +47,15 @@ export function HomeHero({ hero, pills }: { hero: HomeSection<"hero">; pills: st
         <div className="flex max-w-[658px] flex-col gap-10">
           <div className="flex flex-col gap-10">
             <div className="flex flex-col gap-5">
-              <h1 id="hero-heading" className="font-inter text-[40px] font-bold capitalize leading-[1.15] md:text-6xl md:leading-[76px]">{hero.heading}</h1>
-              {hero.supportingText ? <p className="max-w-[610px] font-inter text-lg leading-7 md:text-xl">{hero.supportingText}</p> : null}
+              <h1 id="hero-heading" data-hero-el="heading" className="font-inter text-[40px] font-bold capitalize leading-[1.15] md:text-6xl md:leading-[76px]">{hero.heading}</h1>
+              {hero.supportingText ? <p data-hero-el="text" className="max-w-[610px] font-inter text-lg leading-7 md:text-xl">{hero.supportingText}</p> : null}
             </div>
-            <div className="flex flex-wrap items-center gap-5">
+            <div data-hero-el="cta" className="flex flex-wrap items-center gap-5">
               {primaryCta && isLive(primaryCta.target) ? <PillLink href={primaryCta.target} tone="red" arrow="white">{primaryCta.label}</PillLink> : null}
               {secondaryCta && isLive(secondaryCta.target) ? <PillLink href={secondaryCta.target} tone="white" className="!text-smash-red">{secondaryCta.label}</PillLink> : null}
             </div>
           </div>
-          {hero.eyebrow ? <p className="w-fit rounded-[10px] bg-white/20 px-4 py-2.5 font-inter text-lg font-medium leading-5 backdrop-blur-xs">{hero.eyebrow}</p> : null}
+          {hero.eyebrow ? <p data-hero-el="eyebrow" className="w-fit rounded-[10px] bg-white/20 px-4 py-2.5 font-inter text-lg font-medium leading-5 backdrop-blur-xs">{hero.eyebrow}</p> : null}
         </div>
       </div>
     </section>

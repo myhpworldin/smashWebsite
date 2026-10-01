@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${manrope.variable}`}>
       <body>
         <a href="#main-content" className="skip-link">Skip to content</a>
         <Header />

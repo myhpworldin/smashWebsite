@@ -17,6 +17,7 @@ export function BrandStory({ data, className = "" }: { data: HomeSection<"story"
           {data.supportingPoints.map((point, i) => (
             <li
               key={`${point.order}-${point.title}`}
+              data-reveal-item
               style={{ opacity: OPACITY[Math.min(i, OPACITY.length - 1)] }}
               className={`font-inter text-2xl font-semibold leading-10 md:text-4xl md:leading-[44px] ${i === HIGHLIGHT ? "text-eyebrow" : "text-gray-900"}`}
             >
@@ -25,7 +26,7 @@ export function BrandStory({ data, className = "" }: { data: HomeSection<"story"
           ))}
         </ul>
         <div className="flex flex-col gap-8 lg:w-[581px]">
-          <div className="flex flex-col gap-6">
+          <div data-reveal="fade-up" className="flex flex-col gap-6">
             {data.heading ? (
               <h2 id="brand-story-heading" className="font-inter text-[32px] font-medium capitalize leading-[1.15] text-black md:text-[42px] md:leading-[54px]">
                 {accent ? `${lead} ` : lead}

@@ -4,9 +4,13 @@ type Person = HomeSection<"team">["items"][number];
 
 function PersonCard({ person }: { person: Person }) {
   return (
-    <article className="flex w-[290px] max-w-full shrink-0 flex-col gap-4">
+    <article className="group flex w-[290px] max-w-full shrink-0 flex-col gap-4">
       <div className="relative h-[298px] w-full overflow-hidden rounded-2xl border border-black/10 bg-white">
-        {person.photo ? <FillImage media={person.photo} sizes="290px" className="object-cover" /> : <div aria-hidden="true" className="size-full bg-black/5" />}
+        {person.photo ? (
+          <FillImage media={person.photo} sizes="290px" className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+        ) : (
+          <div aria-hidden="true" className="size-full bg-black/5" />
+        )}
       </div>
       <div className="flex items-start justify-between">
         <div>
@@ -30,8 +34,8 @@ function PersonCard({ person }: { person: Person }) {
 function Row({ label, people }: { label: string | null; people: readonly Person[] }) {
   return (
     <div className="flex flex-col items-center gap-10">
-      {label ? <h3 className="font-inter text-3xl font-medium leading-[47.6px] text-black/60">{label}</h3> : null}
-      <div className="flex flex-wrap justify-center gap-x-[30px] gap-y-10">
+      {label ? <h3 data-reveal="fade-up" className="font-inter text-3xl font-medium leading-[47.6px] text-black/60">{label}</h3> : null}
+      <div data-reveal-group className="flex flex-wrap justify-center gap-x-[30px] gap-y-10">
         {people.map((p) => (
           <PersonCard key={`${p.order}-${p.name}`} person={p} />
         ))}

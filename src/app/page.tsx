@@ -3,6 +3,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { homeSchemas } from "@/server/seo/page-jsonld";
 import { homeMetadata } from "@/server/seo/next-metadata";
 import { getHomeResponse } from "@/server/seo/request-cache";
+import { HomeAnimations } from "@/components/home/HomeAnimations";
 import { HomeHero } from "@/components/home/HomeHero";
 import { ProofSection } from "@/components/home/ProofSection";
 import { BannerCta } from "@/components/home/BannerCta";
@@ -53,6 +54,7 @@ export default async function HomePage() {
       {home.ourStory ? <OurStory data={home.ourStory} className="mt-16 lg:mt-[120px]" /> : null}
       {home.team ? <Team data={home.team} className="mt-16 lg:mt-[120px]" /> : null}
       {home.cta ? <TalkGrowth data={home.cta} /> : null}
+      <HomeAnimations />
     </>
   );
 }

@@ -1,12 +1,51 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Asset, SectionHeading, WRAP } from "@/components/home/shared";
 import { PageHero } from "@/components/layout/PageHero";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ROUTES } from "@/lib/routes";
+
+/**
+ * Lands the page on a category section with a visible "start at top, then glide down" entrance, for a card on
+ * Home that links here as `/services?scrollTo=<id>` (see ServiceGroups.tsx). Reads `location.search` directly in
+ * an effect rather than `useSearchParams()` so this needs no Suspense boundary and does nothing until after the
+ * page has already painted at its natural scroll-top-0 position — a raw `#hash` would instead make the browser
+ * (and Next's own router) jump there instantly, before any JS runs, which is the "no animation" behaviour this
+ * replaces. The scroll itself is the browser's native compositor-driven `scrollIntoView({behavior:"smooth"})` —
+ * no JS animation loop, no per-frame work on the main thread, so it costs nothing at runtime.
+ */
+function useScrollToCategory() {
+  useEffect(() => {
+    const targetId = new URLSearchParams(window.location.search).get("scrollTo");
+    if (!targetId) return;
+
+    let raf2 = 0;
+    let timer = 0;
+    // Two rAFs so the browser has finished its first layout pass (hero image box, fonts) before anything is
+    // measured — otherwise a late layout shift can throw the landing position off by a section or more.
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        timer = window.setTimeout(() => {
+          const el = document.getElementById(targetId);
+          const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          el?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+          // Swaps the query param for a shareable #hash once scrolling has already started — replaceState never
+          // triggers a scroll on its own, so this can't re-jump or fight the animation that's already running.
+          window.history.replaceState(null, "", `${window.location.pathname}#${targetId}`);
+        }, 250); // a brief, visible pause at the top before the glide down, matching what was asked for
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.clearTimeout(timer);
+    };
+  }, []);
+}
 
 export type CatalogueGroup = {
   name: string;
@@ -23,6 +62,7 @@ const matches = (query: string, ...fields: (string | null)[]) => fields.some((f)
  * hidden. Every card links to its service's page (`/services/<slug>`), the only detail page an offering has.
  */
 export function ServicesCatalogue({ groups }: { groups: CatalogueGroup[] }) {
+  useScrollToCategory();
   const [query, setQuery] = useState("");
   const searchId = useId();
   const q = query.trim().toLowerCase();

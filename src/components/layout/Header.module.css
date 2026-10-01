@@ -8,9 +8,28 @@
 }
 
 .navList a {
+  position: relative;
   white-space: nowrap;
   text-decoration: none;
   font-weight: 400;
+  transition: color var(--motion-duration-base, 250ms) var(--motion-easing, ease);
+}
+
+/* Restrained underline-reveal hover: an absolutely positioned ::after so it never shifts layout/line-height. */
+.navList a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transition: right var(--motion-duration-base, 250ms) var(--motion-easing, ease);
+}
+
+.navList a:hover::after,
+.navList a:focus-visible::after {
+  right: 0;
 }
 
 .navList a[aria-current="page"] {
