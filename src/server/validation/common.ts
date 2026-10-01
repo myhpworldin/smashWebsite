@@ -93,7 +93,13 @@ export const titledCopySchema = z.object({
   description: longText.optional(),
 });
 
-export const titledItemSchema = z.object({ title: shortText, description: longText.optional(), icon: mediaSchema.optional() });
+/**
+ * `bullets`, when given, renders as a short list under the title instead of `description`'s single paragraph —
+ * added for the service Process section's stage cards (Google Ads Figma pass, node 180:734/180:852) where each
+ * stage is a bulleted list of outputs, not prose. Optional and additive: every existing caller (Home's Growth
+ * Engine, other services' process stages) keeps rendering `description` as before.
+ */
+export const titledItemSchema = z.object({ title: shortText, description: longText.optional(), icon: mediaSchema.optional(), bullets: z.array(shortText).max(8).optional() });
 export type TitledItem = z.infer<typeof titledItemSchema>;
 
 /**

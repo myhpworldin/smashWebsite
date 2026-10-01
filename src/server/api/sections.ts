@@ -17,6 +17,7 @@ export const itemDto = (item: TitledItem, index: number) => ({
   title: item.title,
   description: item.description ?? null,
   icon: item.icon ?? null,
+  bullets: item.bullets ?? null,
 });
 
 /** Public shape of one Growth Engine step / Why SMASH reason / Story supporting point, media fields projected. */

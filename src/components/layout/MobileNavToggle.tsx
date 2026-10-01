@@ -57,7 +57,17 @@ export function MobileNavToggle({ items }: { items: NavItem[] }) {
                   <ul className="mt-2 flex flex-col gap-2 border-l border-black/10 pl-4 text-[0.9375rem]">
                     {item.children.map((child) => (
                       <li key={child.path}>
-                        <NavLink href={child.path} onClick={() => setOpen(false)}>{child.label}</NavLink>
+                        {/* A category heading, not a link — only the individual services below route anywhere. */}
+                        <span className="block font-semibold">{child.label}</span>
+                        {child.offerings?.length ? (
+                          <ul className="mt-2 flex flex-col gap-2 border-l border-black/10 pl-4 text-[0.875rem] opacity-80">
+                            {child.offerings.map((offering) => (
+                              <li key={offering.path}>
+                                <NavLink href={offering.path} onClick={() => setOpen(false)}>{offering.label}</NavLink>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

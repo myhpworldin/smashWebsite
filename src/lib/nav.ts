@@ -17,7 +17,13 @@ const NAV_ROUTES: { label: string; path: string }[] = [
   { label: "Contact", path: ROUTES.CONTACT },
 ];
 
-export type NavItem = { label: string; path: string; available: boolean; /** Sub-links shown in a dropdown (desktop) / nested list (mobile). */ children?: { label: string; path: string }[] };
+export type NavItem = {
+  label: string;
+  path: string;
+  available: boolean;
+  /** Sub-links shown in a dropdown (desktop) / nested list (mobile). */
+  children?: { label: string; path: string; /** A child's own sub-links (e.g. a service category's individual services), shown as a flyout (desktop) / nested list (mobile). */ offerings?: { label: string; path: string }[] }[];
+};
 
 export function getPrimaryNav(): NavItem[] {
   return NAV_ROUTES.map((item) => ({ ...item, available: LIVE_STATIC_ROUTES.includes(item.path) }));

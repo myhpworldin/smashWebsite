@@ -32,7 +32,25 @@
   margin: 0;
 }
 
-/* Frosted step cards on the dark Growth Engine band. */
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bullet {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+/* Frosted step cards on the dark Growth Engine band. Sizes here are Home's Growth Engine spec, which this variant
+   was originally built for — kept as-is rather than nudged to the Google Ads process section's own (very close
+   but not identical) numbers, since that would move Home's already-approved card without evidence its own Figma
+   frame specifies the same values. */
 .glass .item {
   justify-content: flex-end;
   min-height: 288px;
@@ -63,9 +81,20 @@
 
 .glass .title {
   text-transform: uppercase;
+  /* The order badge (.glass .order) is absolutely positioned over the card's top-right corner, so it reserves
+     no flow space of its own — a long title's first line otherwise runs straight under it (found live on the
+     Campaign Concepts "Campaign Concepts delivery" stage, whose title collided with its "02" badge). Padding-right
+     equal to the badge's width + its right offset gives the first line the same clearance the badge occupies;
+     harmless on shorter titles (Home's Growth Engine, other services), which never reach this margin anyway. */
+  padding-right: 78px;
 }
 
-.glass .description {
+.titleCaseNone .title {
+  text-transform: none;
+}
+
+.glass .description,
+.glass .bullet {
   color: #fff;
   font-size: 1rem;
   line-height: 1.25rem;

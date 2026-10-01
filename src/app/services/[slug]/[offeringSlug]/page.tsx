@@ -46,7 +46,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string;
     title: raw.title, slug: raw.slug, categorySlug: raw.category.slug, headline: raw.headline,
     shortDescription: raw.shortDescription, visual: raw.offering.introduction?.visual, seo: raw.offering.seo, updatedAt: raw.updatedAt,
   })));
-  const offering = publicizeMedia(serviceOfferingDetailDto(raw, seo), ["introduction", "importance"]) as ServiceOfferingDetail;
+  const offering = publicizeMedia(serviceOfferingDetailDto(raw, seo), ["introduction", "importance", "heroImage"]) as ServiceOfferingDetail;
 
   return (
     <>
@@ -55,7 +55,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string;
           deviated from it. The BreadcrumbList structured data below is unaffected; it's invisible markup and
           still gives search engines the same Home → Category → Service hierarchy. */}
       <JsonLd data={await serviceOfferingSchemas(categorySlug, offeringSlug)} />
-      <PageHero id="service-offering-heading" title={offering.headline} />
+      <PageHero id="service-offering-heading" title={offering.headline} image={offering.heroImage ?? undefined} />
       <ServiceSplitSection data={offering.introduction} headingId="introduction-heading" />
       <ServiceSplitSection data={offering.importance} headingId="importance-heading" reverse takeaways={offering.importance?.takeaways} />
       <ServiceCapabilitiesSection data={offering.capabilities} headingId="capabilities-heading" />

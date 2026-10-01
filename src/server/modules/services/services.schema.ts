@@ -26,6 +26,8 @@ import { heroSchema, sectionIntroSchema, toolSchema } from "@/server/validation/
 export const serviceOfferingSchema = z.object({
   slug: slugSchema.optional(),
   headline: shortText.optional(),
+  /** The hero's full-bleed background photo, behind the existing glow ellipses (Figma node 184:9 for Google Ads) — optional, most offerings have none and fall back to `PageHero`'s plain deep-blue background. */
+  heroImage: mediaSchema.optional(),
   /** "Service Introduction" — two-column: eyebrow/heading/description (left) + an optional visual (right). Never a fabricated dashboard mockup (phase brief §29) — a real image/screenshot only. */
   introduction: sectionIntroSchema.extend({ visual: mediaSchema.optional() }).optional(),
   /** "Why This Service Matters" — mirrored two-column, plus optional numbered takeaway points. */

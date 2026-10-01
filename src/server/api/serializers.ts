@@ -95,6 +95,7 @@ export const serviceOfferingDetailDto = (
     headline: o.headline,
     shortDescription: o.shortDescription,
     icon: o.icon,
+    heroImage: off.heroImage ?? null,
     category: { name: o.category.name, slug: o.category.slug, path: ROUTES.SERVICE(o.category.slug) },
     introduction: off.introduction ? { ...sectionIntroDto(off.introduction), visual: off.introduction.visual ?? null } : null,
     importance: off.importance

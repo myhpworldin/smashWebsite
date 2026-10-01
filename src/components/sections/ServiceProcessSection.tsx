@@ -20,7 +20,7 @@ export function ServiceProcessSection({ data, headingId }: { data: ServiceOfferi
           {data.heading ? <h2 id={headingId} className={styles.heading}>{data.heading}</h2> : null}
           {data.description ? <p className={styles.description}>{data.description}</p> : null}
         </div>
-        <TitledItemList items={data.stages} showOrder variant="glass" />
+        <TitledItemList items={data.stages} showOrder variant="glass" titleCase="none" />
       </Container>
     </Section>
   );

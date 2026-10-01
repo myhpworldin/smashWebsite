@@ -4,7 +4,7 @@ import { getDb } from "@/server/db/client";
 import { indexingFromEnv } from "@/server/seo/env-context";
 import { loadSiteSeoContext } from "@/server/seo/site-context";
 import { getPublishedHome } from "@/server/modules/home/home.service";
-import { getPublishedServiceBySlug, getPublishedServiceOffering, listPublishedServices } from "@/server/modules/services/services.service";
+import { getPublishedServiceBySlug, getPublishedServiceOffering, listPublishedServiceCatalogue } from "@/server/modules/services/services.service";
 import { getPublishedCaseStudyBySlug } from "@/server/modules/work/work.service";
 import { getPublishedInsightBySlug } from "@/server/modules/insights/insights.service";
 import { getPublishedCareerBySlug } from "@/server/modules/careers/careers.service";
@@ -37,11 +37,20 @@ export const getHomeResponse = cache(async (): Promise<HomeResponse | null> => {
     throw err;
   }
 });
-/** The published services in display order, for the header's Services menu. Empty (menu hidden) if they cannot be read: the header renders on every page, error pages included. */
-export const getServiceNavItems = cache(async (): Promise<{ label: string; path: string }[]> => {
+/**
+ * The published service categories in display order, for the header's Services menu, each carrying the individual
+ * services (offerings) it links to for the flyout submenu. Empty (menu hidden) if they cannot be read: the header
+ * renders on every page, error pages included. Only cards with their own page (`offeringSlug`) are listed — a
+ * deliverable with no offering page yet has nowhere of its own to link to.
+ */
+export const getServiceNavItems = cache(async (): Promise<{ label: string; path: string; offerings: { label: string; path: string }[] }[]> => {
   try {
-    const { items } = await listPublishedServices(getDb(), { page: 1, limit: 50 });
-    return items.map((s) => ({ label: s.name, path: ROUTES.SERVICE(s.slug) }));
+    const groups = await listPublishedServiceCatalogue(getDb());
+    return groups.map((g) => ({
+      label: g.name,
+      path: ROUTES.SERVICE(g.slug),
+      offerings: g.cards.filter((c) => c.offeringSlug).map((c) => ({ label: c.title, path: ROUTES.SERVICE_OFFERING(g.slug, c.offeringSlug!) })),
+    }));
   } catch {
     return [];
   }

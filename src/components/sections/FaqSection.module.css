@@ -1,21 +1,32 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .item {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  border: 1px solid #e5e7ed;
+  border-radius: 16px;
+  padding: var(--space-6);
+  background: var(--color-background);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
 }
 
 .question {
   cursor: pointer;
+  list-style: none;
+  font-size: 1.25rem;
   font-weight: var(--font-weight-medium);
+  color: var(--brand-ink);
   min-height: 44px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.question::-webkit-details-marker {
+  display: none;
 }
 
 .question:focus-visible {
@@ -23,7 +34,44 @@
   outline-offset: 2px;
 }
 
+/* A plus/minus toggle drawn from two CSS lines, not an image — the minus is just the plus with its vertical bar
+   hidden, so `[open]` only has to toggle one bar instead of swapping icons. */
+.toggle {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--color-soft-grey);
+}
+
+.toggle::before,
+.toggle::after {
+  content: "";
+  position: absolute;
+  background: var(--brand-ink);
+  border-radius: 1px;
+}
+
+.toggle::before {
+  width: 12px;
+  height: 2px;
+}
+
+.toggle::after {
+  width: 2px;
+  height: 12px;
+}
+
+.item[open] .toggle::after {
+  display: none;
+}
+
 .answer {
-  margin-top: var(--space-3);
-  color: var(--color-muted);
+  margin-top: var(--space-4);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(0, 0, 0, 0.8);
 }

@@ -1,6 +1,7 @@
 import type { ServiceOfferingDetail } from "@/server/api/serializers";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
+import { Media } from "@/components/ui/Media";
 import sectionStyles from "./SectionIntro.module.css";
 import styles from "./ServiceOutcomeSection.module.css";
 
@@ -8,7 +9,9 @@ import styles from "./ServiceOutcomeSection.module.css";
  * Stage 1, Phase 1 — the closing "Built for better decisions, not vanity metrics" section (Figma node 165:306):
  * eyebrow/heading/description plus an optional highlighted principle statement on the left, a compact card grid
  * on the right. `highlight` is deliberately plain text, not a claim of any kind — content phases populate it with
- * a real, verified statement or leave it out (phase brief §29).
+ * a real, verified statement or leave it out (phase brief §29). Each card's `icon` is optional (`titledItemSchema`
+ * already carries it; this just renders it — the Google Ads Figma pass, node 180:734, is the first offering
+ * content to actually use it) — the same 60px tile treatment as `ServiceCapabilitiesSection`'s cards.
  */
 export function ServiceOutcomeSection({ data, headingId }: { data: ServiceOfferingDetail["outcome"]; headingId: string }) {
   if (!data) return null;
@@ -31,6 +34,11 @@ export function ServiceOutcomeSection({ data, headingId }: { data: ServiceOfferi
             <div className={styles.grid}>
               {data.items!.map((item) => (
                 <div key={item.order} className={styles.card}>
+                  {item.icon ? (
+                    <span className={styles.iconTile}>
+                      <Media media={item.icon} sizes="28px" />
+                    </span>
+                  ) : null}
                   <h3 className={styles.cardTitle}>{item.title}</h3>
                   {item.description ? <p className={styles.cardDescription}>{item.description}</p> : null}
                 </div>

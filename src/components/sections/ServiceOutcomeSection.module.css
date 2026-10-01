@@ -45,6 +45,16 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
 }
 
+.iconTile {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  background: #fff;
+}
+
 .cardTitle {
   margin: 0;
   font-size: 1.1875rem;

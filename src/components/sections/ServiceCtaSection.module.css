@@ -1,0 +1,24 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  max-width: 837px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.heading {
+  margin: 0;
+  font-size: clamp(2rem, 2vw + 1.25rem, 2.625rem);
+  line-height: 1.2;
+  font-weight: var(--font-weight-medium);
+  color: #fff;
+}
+
+.description {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.66;
+  color: #fff;
+}
