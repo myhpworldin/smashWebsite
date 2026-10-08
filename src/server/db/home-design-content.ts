@@ -21,9 +21,9 @@ export const HOME_SEO = {
 } as const;
 
 /**
- * Global identity plus the design's own footer contact placeholders (Figma "footer-variation-3": phone, email,
- * "Smash Address line 1 & line 2"). Like the team members below, these are the design's stand-in values, not a
- * confirmed business phone/email/address — replace them in the CMS once the client provides the real ones.
+ * Global identity plus the footer/contact details (Figma "footer-variation-3"). The address is the client's real
+ * office; phone and email are still the design's stand-in values, not confirmed — replace them in the CMS once the
+ * client provides the real ones.
  * Social links are left out entirely since the design gives icons only, no handles/URLs.
  */
 export const SITE_IDENTITY = {
@@ -33,7 +33,7 @@ export const SITE_IDENTITY = {
     phone: "+91 1234567890",
     whatsapp: "+91 1234567890",
     email: "hello@smash.international",
-    address: "Smash Address line 1 & line 2",
+    address: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020",
   },
   /** SMASH logo mark (Figma "Favicon"), used as the browser tab icon and what Google shows beside the site in search results. */
   favicon: { url: "/media/Favicon.svg", alt: "", decorative: true as const, width: 600, height: 588 },
