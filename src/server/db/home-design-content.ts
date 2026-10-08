@@ -32,7 +32,7 @@ export const SITE_IDENTITY = {
   contact: {
     phone: "+91 95399 00003",
     whatsapp: "+91 1234567890",
-    email: "hello@smash.international",
+    email: "smash@sysmantech.net",
     address: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020",
   },
   /** SMASH logo mark (Figma "Favicon"), used as the browser tab icon and what Google shows beside the site in search results. */
