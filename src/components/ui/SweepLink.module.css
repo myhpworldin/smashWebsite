@@ -1,0 +1,121 @@
+/*
+ * Pill link in two tones, each resting on its own soft gradient (no shadow at rest):
+ *   red   — #ff1010 gradient, white label
+ *   white — #ffffff gradient, #ef1010 label
+ * On hover/focus a soft-edged #01124A gradient sweeps in from left to right behind the label, the resting gradient
+ * fades out beneath it, the label (and its arrow, drawn in `currentColor`) fades to white, and a navy shadow fades
+ * in beneath the button.
+ * The sweep layer is twice the button's width — opaque on its left half, fading out on its right — so its leading
+ * edge is a gradient, not a hard line. Only `transform`, colours and the shadow animate.
+ */
+.link {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 36px;
+  white-space: nowrap;
+  font-size: 1.125rem;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 0 0 0 rgba(1, 18, 74, 0);
+  transition:
+    color 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+ * The base also eases to navy under the sweep, so no sliver of red/white shows at the rounded corners, and a soft
+ * navy shadow fades in beneath the button.
+ */
+.link:hover,
+.link:focus-visible {
+  background-color: #01124a;
+  box-shadow:
+    0 12px 28px -8px rgba(1, 18, 74, 0.6),
+    0 4px 10px -2px rgba(1, 18, 74, 0.35);
+}
+
+.link::before,
+.link::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* The sweep: #01124A easing into a lighter navy across the button; the right half fades out to soften the leading edge. */
+.link::before {
+  width: 200%;
+  z-index: -1;
+  background: linear-gradient(90deg, #01124a 0%, #0a2a7a 50%, rgba(10, 42, 122, 0) 100%);
+  transform: translateX(-100%);
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The tone's resting gradient, under the sweep; it fades out as the sweep comes in (gradients can't be transitioned). */
+.link::after {
+  width: 100%;
+  z-index: -2;
+  background: var(--rest-gradient);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  opacity: 0;
+}
+
+.link:hover::before,
+.link:focus-visible::before {
+  transform: translateX(0);
+}
+
+.red {
+  --rest-gradient: linear-gradient(135deg, #ff1010 0%, #e00808 100%);
+  background-color: #ff1010;
+  color: #fff;
+}
+
+.white {
+  --rest-gradient: linear-gradient(135deg, #ffffff 0%, #f1f3f8 100%);
+  background-color: #ffffff;
+  color: #ef1010;
+}
+
+.white:hover,
+.white:focus-visible {
+  color: #fff;
+}
+
+/* The arrow: the SVG used as a mask over `currentColor`, so it changes colour with the label. */
+.arrow {
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  background: currentColor;
+  -webkit-mask: url("/media/home/arrow-right.svg") center / contain no-repeat;
+  mask: url("/media/home/arrow-right.svg") center / contain no-repeat;
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link:hover .arrow,
+.link:focus-visible .arrow {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .link::before,
+  .link::after,
+  .arrow {
+    transition: none;
+  }
+}

@@ -4,13 +4,14 @@ import { homeSchemas } from "@/server/seo/page-jsonld";
 import { homeMetadata } from "@/server/seo/next-metadata";
 import { getHomeResponse } from "@/server/seo/request-cache";
 import { HomeAnimations } from "@/components/home/HomeAnimations";
-import { HomeHero } from "@/components/home/HomeHero";
-import { ProofSection } from "@/components/home/ProofSection";
+import { HeroSection } from "@/components/home/HeroSection";
+import { AboutSection } from "@/components/home/AboutSection";
+import { ShowcaseSection } from "@/components/home/ShowcaseSection";
+import { ManifestoSection } from "@/components/home/ManifestoSection";
+import { ServicesSection } from "@/components/home/ServicesSection";
+import { CaseStudiesSection } from "@/components/home/CaseStudiesSection";
 import { BannerCta } from "@/components/home/BannerCta";
-import { BrandStory } from "@/components/home/BrandStory";
-import { ServiceGroups } from "@/components/home/ServiceGroups";
 import { GrowthEngine } from "@/components/home/GrowthEngine";
-import { CaseStudies } from "@/components/home/CaseStudies";
 import { Industries } from "@/components/home/Industries";
 import { OurStory } from "@/components/home/OurStory";
 import { Team } from "@/components/home/Team";
@@ -24,10 +25,10 @@ export function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The Home page as designed in Figma ("Smash Website Design", frame "Homepage 1"), rendered from the same
- * payload `GET /api/home` serves (published content only). Layout, icons and the section rhythm (100px between the
- * first blocks, 120px between the later ones) live here; every word, list and picture comes from the CMS.
- * A section the CMS has nothing for is skipped, never filled with stand-in copy.
+ * The Home page, rendered from the same payload `GET /api/home` serves (published content only). The top of the
+ * page follows the redesign (Figma "Smash Redesign" → New Homepage): hero, About, showcase band, manifesto,
+ * Our Services and case studies. The sections the redesign has not reached yet keep the previous design below
+ * them until it does. Every word, list and CMS picture comes from the CMS; a section with nothing to show is skipped.
  */
 export default async function HomePage() {
   const home = await getHomeResponse();
@@ -39,17 +40,17 @@ export default async function HomePage() {
       </section>
     );
   }
-  const pills = home.whySmash?.reasons.map((r) => r.title) ?? [];
   return (
     <>
       <JsonLd data={await homeSchemas()} />
-      {home.hero ? <HomeHero hero={home.hero} pills={pills} /> : null}
-      {home.businessProof ? <ProofSection data={home.businessProof} className="mt-16 lg:mt-[100px]" /> : null}
-      {home.bannerCta ? <BannerCta data={home.bannerCta} className="mt-16 lg:mt-[100px]" /> : null}
-      {home.story ? <BrandStory data={home.story} className="mt-16 lg:mt-[100px]" /> : null}
-      {home.services ? <ServiceGroups data={home.services} className="mt-16 lg:mt-[120px]" /> : null}
+      {home.hero ? <HeroSection hero={home.hero} /> : null}
+      {home.businessProof ? <AboutSection data={home.businessProof} /> : null}
+      <ShowcaseSection />
+      {home.story ? <ManifestoSection data={home.story} /> : null}
+      {home.services ? <ServicesSection data={home.services} /> : null}
+      {home.selectedWork ? <CaseStudiesSection data={home.selectedWork} /> : null}
+      {home.bannerCta ? <BannerCta data={home.bannerCta} /> : null}
       {home.growthEngine ? <GrowthEngine data={home.growthEngine} className="mt-16 lg:mt-[120px]" /> : null}
-      {home.selectedWork ? <CaseStudies data={home.selectedWork} className="mt-16 lg:mt-[120px]" /> : null}
       {home.industries ? <Industries data={home.industries} className="mt-16 lg:mt-[120px]" /> : null}
       {home.ourStory ? <OurStory data={home.ourStory} className="mt-16 lg:mt-[120px]" /> : null}
       {home.team ? <Team data={home.team} className="mt-16 lg:mt-[120px]" /> : null}

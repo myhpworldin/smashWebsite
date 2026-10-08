@@ -52,7 +52,7 @@ const TONES: Record<Tone, string> = {
 };
 
 /**
- * The design's pill button (Manrope 18, 50px, fully rounded), with the design's arrow where it has one.
+ * The design's pill button (18px, 50px tall, fully rounded), with the design's arrow where it has one.
  * A restrained, site-wide hover: a slight lift + opacity dip, with the arrow (where present) nudging forward —
  * pure CSS transitions (no GSAP/JS), so every button on every page gets the same consistent interaction language
  * for free, including outside Home. Dimensions are untouched; only transform/opacity move.

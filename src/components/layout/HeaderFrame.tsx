@@ -24,12 +24,14 @@ const SERVICE_OFFERING_PATH = /^\/services\/[a-z0-9-]+\/[a-z0-9-]+$/;
 /**
  * On those pages the header floats over the hero (transparent, white text);
  * every other page has no hero behind it, so it gets a solid brand bar.
+ * Home (redesigned, Figma "Smash Redesign") additionally sets `data-pill`, which Header uses to draw its bar as
+ * the design's frosted pill; the other pages keep the previous layout until they are redesigned too.
  */
 export function HeaderFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const overHero = HERO_PATHS.includes(pathname) || SERVICE_OFFERING_PATH.test(pathname);
   return (
-    <header className={overHero ? "absolute inset-x-0 top-0 z-40 text-white" : "relative z-40 bg-deep-blue text-white"}>
+    <header data-pill={pathname === "/" ? "" : undefined} className={`group/header ${overHero ? "absolute inset-x-0 top-0 z-40 text-white" : "relative z-40 bg-deep-blue text-white"}`}>
       {children}
     </header>
   );

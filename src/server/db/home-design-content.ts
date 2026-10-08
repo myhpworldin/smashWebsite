@@ -146,7 +146,7 @@ export async function importHomeDesignContent(db: Db) {
   }
 
   const step = (title: string, description: string) => ({ title, description });
-  const metric = (label: string, value: string, description: string) => ({ label, value, description, source: SOURCE });
+  const metric = (label: string, value: string, context: string, description: string) => ({ label, value, context, description, source: SOURCE });
   await saveHomePage(db, {
     hero: {
       label: "What did it for ourselves. Now, we do it for you.",
@@ -160,9 +160,9 @@ export async function importHomeDesignContent(db: Db) {
       eyebrow: "Real Businesses. Real Scars. Real Scale.",
       heading: "Marketing learned by building businesses from the concrete floor up.",
       items: [
-        metric("2 to", "400+ People", "What started with two people is now a team of 400+ professionals, working together to build, create and deliver."),
-        metric("₹20 Lakhs to", "₹400 Crores", "From a small beginning to a large-scale operation, we’ve grown through smart strategy and a focus on long-term value."),
-        metric("150 Sq. Ft. to", "Multi-location Retail Network", "From a 150 sq. ft. space to a multi-location retail network, we’ve expanded our presence and built a stronger connection with customers."),
+        metric("2 to", "400+", "People", "What started with two people is now a team of 400+ professionals, working together to build, create and deliver."),
+        metric("₹20 L to", "₹400 Cr", "Revenue", "From a small beginning to a large-scale operation, we’ve grown through smart strategy and a focus on long-term value."),
+        metric("150 Sq.Ft.", "Multiple", "Location", "From a 150 sq. ft. space to a multi-location retail network, we’ve expanded our presence and built a stronger connection with customers."),
       ],
     },
     bannerCta: { heading: "Let’s Grow your brand Together!", cta: { label: "Book a Strategy Call", target: "/contact" }, media: decorative("/media/banner-cta.png", 1320, 496) },

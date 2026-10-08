@@ -38,9 +38,12 @@
   --color-error: #b3261e;
   --color-focus-ring: #0058c8;
 
-  /* Typography — semantic scale, system font stack until fonts are approved */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-heading: var(--font-manrope), var(--font-sans);
+  /*
+   * Typography — Helvetica Neue site-wide (body and headings). It is a system font (macOS/iOS ship it), so nothing is
+   * downloaded; elsewhere it falls back to Helvetica, then Arial.
+   */
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-sans);
   --font-size-display: clamp(2.5rem, 4vw + 1rem, 4.5rem);
   --font-size-h1: clamp(2rem, 2.5vw + 1rem, 3rem);
   --font-size-h2: clamp(1.5rem, 1.5vw + 1rem, 2.25rem);

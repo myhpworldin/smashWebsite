@@ -1,15 +1,11 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Analytics } from "@/components/analytics/Analytics";
 import { analyticsConfig } from "@/lib/analytics-config";
 import { getSiteSettings } from "@/server/seo/request-cache";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
 
 /**
  * Search Console verification (Stage 4, Phase 5): only set when a real value
@@ -36,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${manrope.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <a href="#main-content" className="skip-link">Skip to content</a>
         <Header />
