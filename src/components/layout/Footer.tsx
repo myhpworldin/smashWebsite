@@ -65,11 +65,11 @@ export async function Footer() {
           <Link href={ROUTES.HOME} aria-label="SMASH home" className="shrink-0">
             <Image src="/media/figma/smash-logo-2.png" alt="SMASH" width={171} height={64} className="h-16 w-[171px]" />
           </Link>
-          <div className="flex flex-wrap gap-x-[50px] gap-y-8">
+          <div className="flex flex-wrap gap-x-[50px] gap-y-8 lg:gap-x-20">
             <LinkList title="Quick Links" links={QUICK_LINKS} />
             <LinkList title="Company" links={COMPANY_LINKS} />
             {contact && (contact.phone || contact.email || contact.address) ? (
-              <div className="flex max-w-[225px] flex-col gap-4">
+              <div className="flex max-w-[360px] flex-col gap-4">
                 <p className="font-inter text-base font-semibold uppercase leading-[1.21]">Contact</p>
                 <ul className="flex flex-col gap-2.5 font-inter text-base leading-[1.21]">
                   {contact.phone ? (
@@ -87,7 +87,7 @@ export async function Footer() {
                   {contact.address ? (
                     <li className="flex items-start gap-2.5">
                       <Asset name="group-1.svg" width={13} height={16} className="mt-0.5" />
-                      <span className="max-w-[180px]">{contact.address}</span>
+                      <span>{contact.address}</span>
                     </li>
                   ) : null}
                 </ul>

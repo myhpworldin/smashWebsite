@@ -30,7 +30,7 @@ export const SITE_IDENTITY = {
   siteName: "SMASH International",
   siteDescription: "Strategy, creativity, technology and performance marketing built from real business experience.",
   contact: {
-    phone: "+91 1234567890",
+    phone: "+91 95399 00003",
     whatsapp: "+91 1234567890",
     email: "hello@smash.international",
     address: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020",
