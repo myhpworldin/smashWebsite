@@ -15,7 +15,7 @@ import {
 } from "@/server/db/schema";
 import { assertExist, assertMetricsVerified, col, findOneRow, mapDbError, omit, publishFields, replaceLinks, toPublic, toRow, type Db } from "@/server/db/helpers";
 import { assertPublishable } from "@/server/validation/publish";
-import { assertNoCanonicalConflict } from "@/server/seo/validate";
+import { assertNoCanonicalConflict, assertNoTitleConflict } from "@/server/seo/validate";
 import { AppError } from "@/server/lib/errors";
 import { ROUTES } from "@/lib/routes";
 import { homeInputSchema } from "./home.schema";
@@ -43,6 +43,7 @@ export async function saveHomePage(db: Db, input: unknown) {
     assertMetricsVerified(data.businessProof?.items ?? existing?.businessProof?.items ?? [], "businessProof");
     assertMetricsVerified(data.results?.items ?? existing?.results?.items ?? [], "results");
     await assertNoCanonicalConflict(db, ROUTES.HOME, data.seo ?? existing?.seo);
+    await assertNoTitleConflict(db, ROUTES.HOME, data.seo ?? existing?.seo);
   }
   for (const [key, , target] of REFS) await assertExist(db, target, data[key] ?? [], key);
 

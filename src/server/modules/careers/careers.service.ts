@@ -1,7 +1,7 @@
 import { careers } from "@/server/db/schema";
 import { assertNoDuplicateIntent, findOneRow, findRows, getRowById, insertRow, isPublished, publishedAnd, publishFields, toPublic, updateRow, type Db } from "@/server/db/helpers";
 import { assertPublishable } from "@/server/validation/publish";
-import { assertNoCanonicalConflict } from "@/server/seo/validate";
+import { assertNoCanonicalConflict, assertNoTitleConflict } from "@/server/seo/validate";
 import { AppError } from "@/server/lib/errors";
 import { ROUTES } from "@/lib/routes";
 import { recordPathChange } from "@/server/seo/redirects";
@@ -12,6 +12,7 @@ export const createCareer = async (db: Db, input: unknown) => {
   if (data.status === "published") {
     assertPublishable("career", data);
     await assertNoCanonicalConflict(db, ROUTES.CAREER(data.slug), data.seo);
+    await assertNoTitleConflict(db, ROUTES.CAREER(data.slug), data.seo);
   }
   await assertNoDuplicateIntent(db, careers, data.slug, "career");
   return insertRow(db, careers, { ...data, ...publishFields(data.status) }, "Career");
@@ -24,6 +25,7 @@ export async function updateCareer(db: Db, id: string, patch: unknown) {
   if (merged.status === "published") {
     assertPublishable("career", merged);
     await assertNoCanonicalConflict(db, ROUTES.CAREER(merged.slug), merged.seo);
+    await assertNoTitleConflict(db, ROUTES.CAREER(merged.slug), merged.seo);
   }
   const slugChanged = !!data.slug && data.slug !== existing.slug;
   if (slugChanged) await assertNoDuplicateIntent(db, careers, data.slug!, "career", id);

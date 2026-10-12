@@ -35,7 +35,8 @@ const PUBLIC_CODE: Record<ErrorCode, string> = {
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
-export type RequestContext = { method?: string; path?: string };
+/** `requestId`: present on every request (`handler.ts` generates one per call); logged and echoed back as `X-Request-Id` so a client-reported failure can be found in server logs. */
+export type RequestContext = { method?: string; path?: string; requestId?: string };
 
 export function zodFields(err: ZodError): FieldErrors {
   const fields: FieldErrors = {};
@@ -44,8 +45,8 @@ export function zodFields(err: ZodError): FieldErrors {
 }
 
 export function fail(err: unknown, opts: { headers?: Record<string, string>; request?: RequestContext } = {}) {
-  const headers = { ...NO_STORE, ...opts.headers };
   const request = opts.request ?? {};
+  const headers = { ...NO_STORE, ...(request.requestId ? { "X-Request-Id": request.requestId } : {}), ...opts.headers };
   const appError = err instanceof ZodError ? AppError.validation(zodFields(err)) : err instanceof AppError ? err : null;
 
   if (appError) {

@@ -93,9 +93,11 @@ describe("production origin configuration", () => {
 describe("robots", () => {
   it("production: everything crawlable, sitemap advertised, no blanket disallow", () => {
     const r = buildRobots(prod);
-    // /preview/ (Stage 4, Phase 2 — draft preview) is the one deliberate exception: it always
-    // needs a valid admin token to render anything, so there is no reason to invite a crawler.
-    expect(r).toEqual({ rules: [{ userAgent: "*", allow: "/", disallow: "/preview/" }], sitemap: `${ORIGIN}${SITEMAP_PATH}` });
+    // /preview/ (Stage 4, Phase 2 — draft preview) and /admin (CRM Phase 2 — admin login/session)
+    // are the deliberate exceptions: both always need real authentication to render anything, so
+    // there is no reason to invite a crawler. /admin has no trailing slash so the bare protected
+    // entry route (/admin itself, not just /admin/something) is covered by the prefix match.
+    expect(r).toEqual({ rules: [{ userAgent: "*", allow: "/", disallow: ["/preview/", "/admin"] }], sitemap: `${ORIGIN}${SITEMAP_PATH}` });
     expect(JSON.stringify(r)).not.toMatch(/disallow":\s*"\/"/);
     expect(r.sitemap).toBe("https://smash.international/sitemap.xml");
   });
@@ -284,14 +286,17 @@ describe("route integrity", () => {
 
   it("every content route has a slug page, and no public page or API route is id-based", () => {
     for (const { prefix } of Object.values(CONTENT_ROUTES)) expect(existsSync(join(appDir, prefix, "[slug]", "page.tsx")), prefix).toBe(true);
-    // /api/admin/** is the one deliberate exception (Stage 4, Phase 2): an authenticated admin CRUD API
+    // /api/admin/** is one deliberate exception (Stage 4, Phase 2): an authenticated admin CRUD API
     // addresses records by database id, same as any conventional admin API — the rule this guards against
     // (guessable, unstable, SEO-hostile ids) doesn't apply to a non-crawlable, bearer-token-gated JSON API,
     // and several admin content types (TeamMember, Testimonial, Client) have no slug at all to use instead.
+    // /admin/** (CRM Phase 5) is the same exception extended to a page route: `/admin/leads/[id]` is
+    // equally non-crawlable (noindex headers + robots.txt disallow, `server/seo/robots.ts`) and equally
+    // gated (the CRM session, not a public visitor), and a lead has no slug — only a database id.
     const dirsExceptAdminApi = (d: string): string[] =>
       readdirSync(d).flatMap((n) => {
         const full = join(d, n);
-        if (full === join(appDir, "api", "admin")) return [];
+        if (full === join(appDir, "api", "admin") || full === join(appDir, "admin")) return [];
         return statSync(full).isDirectory() ? [n, ...dirsExceptAdminApi(full)] : [];
       });
     expect(dirsExceptAdminApi(appDir).filter((n) => /^\[\.{0,3}(id|.*Id)\]$/.test(n))).toEqual([]);

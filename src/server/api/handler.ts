@@ -7,6 +7,8 @@ import { fail, ok } from "@/server/lib/response";
 import { publicizeMedia } from "@/server/media/public";
 import { RATE_LIMITS, checkRateLimit, clientKey, type RateLimitConfig } from "@/server/api/rate-limit";
 import { requireAdminAuth, type AdminRole } from "@/server/api/admin-auth";
+import { requireAdminSession } from "@/server/api/admin-session";
+import type { PublicAdminUser } from "@/server/modules/admin-users/admin-users.service";
 
 export type ControllerContext = { db: Db; url: URL; params: Record<string, string | undefined> };
 /** `eagerMedia`: top-level keys of `data` that hold above-the-fold media (hint: load eagerly). */
@@ -33,7 +35,8 @@ export function publicGet(controller: Controller, opts: { rateLimit?: RateLimitC
   const config = opts.rateLimit ?? RATE_LIMITS.publicRead;
   return async (request: Request, context: { params?: Promise<Record<string, string | undefined>> } = {}): Promise<Response> => {
     const url = new URL(request.url);
-    const req = { method: request.method, path: url.pathname }; // never the query string
+    const requestId = crypto.randomUUID();
+    const req = { method: request.method, path: url.pathname, requestId }; // never the query string
     try {
       if (request.url.length > MAX_URL_LENGTH) throw AppError.badRequest("Request URL is too long.");
 
@@ -54,7 +57,7 @@ export function publicGet(controller: Controller, opts: { rateLimit?: RateLimitC
         url,
         params: (await context.params) ?? {},
       });
-      return ok(publicizeMedia(data, eagerMedia), { meta, headers: CACHE_HEADERS });
+      return ok(publicizeMedia(data, eagerMedia), { meta, headers: { ...CACHE_HEADERS, "X-Request-Id": requestId } });
     } catch (err) {
       return fail(err, { request: req });
     }
@@ -71,15 +74,18 @@ export const MAX_BODY_LENGTH = 20_000;
  * data to serve again). Malformed JSON becomes the same 400 shape as any other
  * bad request, not a raw parser exception.
  */
-export function publicPost(controller: WriteController, opts: { rateLimit?: RateLimitConfig } = {}) {
+export function publicPost(controller: WriteController, opts: { rateLimit?: RateLimitConfig; scope?: string } = {}) {
   const config = opts.rateLimit ?? RATE_LIMITS.publicWrite;
   return async (request: Request, context: { params?: Promise<Record<string, string | undefined>> } = {}): Promise<Response> => {
     const url = new URL(request.url);
-    const req = { method: request.method, path: url.pathname };
+    const requestId = crypto.randomUUID();
+    const req = { method: request.method, path: url.pathname, requestId };
     try {
       if (request.url.length > MAX_URL_LENGTH) throw AppError.badRequest("Request URL is too long.");
 
-      const key = clientKey(request.headers, "write");
+      // `scope` (CRM Phase 2): a distinct rate-limit bucket per public write endpoint, so a burst against
+      // one (e.g. admin login) can't also exhaust another's budget (e.g. the contact form) for the same visitor.
+      const key = clientKey(request.headers, opts.scope ?? "write");
       const limit = key ? checkRateLimit(key, Date.now(), config) : null;
       if (limit && !limit.allowed) {
         if (limit.firstRejection) logger.warn("Rate limit exceeded", req);
@@ -106,7 +112,7 @@ export function publicPost(controller: WriteController, opts: { rateLimit?: Rate
         params: (await context.params) ?? {},
         body,
       });
-      return ok(data, { meta, headers: { "Cache-Control": "no-store" } });
+      return ok(data, { meta, headers: { "Cache-Control": "no-store", "X-Request-Id": requestId } });
     } catch (err) {
       return fail(err, { request: req });
     }
@@ -136,7 +142,8 @@ const BODY_METHODS = new Set(["POST", "PATCH", "PUT"]);
 export function adminApi(controller: WriteController, opts: { requireRole?: AdminRole } = {}) {
   return async (request: Request, context: { params?: Promise<Record<string, string | undefined>> } = {}): Promise<Response> => {
     const url = new URL(request.url);
-    const req = { method: request.method, path: url.pathname };
+    const requestId = crypto.randomUUID();
+    const req = { method: request.method, path: url.pathname, requestId };
     try {
       if (request.url.length > MAX_URL_LENGTH) throw AppError.badRequest("Request URL is too long.");
 
@@ -179,7 +186,65 @@ export function adminApi(controller: WriteController, opts: { requireRole?: Admi
         body,
         role,
       });
-      return ok(data, { meta, headers: { "Cache-Control": "no-store" } });
+      return ok(data, { meta, headers: { "Cache-Control": "no-store", "X-Request-Id": requestId } });
+    } catch (err) {
+      return fail(err, { request: req });
+    }
+  };
+}
+
+/** `admin` is only ever set by `adminSessionApi` (CRM Phase 2), parallel to `WriteControllerContext.role` on the pre-existing CMS admin API. */
+export type SessionControllerContext = ControllerContext & { body: unknown; admin: PublicAdminUser };
+export type SessionController = (ctx: SessionControllerContext) => Promise<ControllerResult>;
+
+/**
+ * Route glue for the CRM admin API, protected by the session cookie (CRM Phase 2) — distinct from
+ * `adminApi` above, which protects the pre-existing CMS content API via a shared bearer token, a
+ * fundamentally different mechanism (no per-user identity, no session). This is the "admin
+ * authorization middleware" later CRM endpoints (`/admin/leads`, etc.) will also use: size check →
+ * rate limit → session verification (`requireAdminSession`, which re-checks the database on every
+ * call, not just the signature) → parse body if the method carries one → controller → envelope.
+ */
+export function adminSessionApi(controller: SessionController) {
+  return async (request: Request, context: { params?: Promise<Record<string, string | undefined>> } = {}): Promise<Response> => {
+    const url = new URL(request.url);
+    const requestId = crypto.randomUUID();
+    const req = { method: request.method, path: url.pathname, requestId };
+    try {
+      if (request.url.length > MAX_URL_LENGTH) throw AppError.badRequest("Request URL is too long.");
+
+      const key = clientKey(request.headers, "admin");
+      const limit = key ? checkRateLimit(key, Date.now(), RATE_LIMITS.admin) : null;
+      if (limit && !limit.allowed) {
+        if (limit.firstRejection) logger.warn("Admin session rate limit exceeded", req);
+        return fail(new AppError("RATE_LIMITED", 429, "Too many requests. Please retry shortly."), {
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+          request: req,
+        });
+      }
+
+      const db = getDb();
+      let admin: PublicAdminUser;
+      try {
+        admin = await requireAdminSession(db);
+      } catch (err) {
+        if (err instanceof AppError && err.code === "UNAUTHORIZED") logger.warn("Admin session auth failed", req);
+        throw err;
+      }
+
+      let body: unknown;
+      if (BODY_METHODS.has(request.method)) {
+        const raw = await request.text();
+        if (raw.length > MAX_ADMIN_BODY_LENGTH) throw AppError.badRequest("Request body is too large.");
+        try {
+          body = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw AppError.badRequest("Request body must be valid JSON.");
+        }
+      }
+
+      const { data, meta } = await controller({ db, url, params: (await context.params) ?? {}, body, admin });
+      return ok(data, { meta, headers: { "Cache-Control": "no-store", "X-Request-Id": requestId } });
     } catch (err) {
       return fail(err, { request: req });
     }

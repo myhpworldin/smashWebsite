@@ -122,6 +122,24 @@ describe("SEO canonical conflicts (Stage 5, Phase 3 §12: real-time, not just th
   });
 });
 
+describe("SEO title conflicts (Stage 7, Phase 3: real-time, not just the audit report)", () => {
+  it("blocks publishing a service whose explicit SEO title matches another published page's, across content types too", async () => {
+    await createService(db, svc("performance-marketing", { status: "published", seo: { metaTitle: "Grow with SMASH" } }));
+    await rejects(
+      createService(db, svc("social-media-management", { status: "published", seo: { metaTitle: "Grow with SMASH" } })),
+      "CONFLICT",
+    );
+    const cheeky = await createCaseStudy(db, cs("cheeky"));
+    await rejects(updateCaseStudy(db, cheeky.id, { status: "published", seo: { metaTitle: "Grow with SMASH" } }), "CONFLICT");
+  });
+
+  it("never blocks pages that fall back to their own content title, or a genuinely distinct explicit title", async () => {
+    await createService(db, svc("performance-marketing", { status: "published" })); // no explicit metaTitle at all
+    await createService(db, svc("website-development", { status: "published" })); // same, no explicit metaTitle
+    await createService(db, svc("social-media", { status: "published", seo: { metaTitle: "A genuinely different title" } }));
+  });
+});
+
 describe("publishing", () => {
   it("keeps drafts out of public reads and exposes published content", async () => {
     const s = await createService(db, svc("draft-one"));
@@ -185,6 +203,13 @@ describe("relationships", () => {
     await rejects(createService(db, svc("x", { relatedCaseStudyIds: [ghost] })), "VALIDATION_ERROR");
     await rejects(createCaseStudy(db, cs("y", { clientId: ghost })), "VALIDATION_ERROR");
     await rejects(createInsight(db, { title: "t", slug: "z", excerpt: "e", content: "c", authorId: ghost }), "VALIDATION_ERROR");
+    await rejects(createTestimonial(db, { quote: "q", personName: "P", serviceId: ghost }), "VALIDATION_ERROR");
+  });
+
+  it("links a testimonial to the service it was given for", async () => {
+    const service = await createService(db, svc("testimonial-service", { status: "published" }));
+    const t = await createTestimonial(db, { quote: "q", personName: "P", serviceId: service.id, status: "published" });
+    expect(t.serviceId).toBe(service.id);
   });
 
   it("only exposes a case study's client, testimonial and insight author when published", async () => {

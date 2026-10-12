@@ -15,8 +15,10 @@ import type { CaseStudySummary } from "@/server/api/serializers";
 
 export const dynamic = "force-dynamic";
 
-export function generateMetadata(): Promise<Metadata> {
-  return staticPageMetadata(ROUTES.WORK);
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
+  const raw = await searchParams;
+  const parsed = pageQuerySchema.safeParse({ page: raw.page, limit: raw.limit });
+  return staticPageMetadata(ROUTES.WORK, parsed.success ? parsed.data.page : undefined);
 }
 
 /**

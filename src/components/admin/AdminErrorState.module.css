@@ -1,0 +1,21 @@
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--admin-error);
+  border-color: color-mix(in srgb, var(--admin-error) 30%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--admin-error-bg);
+}
+
+.icon {
+  color: var(--admin-error);
+}
+
+.message {
+  color: var(--admin-text);
+  font-size: var(--font-size-small);
+  margin: 0;
+}

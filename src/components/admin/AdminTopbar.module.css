@@ -1,0 +1,79 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-sm);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast) var(--motion-easing);
+}
+.menuButton:hover {
+  background: var(--admin-gray-100);
+}
+.menuButton:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 2px;
+}
+@media (min-width: 1024px) {
+  .menuButton {
+    display: none;
+  }
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--admin-gray-100);
+  flex-shrink: 0;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.email {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.role {
+  font-size: 0.75rem;
+  color: var(--admin-text-subtle);
+  text-transform: capitalize;
+}
+
+/* The email/role column takes real horizontal space; hide it on the narrowest phones (the avatar
+   and logout button are still enough to identify/act), matching the 390px QA width. */
+@media (max-width: 420px) {
+  .identity {
+    display: none;
+  }
+}

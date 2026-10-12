@@ -71,8 +71,12 @@ const rejectsWith = async (write: Promise<unknown>, code: number, label = "") =>
 describe("database: schema catalog", () => {
   it("has exactly the reviewed set of collections (any new collection must be reviewed here)", async () => {
     const names = (await db.listCollections({}, { nameOnly: true }).toArray()).map((c) => c.name).sort();
-    // "enquiries" (Stage 3, Phase 7) is the one addition since Stage 1 — the public contact form's write model.
-    expect(names).toEqual(["careers", "case_studies", "clients", "enquiries", "home_case_studies", "home_insights", "home_page", "home_services", "home_team", "home_testimonials", "insight_case_studies", "insight_services", "insights", "redirects", "service_case_studies", "services", "site_settings", "team_members", "testimonials"]);
+    // "enquiries" (Stage 3, Phase 7) is the public contact form's write model. "leads" and "lead_activity"
+    // (CRM Phase 1) are the new lead-pipeline model: one row per contact-form submission, distinct from
+    // "enquiries" (which merges repeat submissions by phone), plus its append-only activity/audit timeline.
+    // "admin_users" (CRM Phase 2) is the new CRM admin-identity model — unrelated to, and never merged
+    // with, the pre-existing CMS admin API's two shared bearer tokens (`admin-auth.ts`).
+    expect(names).toEqual(["admin_users", "careers", "case_studies", "clients", "enquiries", "home_case_studies", "home_insights", "home_page", "home_services", "home_team", "home_testimonials", "insight_case_studies", "insight_services", "insights", "lead_activity", "leads", "redirects", "service_case_studies", "services", "site_settings", "team_members", "testimonials"]);
   });
 
   it("has unique slug indexes and query indexes on every public collection", async () => {

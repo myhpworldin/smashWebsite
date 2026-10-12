@@ -1,16 +1,18 @@
-import { clients, homeTestimonials, testimonials } from "@/server/db/schema";
+import { clients, homeTestimonials, services, testimonials } from "@/server/db/schema";
 import { assertExist, col, findRows, homeRefStages, insertRow, isPublished, toPublic, toRow, updateRow, type Db } from "@/server/db/helpers";
 import { testimonialInputSchema, testimonialUpdateSchema } from "./testimonials.schema";
 
 export async function createTestimonial(db: Db, input: unknown) {
   const data = testimonialInputSchema.parse(input);
   await assertExist(db, clients, [data.clientId], "clientId");
+  await assertExist(db, services, [data.serviceId], "serviceId");
   return insertRow(db, testimonials, data, "Testimonial");
 }
 
 export async function updateTestimonial(db: Db, id: string, patch: unknown) {
   const data = testimonialUpdateSchema.parse(patch);
   await assertExist(db, clients, [data.clientId], "clientId");
+  await assertExist(db, services, [data.serviceId], "serviceId");
   return updateRow(db, testimonials, id, data, "Testimonial");
 }
 

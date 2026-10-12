@@ -10,7 +10,9 @@ export function getDb(): Db {
   if (!db) {
     const { MONGODB_URI: uri, MONGODB_DB: name } = getEnv();
     if (!uri) throw new Error("MONGODB_URI is not configured");
-    client = new MongoClient(uri, { ignoreUndefined: true });
+    // maxPoolSize: a sane ceiling for a single app instance, not the driver's unbounded default.
+    // serverSelectionTimeoutMS: fail a request in 5s when the database is unreachable, rather than hanging on the driver's 30s default.
+    client = new MongoClient(uri, { ignoreUndefined: true, maxPoolSize: 10, serverSelectionTimeoutMS: 5_000 });
     // The database in the URI path (mongodb://host/name) is used unless MONGODB_DB overrides it; the driver falls back to "test".
     db = client.db(name);
   }

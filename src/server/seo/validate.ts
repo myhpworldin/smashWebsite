@@ -135,6 +135,16 @@ export async function auditPublishedSeo(db: Db, site: SiteSeoContext): Promise<{
  * changed slug's stale row is already a different, irrelevant path.
  * Builds its own site context (one extra lightweight query) so every write-path
  * call site needs only `db`, the record's own path, and its own `seo` field.
+ *
+ * Deliberately does NOT block a self-canonical that merely points at a different
+ * page in general (Home is the one exception — `homeSeoProblems` — because there
+ * is only ever one Home, so it can never legitimately defer to another page):
+ * for every other content type, pointing a canonical at another page is the
+ * normal, intentional way to consolidate duplicate/near-duplicate content, so it
+ * stays a `validateSeo` warning, not a hard error. The read-side `auditSitemap`
+ * chain/loop detector exists precisely to catch the cases that are genuinely
+ * wrong (pointing at a draft, a missing page, or forming a chain/loop) without
+ * blocking the legitimate ones at write time.
  */
 export async function assertNoCanonicalConflict(db: Db, ownPath: string, ownSeo: Seo | null | undefined): Promise<void> {
   if (!ownSeo?.canonicalUrl) return;
@@ -144,5 +154,24 @@ export async function assertNoCanonicalConflict(db: Db, ownPath: string, ownSeo:
   const clash = others.find((s) => resolveCanonical(site, s.path, s.seo) === ownCanonical);
   if (clash) {
     throw AppError.conflict(`Canonical URL conflicts with an already-published page (${clash.path}). Two published pages cannot share the same canonical URL.`);
+  }
+}
+
+/**
+ * Real-time counterpart to the "metaTitle" conflict `auditPublishedSeo` reports:
+ * that report only runs on demand, so nothing previously stopped two pages from
+ * actually publishing with the same explicit SEO title. Only meaningful when an
+ * explicit `metaTitle` is set — pages that fall back to their own content title
+ * can never collide with each other that way, since titles already differ by
+ * construction (distinct names/slugs), mirroring why `assertNoCanonicalConflict`
+ * only fires on an explicit canonical override.
+ */
+export async function assertNoTitleConflict(db: Db, ownPath: string, ownSeo: Seo | null | undefined): Promise<void> {
+  const ownTitle = ownSeo?.metaTitle?.trim().toLowerCase();
+  if (!ownTitle) return;
+  const others = (await publishedSources(db)).filter((s) => s.path !== ownPath);
+  const clash = others.find((s) => s.seo?.metaTitle?.trim().toLowerCase() === ownTitle);
+  if (clash) {
+    throw AppError.conflict(`SEO title matches an already-published page (${clash.path}). Give each page its own title.`);
   }
 }

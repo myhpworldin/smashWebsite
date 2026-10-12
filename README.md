@@ -39,3 +39,9 @@ tests/            unit and integration tests
 ```
 
 Pages: Home, About, Services, Work, Insights, Careers, Contact and the legal pages. Content is managed through the admin API (`/api/admin/**`, bearer-token protected); the public API is under `/api/**`.
+
+See [API.md](API.md) for the public endpoint reference (response contract, pagination, slugs, caching, rate limiting), [ARCHITECTURE.md](ARCHITECTURE.md) for how the backend is layered, and [SEO_ARCHITECTURE.md](SEO_ARCHITECTURE.md) / [SEO_ROUTE_MAP.md](SEO_ROUTE_MAP.md) for the technical SEO system and per-route status.
+
+For security, environments and production operations, see [SECURITY.md](SECURITY.md), [ENVIRONMENT.md](ENVIRONMENT.md), [OPERATIONS.md](OPERATIONS.md), [BACKUP.md](BACKUP.md) and [MONITORING.md](MONITORING.md).
+
+Integrating the redesigned frontend against this backend? Start with [FRONTEND_BACKEND_HANDOVER.md](FRONTEND_BACKEND_HANDOVER.md).

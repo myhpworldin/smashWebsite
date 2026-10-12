@@ -24,7 +24,7 @@ import {
   type PageParams,
 } from "@/server/db/helpers";
 import { assertPublishable } from "@/server/validation/publish";
-import { assertNoCanonicalConflict } from "@/server/seo/validate";
+import { assertNoCanonicalConflict, assertNoTitleConflict } from "@/server/seo/validate";
 import { AppError } from "@/server/lib/errors";
 import { ROUTES } from "@/lib/routes";
 import { recordPathChange } from "@/server/seo/redirects";
@@ -39,6 +39,7 @@ export async function createCaseStudy(db: Db, input: unknown) {
     assertPublishable("caseStudy", data);
     assertMetricsVerified(data.results ?? [], "results");
     await assertNoCanonicalConflict(db, ROUTES.CASE_STUDY(data.slug), data.seo);
+    await assertNoTitleConflict(db, ROUTES.CASE_STUDY(data.slug), data.seo);
   }
   await assertExist(db, clients, [data.clientId], "clientId");
   await assertExist(db, testimonials, [data.testimonialId], "testimonialId");
@@ -57,6 +58,7 @@ export async function updateCaseStudy(db: Db, id: string, patch: unknown) {
     assertPublishable("caseStudy", merged);
     assertMetricsVerified(data.results ?? existing.results, "results");
     await assertNoCanonicalConflict(db, ROUTES.CASE_STUDY(merged.slug), merged.seo);
+    await assertNoTitleConflict(db, ROUTES.CASE_STUDY(merged.slug), merged.seo);
   }
   await assertExist(db, clients, [data.clientId], "clientId");
   await assertExist(db, testimonials, [data.testimonialId], "testimonialId");
@@ -126,18 +128,23 @@ export async function getPublishedCaseStudyBySlug(db: Db, slug: string, { includ
   const row = await findOneRow(db, caseStudies, includeDrafts ? { slug } : publishedAnd({ slug }));
   if (!row) throw AppError.notFound("Case study");
 
-  const serviceIds = (await col(db, serviceCaseStudies).find({ caseStudyId: row.id }).toArray()).map((l) => l.serviceId as string);
-  const relatedServices = serviceIds.length
-    ? await findPicked(db, services, publishedAnd({ _id: { $in: serviceIds } as never }), ["name", "slug", "shortDescription"] as const)
-    : [];
-  // Client and testimonial are only exposed when themselves published.
-  const client = row.clientId ? await findOneRow(db, clients, publishedAnd({ _id: row.clientId as never })) : null;
-  const testimonial = row.testimonialId ? await findOneRow(db, testimonials, publishedAnd({ _id: row.testimonialId as never })) : null;
-
-  const insightIds = (await col(db, insightCaseStudies).find({ caseStudyId: row.id }).toArray()).map((l) => l.insightId as string);
-  const relatedInsights = insightIds.length
-    ? await findPicked(db, insights, publishedAnd({ _id: { $in: insightIds } as never }), ["title", "slug", "excerpt"] as const, { sort: { publishedAt: -1 } })
-    : [];
+  const [relatedServices, client, testimonial, relatedInsights] = await Promise.all([
+    (async () => {
+      const serviceIds = (await col(db, serviceCaseStudies).find({ caseStudyId: row.id }).toArray()).map((l) => l.serviceId as string);
+      return serviceIds.length
+        ? await findPicked(db, services, publishedAnd({ _id: { $in: serviceIds } as never }), ["name", "slug", "shortDescription"] as const)
+        : [];
+    })(),
+    // Client and testimonial are only exposed when themselves published.
+    row.clientId ? findOneRow(db, clients, publishedAnd({ _id: row.clientId as never })) : Promise.resolve(null),
+    row.testimonialId ? findOneRow(db, testimonials, publishedAnd({ _id: row.testimonialId as never })) : Promise.resolve(null),
+    (async () => {
+      const insightIds = (await col(db, insightCaseStudies).find({ caseStudyId: row.id }).toArray()).map((l) => l.insightId as string);
+      return insightIds.length
+        ? await findPicked(db, insights, publishedAnd({ _id: { $in: insightIds } as never }), ["title", "slug", "excerpt"] as const, { sort: { publishedAt: -1 } })
+        : [];
+    })(),
+  ]);
 
   return { ...omit(toPublic(row), "clientId", "testimonialId"), client: client ? toPublic(client) : null, testimonial: testimonial ? toPublic(testimonial) : null, relatedServices, relatedInsights };
 }

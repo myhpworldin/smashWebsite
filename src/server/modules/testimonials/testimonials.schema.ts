@@ -7,6 +7,7 @@ export const testimonialInputSchema = z.object({
   personRole: shortText.optional(),
   companyName: shortText.optional(),
   clientId: z.uuid().nullable().optional(),
+  serviceId: z.uuid().nullable().optional(),
   photo: mediaSchema.optional(),
   displayOrder: z.number().int().optional(),
   status: contentStatusSchema.optional(),

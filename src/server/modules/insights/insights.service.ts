@@ -24,7 +24,7 @@ import {
   type Tx,
 } from "@/server/db/helpers";
 import { AppError } from "@/server/lib/errors";
-import { assertNoCanonicalConflict } from "@/server/seo/validate";
+import { assertNoCanonicalConflict, assertNoTitleConflict } from "@/server/seo/validate";
 import { ROUTES } from "@/lib/routes";
 import { recordPathChange } from "@/server/seo/redirects";
 import { insightInputSchema, insightUpdateSchema } from "./insights.schema";
@@ -50,7 +50,10 @@ export async function createInsight(db: Db, input: unknown) {
   const { relatedServiceIds, relatedCaseStudyIds, ...data } = insightInputSchema.parse(input);
   await checkRefs(db, { ...data, relatedServiceIds, relatedCaseStudyIds });
   await assertNoDuplicateIntent(db, insights, data.slug, "insight");
-  if (data.status === "published") await assertNoCanonicalConflict(db, ROUTES.INSIGHT(data.slug), data.seo);
+  if (data.status === "published") {
+    await assertNoCanonicalConflict(db, ROUTES.INSIGHT(data.slug), data.seo);
+    await assertNoTitleConflict(db, ROUTES.INSIGHT(data.slug), data.seo);
+  }
   const row = await insertRow(db, insights, { ...data, ...publishFields(data.status) }, "Insight");
   await saveLinks(db, row.id, { relatedServiceIds, relatedCaseStudyIds });
   return row;
@@ -63,7 +66,10 @@ export async function updateInsight(db: Db, id: string, patch: unknown) {
   const slugChanged = !!data.slug && data.slug !== existing.slug;
   if (slugChanged) await assertNoDuplicateIntent(db, insights, data.slug!, "insight", id);
   const merged = { ...existing, ...data };
-  if (merged.status === "published") await assertNoCanonicalConflict(db, ROUTES.INSIGHT(merged.slug), merged.seo);
+  if (merged.status === "published") {
+    await assertNoCanonicalConflict(db, ROUTES.INSIGHT(merged.slug), merged.seo);
+    await assertNoTitleConflict(db, ROUTES.INSIGHT(merged.slug), merged.seo);
+  }
   const row = await updateRow(db, insights, id, { ...data, ...publishFields(data.status, existing.publishedAt) }, "Insight");
   if (slugChanged && existing.publishedAt) await recordPathChange(db, ROUTES.INSIGHT(existing.slug), ROUTES.INSIGHT(data.slug!));
   await saveLinks(db, id, { relatedServiceIds, relatedCaseStudyIds });
@@ -113,12 +119,17 @@ export async function getPublishedInsightBySlug(db: Db, slug: string, { includeD
   const row = await findOneRow(db, insights, includeDrafts ? { slug } : publishedAnd({ slug }));
   if (!row) throw AppError.notFound("Insight");
 
-  const [author] = row.authorId ? await findPicked(db, teamMembers, publishedAnd({ _id: row.authorId as never }), ["name", "role", "photo"] as const) : [];
-  const serviceIds = (await col(db, insightServices).find({ insightId: row.id }).toArray()).map((r) => r.serviceId as string);
-  const caseIds = (await col(db, insightCaseStudies).find({ insightId: row.id }).toArray()).map((r) => r.caseStudyId as string);
-
-  const relatedServices = serviceIds.length ? await findPicked(db, services, publishedAnd({ _id: { $in: serviceIds } as never }), ["name", "slug"] as const) : [];
-  const relatedCaseStudies = caseIds.length ? await findPicked(db, caseStudies, publishedAnd({ _id: { $in: caseIds } as never }), ["title", "slug"] as const) : [];
+  const [[author], relatedServices, relatedCaseStudies] = await Promise.all([
+    row.authorId ? findPicked(db, teamMembers, publishedAnd({ _id: row.authorId as never }), ["name", "role", "photo"] as const) : Promise.resolve([]),
+    (async () => {
+      const serviceIds = (await col(db, insightServices).find({ insightId: row.id }).toArray()).map((r) => r.serviceId as string);
+      return serviceIds.length ? await findPicked(db, services, publishedAnd({ _id: { $in: serviceIds } as never }), ["name", "slug"] as const) : [];
+    })(),
+    (async () => {
+      const caseIds = (await col(db, insightCaseStudies).find({ insightId: row.id }).toArray()).map((r) => r.caseStudyId as string);
+      return caseIds.length ? await findPicked(db, caseStudies, publishedAnd({ _id: { $in: caseIds } as never }), ["title", "slug"] as const) : [];
+    })(),
+  ]);
 
   return { ...omit(toPublic(row), "authorId"), author: author ?? null, relatedServices, relatedCaseStudies };
 }

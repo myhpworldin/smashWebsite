@@ -41,6 +41,7 @@ export async function seedDevelopmentContent(db: Db) {
     personRole: "[SAMPLE] Role",
     companyName: "[SAMPLE] Company",
     clientId: client.id,
+    serviceId: service.id,
     status: "published",
   });
   const caseStudy = await createCaseStudy(db, {

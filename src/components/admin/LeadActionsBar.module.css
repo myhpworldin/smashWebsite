@@ -1,0 +1,30 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--admin-text);
+  text-decoration: none;
+  background: var(--admin-surface);
+  transition: background-color var(--motion-duration-fast) var(--motion-easing), border-color var(--motion-duration-fast) var(--motion-easing);
+}
+.action:hover,
+.action:focus-visible {
+  background: var(--admin-gray-100);
+  border-color: var(--admin-border-strong);
+}
+.action:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 2px;
+}

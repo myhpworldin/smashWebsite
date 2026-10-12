@@ -86,12 +86,70 @@
   --radius-lg: 16px;
   --radius-full: 999px;
 
-  /* Motion — disabled by default until the designer supplies motion specs (PAGE_CONTENT_MATRIX.md flags this per section) */
+  /* Motion — standard "ease-out"-flavored curve; used by the CRM admin redesign's hover/open-close
+     transitions (globals.css's own .skip-link and the shared Button also pick this up, subtly). */
   --motion-duration-fast: 150ms;
   --motion-duration-base: 250ms;
-  --motion-easing: ease;
+  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   color-scheme: light;
+}
+
+/**
+ * Admin-only token layer (CRM premium redesign). Scoped to [data-admin-theme] (set once, on
+ * AdminShell's root and the login page's wrapper) so it never affects the public site, which
+ * shares the --color-* tokens above with Button/Pagination/ContactForm/etc. Admin components
+ * reference --admin-* vars, not the bare --color-* ones.
+ */
+[data-admin-theme] {
+  --admin-gray-50: #f7f8fa;
+  --admin-gray-100: #eef1f5;
+  --admin-gray-200: #e2e6ec;
+  --admin-gray-300: #cbd2dc;
+  --admin-gray-400: #9aa5b3;
+  --admin-gray-500: #6b7686;
+  --admin-gray-600: #4d5768;
+  --admin-gray-700: #353e4d;
+  --admin-gray-800: #232a37;
+  --admin-gray-900: #141923;
+
+  --admin-bg: var(--admin-gray-50);
+  --admin-surface: #ffffff;
+  --admin-border: var(--admin-gray-200);
+  --admin-border-strong: var(--admin-gray-300);
+
+  --admin-text: var(--admin-gray-900);
+  --admin-text-muted: var(--admin-gray-600);
+  --admin-text-subtle: var(--admin-gray-500);
+
+  --admin-accent: var(--brand-smash-red);
+  --admin-accent-foreground: #ffffff;
+  --admin-accent-wash: #fdeceb;
+
+  --admin-navy: var(--brand-navy);
+  --admin-navy-raised: #1a2540;
+  --admin-navy-border: rgba(255, 255, 255, 0.08);
+  --admin-navy-text: #e7eaf0;
+  --admin-navy-text-muted: #9aa5b3;
+
+  --admin-success: #1a8f5c;
+  --admin-success-bg: #e7f7ef;
+  --admin-warning: #b4690a;
+  --admin-warning-bg: #fdf1e2;
+  --admin-error: #c22a21;
+  --admin-error-bg: #fcebe9;
+  --admin-info: var(--brand-bright-blue);
+  --admin-info-bg: #e8f1fc;
+  --admin-focus-ring: var(--brand-bright-blue);
+
+  --admin-shadow-sm: 0 1px 2px rgba(20, 25, 35, 0.06);
+  --admin-shadow-md: 0 2px 8px rgba(20, 25, 35, 0.08), 0 1px 2px rgba(20, 25, 35, 0.04);
+  --admin-shadow-popover: 0 4px 16px rgba(20, 25, 35, 0.14), 0 1px 3px rgba(20, 25, 35, 0.08);
+
+  --admin-sidebar-width: 248px;
+  --admin-sidebar-width-collapsed: 72px;
+
+  background: var(--admin-bg);
 }
 
 /* Breakpoints (documented, not custom properties — CSS cannot vary a property by breakpoint;

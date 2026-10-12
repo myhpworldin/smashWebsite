@@ -351,10 +351,17 @@ describe("secrets and environment", () => {
       return statSync(p).isDirectory() ? walk(p) : [p];
     });
   const files = walk(root).filter((f) => !/\.(png|jpg|ico)$/.test(f));
+  // Real, git-ignored env files (`.env`, `.env.local`, `.env.production`, …) are expected to hold actual
+  // credentials on a developer's or deploy's own machine — that's their entire purpose, and the
+  // ".env.example holds names and placeholders only" test below already proves they can never reach git.
+  // Scanning their contents here would fail this test on every machine with a real local MONGODB_URI
+  // configured, which is not a leak; `.env.example` itself is excluded from this exemption since it IS
+  // committed and must never contain a real credential.
+  const isRealEnvFile = (f: string) => /^\.env(\.|$)/.test(relative(root, f)) && !f.endsWith(".env.example");
 
-  it("contains no credential-like strings in any project file", () => {
+  it("contains no credential-like strings in any project file (other than git-ignored local env files)", () => {
     const patterns = [/(postgres(ql)?|mongodb(\+srv)?):\/\/[^\s"'<:@]+:[^\s"'<@]+@/i, /sk-[a-z0-9]{20,}/i, /AKIA[0-9A-Z]{16}/, /BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY/, /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\./];
-    const hits = files.filter((f) => !f.endsWith("security.test.ts") && patterns.some((re) => re.test(readFileSync(f, "utf8"))));
+    const hits = files.filter((f) => !f.endsWith("security.test.ts") && !isRealEnvFile(f) && patterns.some((re) => re.test(readFileSync(f, "utf8"))));
     expect(hits.map((f) => relative(root, f))).toEqual([]);
   });
 

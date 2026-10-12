@@ -1,8 +1,7 @@
-import { z } from "zod";
 import { type CollectionName, careers, caseStudies, clients, enquiries, homePage, insights, services, siteSettings, SINGLETON_ID, teamMembers, testimonials } from "@/server/db/schema";
 import { getRowById, listAllRows, type Db } from "@/server/db/helpers";
 import { AppError } from "@/server/lib/errors";
-import { pageMeta, pageQuerySchema, parseQuery } from "@/server/api/query";
+import { pageMeta, pageQuerySchema, parseId, parseQuery } from "@/server/api/query";
 import type { WriteController } from "@/server/api/handler";
 import type { AdminRole } from "@/server/api/admin-auth";
 import { createService, updateService } from "@/server/modules/services/services.service";
@@ -25,12 +24,6 @@ import { getHomeSeoReadiness } from "@/server/seo/home-readiness";
  * the reachable-over-HTTP wiring, gated by `adminApi` (bearer token,
  * `admin-auth.ts`). No new content-management logic was written.
  */
-
-const parseId = (id: string | undefined): string => {
-  const result = z.uuid().safeParse(id);
-  if (!result.success) throw AppError.badRequest("Malformed id.");
-  return result.data;
-};
 
 type Row = Record<string, unknown>;
 

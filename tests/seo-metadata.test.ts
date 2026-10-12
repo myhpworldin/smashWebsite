@@ -142,6 +142,17 @@ describe("static pages and breadcrumbs", () => {
     }
     expect(resolveMetadata(site, staticPageSource("/about")!).robots).toEqual({ index: true, follow: true });
   });
+  it("gives a paginated listing page 2+ its own self-canonical, a distinct title and noindex,follow — never page 1's identity", () => {
+    const page1 = resolveMetadata(site, staticPageSource("/work")!);
+    const page3 = resolveMetadata(site, { ...staticPageSource("/work")!, page: 3 });
+    expect(page1.canonical).toBe("https://smash.international/work");
+    expect(page1.robots).toEqual({ index: true, follow: true });
+    expect(page3.canonical).toBe("https://smash.international/work?page=3");
+    expect(page3.title).toBe("Our Work – Page 3 | SMASH");
+    expect(page3.robots).toEqual({ index: false, follow: true }); // thin/duplicate relative to page 1, but still crawlable
+    // page 1 explicitly requested is identical to the default (no page param)
+    expect(resolveMetadata(site, { ...staticPageSource("/work")!, page: 1 })).toEqual(page1);
+  });
   it("follows the route hierarchy", () => {
     expect(buildBreadcrumbs("/")).toEqual([{ name: "Home", path: "/" }]);
     expect(buildBreadcrumbs("/services/performance-marketing", "Performance Marketing").map((c) => c.name)).toEqual(["Home", "Services", "Performance Marketing"]);
@@ -233,7 +244,10 @@ describe("audit against the database", () => {
   it("audits only published pages, marks noindex, and reports duplicates", async () => {
     const author = await createTeamMember(db, { name: "Ann", role: "r", status: "published" });
     await createService(db, svc("performance-marketing", { status: "published", seo: { metaTitle: "Same title", primarySearchTopic: "performance marketing" } }));
-    await createService(db, svc("social-media-management", { status: "published", seo: { metaTitle: "Same title", metaDescription: "Dup", robotsIndex: false } }));
+    // Inserted directly: it deliberately duplicates performance-marketing's title, which
+    // createService's real-time guard (assertNoTitleConflict) now refuses — this test is
+    // specifically about the read-side audit catching the duplicate regardless.
+    await insertRow(db, services, { ...svc("social-media-management", { status: "published", seo: { metaTitle: "Same title", metaDescription: "Dup", robotsIndex: false } }), publishedAt: new Date() }, "Service");
     await createService(db, svc("website-development"));
     await createCaseStudy(db, { title: "C", slug: "acme", summary: "s", challenge: "c", status: "published", seo: { metaDescription: "Dup" } });
     await createInsight(db, { title: "I", slug: "i", excerpt: "e", content: "c", authorId: author.id, status: "published" });

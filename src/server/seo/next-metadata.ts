@@ -34,11 +34,15 @@ export const caseStudyMetadata = (slug: string) => build(async () => caseStudySo
 export const insightMetadata = (slug: string) => build(async () => insightSource(await getInsight(slug)), {});
 export const careerMetadata = (slug: string) => build(async () => careerSource(await getCareer(slug)), {});
 
-/** For a static hub page (e.g. `/work`) whose SEO source has no database record — title/intent only, per SEO_ARCHITECTURE.md. */
-export async function staticPageMetadata(path: string): Promise<Metadata> {
+/**
+ * For a static hub page (e.g. `/work`) whose SEO source has no database record — title/intent only, per
+ * SEO_ARCHITECTURE.md. `page` (2+) is the listing's current page number, for a paginated hub like `/work`
+ * or `/insights`; omit for page 1 and for hubs with no pagination.
+ */
+export async function staticPageMetadata(path: string, page?: number): Promise<Metadata> {
   const source = staticPageSource(path);
   if (!source) return {};
-  return toNextMetadata(resolveMetadata(await getSiteContext(), source));
+  return toNextMetadata(resolveMetadata(await getSiteContext(), { ...source, page }));
 }
 
 /**

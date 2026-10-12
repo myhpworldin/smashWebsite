@@ -13,11 +13,11 @@ import type { ReactNode } from "react";
  * `:not([aria-current])` styling hooks) — no new visual design is invented,
  * this only exposes state that already exists (the current URL).
  */
-export function NavLink({ href, onClick, children }: { href: string; onClick?: () => void; children: ReactNode }) {
+export function NavLink({ href, onClick, className, children }: { href: string; onClick?: () => void; className?: string; children: ReactNode }) {
   const pathname = usePathname();
   const isCurrent = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <Link href={href} aria-current={isCurrent ? "page" : undefined} onClick={onClick}>
+    <Link href={href} aria-current={isCurrent ? "page" : undefined} onClick={onClick} className={className}>
       {children}
     </Link>
   );

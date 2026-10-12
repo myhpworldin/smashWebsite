@@ -13,6 +13,8 @@ export const RATE_LIMITS = {
   publicWrite: { limit: 5, windowMs: 60_000 },
   /** Admin API (Stage 4, Phase 2): deliberately tight — one trusted admin, so this only exists to slow a stolen/guessed-token brute force, not to accommodate real traffic. */
   admin: { limit: 30, windowMs: 60_000 },
+  /** CRM admin login (CRM Phase 2): its own bucket, not `publicWrite` — a burst of login attempts from one visitor must not also lock them out of the contact form (and vice versa), and a login brute force deserves tighter scrutiny than an ordinary public write. */
+  adminAuth: { limit: 10, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitConfig>;
 export const RATE_LIMIT = RATE_LIMITS.publicRead;
 

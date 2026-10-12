@@ -3,11 +3,12 @@ import { normalizePathname } from "@/lib/routes";
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 /**
- * The one public write route (Stage 3, Phase 7 — the contact form). Every
- * other `/api/**` path stays strictly read-only; this is an explicit,
- * reviewed exception, not a general write allowance.
+ * The public write routes. Every other `/api/**` path stays strictly read-only; these are explicit,
+ * reviewed exceptions, not a general write allowance. `/api/contact` (Stage 3, Phase 7) is the
+ * legacy contact-enquiry log, kept intact but no longer called by the live Contact page.
+ * `/api/leads` (CRM Phase 3) is what the Contact page now submits to.
  */
-const WRITE_ROUTES: Record<string, Set<string>> = { "/api/contact": new Set(["POST"]) };
+const WRITE_ROUTES: Record<string, Set<string>> = { "/api/contact": new Set(["POST"]), "/api/leads": new Set(["POST"]) };
 /**
  * Admin content-management API (Stage 4, Phase 2): every method is let
  * through unchecked here — real authorization is the bearer-token check

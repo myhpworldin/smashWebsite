@@ -30,6 +30,9 @@ export const apiRobotsHeaders = [{ source: "/api/:path*", headers: [{ key: "X-Ro
 /** Draft preview (Stage 4, Phase 2): noindex at the header level too, on every tier — the same page-level `generateMetadata` already returns this, this is the belt-and-suspenders header layer. */
 export const previewRobotsHeaders = [{ source: "/preview/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
 
+/** Admin login/CRM (CRM Phase 2): noindex at the header level too, on every tier — same belt-and-suspenders reasoning as `/preview/`. */
+export const adminRobotsHeaders = [{ source: "/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
+
 /** Standalone design prototypes served from public/prototypes (e.g. the hero globe demo): viewable by link, never indexed. */
 export const prototypeRobotsHeaders = [{ source: "/prototypes/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
 
@@ -66,7 +69,7 @@ const nextConfig: NextConfig = {
     remotePatterns,
     dangerouslyAllowSVG: false,
   },
-  headers: async () => [{ source: "/:path*", headers: securityHeaders }, ...apiRobotsHeaders, ...previewRobotsHeaders, ...prototypeRobotsHeaders, ...mediaCacheHeaders],
+  headers: async () => [{ source: "/:path*", headers: securityHeaders }, ...apiRobotsHeaders, ...previewRobotsHeaders, ...adminRobotsHeaders, ...prototypeRobotsHeaders, ...mediaCacheHeaders],
 };
 
 export default nextConfig;

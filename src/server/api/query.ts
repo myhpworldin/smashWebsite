@@ -37,5 +37,12 @@ export function parseSlug(value: string | undefined): string {
   return value;
 }
 
+/** Every `[id]`-addressed admin route (CMS admin, CRM leads) uses UUID ids — one shared format check, not one per controller file. */
+export function parseId(id: string | undefined): string {
+  const result = z.uuid().safeParse(id);
+  if (!result.success) throw AppError.badRequest("Malformed id.");
+  return result.data;
+}
+
 export const pageMeta = (total: number, page: number, limit: number) => ({ page, limit, total, totalPages: Math.ceil(total / limit) });
 export type PaginationMeta = ReturnType<typeof pageMeta>;

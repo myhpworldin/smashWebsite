@@ -31,6 +31,8 @@ export type SeoSource = {
   isHome?: boolean;
   publishedAt?: Date | null;
   updatedAt?: Date | null;
+  /** Page number of a paginated listing (e.g. `/work?page=2`), 2+ only — omit for page 1 and non-paginated pages. */
+  page?: number;
 };
 
 export type ResolvedImage = { url: string; alt: string; width?: number; height?: number };
@@ -94,15 +96,28 @@ export function ownCanonicalOverride(override: string | undefined, siteUrl: stri
   }
 }
 
-/** Canonical URL: a same-origin explicit override, else the route on the configured site origin. Never the request host. */
-export function resolveCanonical(site: SiteSeoContext, path: string, seo?: Seo | null): string {
-  return ownCanonicalOverride(seo?.canonicalUrl, site.siteUrl) ?? canonicalUrl(normalizePathname(path), site.siteUrl);
+/**
+ * Canonical URL: a same-origin explicit override, else the route on the configured site origin. Never the request
+ * host. `page` (2+) is appended as its own self-referential `?page=N` canonical — never collapsed onto page 1 —
+ * so each paginated listing page names itself, not an override (an editor's explicit canonical override is for the
+ * page's identity, not a specific page number, so it is never suffixed).
+ */
+export function resolveCanonical(site: SiteSeoContext, path: string, seo?: Seo | null, page?: number): string {
+  const override = ownCanonicalOverride(seo?.canonicalUrl, site.siteUrl);
+  if (override) return override;
+  const base = canonicalUrl(normalizePathname(path), site.siteUrl);
+  return page && page > 1 ? `${base}?page=${page}` : base;
 }
 
-/** Robots decision: forced noindex,nofollow unless published on an indexable tier; flags then default to index,follow. */
-export function resolveRobots(site: SiteSeoContext, status: ContentStatus, seo?: Seo | null) {
+/**
+ * Robots decision: forced noindex,nofollow unless published on an indexable tier; flags then default to
+ * index,follow. Page 2+ of a paginated listing is always noindex (its cards duplicate/overlap page 1's title and
+ * description) but stays follow, so crawlers still reach the individual items linked from it.
+ */
+export function resolveRobots(site: SiteSeoContext, status: ContentStatus, seo?: Seo | null, page?: number) {
   const indexable = status === "published" && site.allowIndexing;
-  return { index: indexable && (seo?.robotsIndex ?? true), follow: indexable && (seo?.robotsFollow ?? true) };
+  const index = indexable && (seo?.robotsIndex ?? true) && !(page && page > 1);
+  return { index, follow: indexable && (seo?.robotsFollow ?? true) };
 }
 
 /**
@@ -117,7 +132,8 @@ export function resolveMetadata(site: SiteSeoContext, source: SeoSource): Resolv
   const seo = source.seo ?? {};
   const path = normalizePathname(source.path);
 
-  const baseTitle = clean(seo.metaTitle) ?? clean(source.title) ?? clean(site.defaultSeo?.metaTitle) ?? site.siteName;
+  const pageSuffix = source.page && source.page > 1 ? ` – Page ${source.page}` : "";
+  const baseTitle = (clean(seo.metaTitle) ?? clean(source.title) ?? clean(site.defaultSeo?.metaTitle) ?? site.siteName) + pageSuffix;
   const title = formatTitle(baseTitle, site.siteName, source.isHome);
   const summary = clean(source.summary);
   const description =
@@ -126,8 +142,8 @@ export function resolveMetadata(site: SiteSeoContext, source: SeoSource): Resolv
     clean(site.defaultSeo?.metaDescription) ??
     clean(site.siteDescription);
 
-  const canonical = resolveCanonical(site, path, seo);
-  const robots = resolveRobots(site, source.status, seo);
+  const canonical = resolveCanonical(site, path, seo, source.page);
+  const robots = resolveRobots(site, source.status, seo, source.page);
 
   const type = source.type ?? "website";
   const image = resolveImage(seo.ogImage ?? source.image ?? site.defaultOgImage, site);

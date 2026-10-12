@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { DEFAULT_SITE_URL } from "@/lib/site-url";
+import { MIN_ADMIN_PASSWORD_LENGTH } from "@/server/lib/password";
 
 // Empty strings (as in .env.example) are treated as unset.
 const optional = <T extends z.ZodType>(schema: T) =>
@@ -34,6 +35,18 @@ export const envSchema = z.object({
    * Administrator role exists (unchanged from Phase 2's single-secret design).
    */
   CMS_EDITOR_API_TOKEN: optional(z.string().min(32, "Must be at least 32 characters")),
+  /**
+   * SECRET: signs the admin CRM's session cookie (CRM Phase 2 — `admin-session.ts`). Unset means CRM
+   * admin login is disabled (a safe 500 naming the problem, same philosophy as `ADMIN_API_TOKEN`), never
+   * "open by default". Deliberately a separate secret from `ADMIN_API_TOKEN`: that one is a bearer token
+   * compared directly against every request; this one only ever signs/verifies a cookie, so a leak of one
+   * does not also compromise the other.
+   */
+  ADMIN_SESSION_SECRET: optional(z.string().min(32, "Must be at least 32 characters")),
+  /** Seed-only: the initial CRM admin account's email (CRM Phase 2 — `scripts/seed-admin.ts`). Never read at request time. */
+  ADMIN_EMAIL: optional(z.email("Must be a valid email address")),
+  /** SECRET, seed-only: the initial CRM admin account's password, used once to create the row then discarded — never stored itself, only its hash. */
+  ADMIN_PASSWORD: optional(z.string().min(MIN_ADMIN_PASSWORD_LENGTH, `Must be at least ${MIN_ADMIN_PASSWORD_LENGTH} characters`)),
 }).superRefine((env, ctx) => {
   if (!URL.canParse(env.NEXT_PUBLIC_SITE_URL)) return; // already reported by the field check; do not throw here
   // Canonical URLs are built from this value, so production must not fall back to localhost.
@@ -45,6 +58,9 @@ export const envSchema = z.object({
   if (env.CMS_EDITOR_API_TOKEN && !env.ADMIN_API_TOKEN) ctx.addIssue({ code: "custom", path: ["CMS_EDITOR_API_TOKEN"], message: "Requires ADMIN_API_TOKEN to also be set" });
   if (env.CMS_EDITOR_API_TOKEN && env.ADMIN_API_TOKEN === env.CMS_EDITOR_API_TOKEN) {
     ctx.addIssue({ code: "custom", path: ["CMS_EDITOR_API_TOKEN"], message: "Must be different from ADMIN_API_TOKEN, or the roles are not actually separated" });
+  }
+  if (!!env.ADMIN_EMAIL !== !!env.ADMIN_PASSWORD) {
+    ctx.addIssue({ code: "custom", path: ["ADMIN_EMAIL"], message: "ADMIN_EMAIL and ADMIN_PASSWORD must both be set, or neither" });
   }
   if (env.APP_ENV === "staging" && (url.protocol !== "https:" || local)) bad("Staging requires an https, non-localhost origin");
   if (env.APP_ENV !== "production") return;

@@ -1,0 +1,11 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.tabsRow {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--admin-border);
+}

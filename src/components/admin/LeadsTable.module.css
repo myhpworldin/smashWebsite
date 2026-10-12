@@ -1,0 +1,179 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--admin-border);
+  transition: background-color var(--motion-duration-fast) var(--motion-easing);
+}
+.row:last-child {
+  border-bottom: none;
+}
+.row:hover {
+  background: var(--admin-gray-50);
+}
+
+/* A NEW lead is easy to spot without relying only on the status badge's color — a calm, static accent, never an animation. */
+.row[data-new="true"] {
+  border-left: 3px solid var(--admin-accent);
+  padding-left: calc(var(--space-4) - 3px);
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--admin-info-bg);
+  color: var(--admin-info);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  text-decoration: none;
+}
+.name:hover,
+.name:focus-visible {
+  color: var(--admin-accent);
+  text-decoration: underline;
+}
+.name:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 2px;
+}
+
+.company {
+  font-size: 0.8125rem;
+  color: var(--admin-text-subtle);
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sourceTag,
+.assignedTag {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  background: var(--admin-gray-100);
+  border-radius: var(--radius-full);
+  padding: 2px 9px;
+}
+
+.detailRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+.detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--admin-text-subtle);
+}
+
+.serviceRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8125rem;
+  color: var(--admin-navy);
+  font-weight: 500;
+}
+
+.context {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  font-style: italic;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.viewLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--admin-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--motion-duration-fast) var(--motion-easing);
+}
+.viewLink:hover,
+.viewLink:focus-visible {
+  background: var(--admin-gray-100);
+}
+.viewLink:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  .actions {
+    width: 100%;
+  }
+  .viewLink {
+    flex: 1;
+    justify-content: center;
+  }
+}

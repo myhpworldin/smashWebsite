@@ -25,9 +25,11 @@ const FIELD_ORDER: ContactField[] = ["name", "companyName", "website", "phone", 
 const FIX_FIELDS = "Please correct the highlighted fields and try again.";
 
 /**
- * The public website's contact form (Stage 3, Phase 7) — posts to `POST
- * /api/contact` (`enquiries.service.ts`). Not a CRM: it persists a raw
- * submission and nothing more (no assignment, pipeline, or staff workflow).
+ * The public website's contact form — posts to `POST /api/leads` (CRM Phase 3; `leads.service.ts`),
+ * which creates a CRM Lead (status `NEW`, source `WEBSITE_CONTACT`) immediately visible to the admin
+ * CRM. It previously posted to `/api/contact` (`enquiries.service.ts`, Stage 3 Phase 7) — that route
+ * and its data are untouched and still work, just no longer called from here; this form is the only
+ * caller either endpoint has ever had.
  * `honeypot` is never rendered as a real field — see its input below.
  */
 export function ContactForm({ services }: { services: ServiceOption[] }) {
@@ -78,7 +80,7 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
 
     let result;
     try {
-      result = await apiFetch<{ received: boolean }>("/api/contact", {
+      result = await apiFetch<{ received: boolean }>("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

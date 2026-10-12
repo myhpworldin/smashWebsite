@@ -10,3 +10,71 @@
   color: var(--color-muted);
   font-size: var(--font-size-small);
 }
+
+/* The CRM range-label + numbered-pages layout (passed `rangeLabel`) — distinct from `.nav` above so the pre-existing centered, label-less callers (`/work`, `/insights`) are completely unaffected. */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.leftGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.pageLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-foreground);
+  text-decoration: none;
+  transition: background-color var(--motion-duration-fast) var(--motion-easing), color var(--motion-duration-fast) var(--motion-easing);
+}
+.pageLink:hover,
+.pageLink:focus-visible {
+  background: var(--color-surface);
+}
+.pageLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.pageLink[aria-current="page"] {
+  background: var(--color-navy);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pageLinkDisabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: var(--font-size-small);
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.ellipsis {
+  padding: 0 4px;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: var(--font-size-small);
+}

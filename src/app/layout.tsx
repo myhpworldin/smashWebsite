@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Analytics } from "@/components/analytics/Analytics";
 import { analyticsConfig } from "@/lib/analytics-config";
 import { getSiteSettings } from "@/server/seo/request-cache";
@@ -35,9 +36,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-scroll-behavior="smooth">
       <body>
         <a href="#main-content" className="skip-link">Skip to content</a>
-        <Header />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <SiteChrome header={<Header />} footer={<Footer />}>
+          <main id="main-content">{children}</main>
+        </SiteChrome>
         <Analytics />
       </body>
     </html>

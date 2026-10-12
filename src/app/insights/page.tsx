@@ -16,8 +16,10 @@ import type { InsightSummary } from "@/server/api/serializers";
 
 export const dynamic = "force-dynamic";
 
-export function generateMetadata(): Promise<Metadata> {
-  return staticPageMetadata(ROUTES.INSIGHTS);
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
+  const raw = await searchParams;
+  const parsed = pageQuerySchema.safeParse({ page: raw.page, limit: raw.limit });
+  return staticPageMetadata(ROUTES.INSIGHTS, parsed.success ? parsed.data.page : undefined);
 }
 
 export default async function InsightsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

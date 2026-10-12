@@ -1,0 +1,88 @@
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast) var(--motion-easing), color var(--motion-duration-fast) var(--motion-easing);
+}
+.trigger:hover {
+  background: var(--admin-gray-100);
+  color: var(--admin-text);
+}
+.trigger[aria-expanded="true"] {
+  background: var(--admin-gray-100);
+  color: var(--admin-text);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 30;
+  min-width: 200px;
+  padding: var(--space-2);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--admin-shadow-popover);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition: opacity var(--motion-duration-fast) var(--motion-easing), transform var(--motion-duration-fast) var(--motion-easing);
+}
+.menu[data-open="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.end {
+  right: 0;
+}
+.start {
+  left: 0;
+}
+
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--admin-text);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--motion-duration-fast) var(--motion-easing);
+}
+.item:hover {
+  background: var(--admin-gray-100);
+}
+.item:focus-visible {
+  outline: 2px solid var(--admin-focus-ring);
+  outline-offset: -2px;
+}
+
+.destructive {
+  color: var(--admin-error);
+}
+.destructive:hover {
+  background: var(--admin-error-bg);
+}

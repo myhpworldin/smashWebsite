@@ -85,6 +85,15 @@ describe("envelope, errors and caching", () => {
     expect((await call(service, "/api/services/zzz", "zzz")).cache).toBe("no-store");
   });
 
+  it("gives every response, success or error, its own X-Request-Id for log correlation", async () => {
+    await createService(db, svc("a", { status: "published" }));
+    const ok1 = await call(services, "/api/services");
+    const ok2 = await call(services, "/api/services");
+    const err = await call(service, "/api/services/zzz", "zzz");
+    for (const r of [ok1, ok2, err]) expect(r.res.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
+    expect(ok1.res.headers.get("x-request-id")).not.toBe(ok2.res.headers.get("x-request-id"));
+  });
+
   it("returns a safe 500 without internals", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const boom = publicGet(async () => {

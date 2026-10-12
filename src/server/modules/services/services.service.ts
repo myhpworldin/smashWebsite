@@ -23,7 +23,7 @@ import {
   type PageParams,
 } from "@/server/db/helpers";
 import { assertPublishable } from "@/server/validation/publish";
-import { assertNoCanonicalConflict } from "@/server/seo/validate";
+import { assertNoCanonicalConflict, assertNoTitleConflict } from "@/server/seo/validate";
 import { AppError } from "@/server/lib/errors";
 import { ROUTES } from "@/lib/routes";
 import type { Document } from "mongodb";
@@ -38,6 +38,7 @@ export async function createService(db: Db, input: unknown) {
   if (data.status === "published") {
     assertPublishable("service", data);
     await assertNoCanonicalConflict(db, ROUTES.SERVICE(data.slug), data.seo);
+    await assertNoTitleConflict(db, ROUTES.SERVICE(data.slug), data.seo);
   }
   await assertNoDuplicateIntent(db, services, data.slug, "service");
   const row = await insertRow(db, services, { ...data, ...publishFields(data.status) }, "Service");
@@ -52,6 +53,7 @@ export async function updateService(db: Db, id: string, patch: unknown) {
   if (merged.status === "published") {
     assertPublishable("service", merged);
     await assertNoCanonicalConflict(db, ROUTES.SERVICE(merged.slug), merged.seo);
+    await assertNoTitleConflict(db, ROUTES.SERVICE(merged.slug), merged.seo);
   }
   await assertExist(db, caseStudies, relatedCaseStudyIds ?? [], "relatedCaseStudyIds");
   const slugChanged = !!data.slug && data.slug !== existing.slug;
@@ -107,12 +109,18 @@ export async function getPublishedServiceSummariesForHome(db: Db, homeId: string
 export async function getPublishedServiceBySlug(db: Db, slug: string, { includeDrafts = false }: { includeDrafts?: boolean } = {}) {
   const row = await findOneRow(db, services, includeDrafts ? { slug } : publishedAnd({ slug }));
   if (!row) throw AppError.notFound("Service");
-  const caseIds = (await col(db, serviceCaseStudies).find({ serviceId: row.id }).toArray()).map((l) => l.caseStudyId as string);
-  const related = caseIds.length ? await findPicked(db, caseStudies, publishedAnd({ _id: { $in: caseIds } as never }), ["title", "slug", "summary", "heroImage"] as const) : [];
-  const insightIds = (await col(db, insightServices).find({ serviceId: row.id }).toArray()).map((l) => l.insightId as string);
-  const relatedInsights = insightIds.length
-    ? await findPicked(db, insights, publishedAnd({ _id: { $in: insightIds } as never }), ["title", "slug", "excerpt"] as const, { sort: { publishedAt: -1 } })
-    : [];
+  const [related, relatedInsights] = await Promise.all([
+    (async () => {
+      const caseIds = (await col(db, serviceCaseStudies).find({ serviceId: row.id }).toArray()).map((l) => l.caseStudyId as string);
+      return caseIds.length ? await findPicked(db, caseStudies, publishedAnd({ _id: { $in: caseIds } as never }), ["title", "slug", "summary", "heroImage"] as const) : [];
+    })(),
+    (async () => {
+      const insightIds = (await col(db, insightServices).find({ serviceId: row.id }).toArray()).map((l) => l.insightId as string);
+      return insightIds.length
+        ? await findPicked(db, insights, publishedAnd({ _id: { $in: insightIds } as never }), ["title", "slug", "excerpt"] as const, { sort: { publishedAt: -1 } })
+        : [];
+    })(),
+  ]);
   return { ...toPublic(row), relatedCaseStudies: related, relatedInsights };
 }
 

@@ -1,0 +1,46 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-navy);
+  background-image: radial-gradient(circle at 20% 20%, var(--admin-navy-raised) 0%, var(--admin-navy) 55%);
+  padding: var(--space-6) var(--space-4);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--admin-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.logo {
+  height: 44px;
+  width: auto;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  text-align: center;
+  margin: 0;
+}
+
+.subheading {
+  font-size: var(--font-size-small);
+  color: var(--admin-text-muted);
+  text-align: center;
+  margin: calc(var(--space-4) * -1) 0 0;
+}
+
+.formWrap {
+  width: 100%;
+}
