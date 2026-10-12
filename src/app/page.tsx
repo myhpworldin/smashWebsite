@@ -16,7 +16,6 @@ import { GrowthEngine } from "@/components/home/GrowthEngine";
 import { Industries } from "@/components/home/Industries";
 import { OurStory } from "@/components/home/OurStory";
 import { Team } from "@/components/home/Team";
-import { TalkGrowth } from "@/components/home/TalkGrowth";
 
 // Content is edited in the CMS and must show immediately, so nothing here is prerendered.
 export const dynamic = "force-dynamic";
@@ -60,7 +59,6 @@ export default async function HomePage() {
       {home.bannerCta ? <BannerCta data={home.bannerCta} /> : null}
       {home.industries ? <Industries data={home.industries} className="mt-16 lg:mt-[120px]" /> : null}
       {home.team ? <Team data={home.team} className="mt-16 lg:mt-[120px]" /> : null}
-      {home.cta ? <TalkGrowth data={home.cta} /> : null}
       <HomeAnimations />
     </>
   );
