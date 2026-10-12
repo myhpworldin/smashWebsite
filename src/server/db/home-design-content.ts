@@ -105,7 +105,7 @@ export async function syncTeamRoster(db: Db) {
 /**
  * Loads the copy of the approved Figma homepage into the CMS through the same services the admin API uses, so the
  * homepage can be edited from then on. The design's own placeholders are kept as they are and marked: the team
- * (names and "Designation"), and the case-study blurb (it ends mid-sentence in the design). Fields the design does not
+ * (names and "Designation"). The case-study summaries are the homepage cards' hover copy. Fields the design does not
  * cover (service page bodies, case-study details) carry the project's "[SAMPLE]" marker. Replace them in the CMS.
  *
  * Also saves the site identity (name, description) when Site Settings do not exist yet, and the Home SEO title and
@@ -130,13 +130,13 @@ export async function importHomeDesignContent(db: Db) {
     services.push(await createService(db, { name: group.name, slug: group.slug, shortDescription: `[SAMPLE] ${group.name} short description.`, description: `[SAMPLE] ${group.name} page body, to be written.`, ...catalogueFields(group, i), status: "published" }));
   }
 
-  // TODO (client): the design gives no case-study text beyond this blurb (which ends mid-sentence); replace with the approved summary, challenge, strategy and results.
-  const blurb = "We turn interest into real business opportunities using structured follow-ups, CRM, WhatsApp, and call centre";
-  const caseStudy = (title: string, slug: string, image: ReturnType<typeof img>) =>
-    createCaseStudy(db, { title, slug, summary: blurb, challenge: "[SAMPLE] To be written.", heroImage: image, status: "published" });
+  // Summaries are the Figma homepage cards' hover copy (headline line, then the campaign line).
+  // TODO (client): the design gives no further case-study text; replace the challenge, strategy and results with approved copy.
+  const caseStudy = (title: string, slug: string, summary: string, image: ReturnType<typeof img>) =>
+    createCaseStudy(db, { title, slug, summary, challenge: "[SAMPLE] To be written.", heroImage: image, status: "published" });
   const cases = [
-    await caseStudy("CORE", "core", img("/media/case-showroom-deep-blue.png", "Laptops on display tables in a retail showroom", 640, 448)),
-    await caseStudy("Mobile Garage", "mobile-garage", img("/media/case-mobile-garage-warm-red.png", "A technician repairing a phone with a screwdriver", 640, 448)),
+    await caseStudy("CORE", "core", "Turning offers into 425 customer enquiries.\nA Facebook & Instagram lead generation campaign for CORE, bringing refurbished laptop offers and targeted ads together.", img("/media/case-showroom-deep-blue.png", "Laptops on display tables in a retail showroom", 640, 448)),
+    await caseStudy("Mobile Garage", "mobile-garage", "Turning service offers into 282 enquiries.\nA Facebook & Instagram lead generation campaign for Mobile Garage, combining 50% off service offers, targeted ads and reels.", img("/media/case-mobile-garage-warm-red.png", "A technician repairing a phone with a screwdriver", 640, 448)),
   ];
 
   const team = [];
@@ -176,7 +176,7 @@ export async function importHomeDesignContent(db: Db) {
     servicesSection: { eyebrow: "Our Services", heading: "A Unified Agency Offering Built Around the Transaction.", cta: { label: "View All Services", target: "/services" } },
     growthEngine: {
       eyebrow: "Our Services",
-      heading: "The SMASH Growth Engine",
+      heading: "SMASH Growth Engine",
       description: "A proven, end-to-end growth system that turns strategy into visibility, leads, conversions, and scalable business growth.",
       steps: [
         step("STRATEGY", "We understand your business, audience, goals, and opportunities before building the growth plan."),

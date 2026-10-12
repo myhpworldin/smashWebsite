@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HOME_WRAP } from "./home-ui";
+import { HOME_WRAP, HomeAsset } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
 
 /**
@@ -24,29 +24,71 @@ const SWIRLS = {
 
 /**
  * "Real campaigns. Real growth. Measurable results" (Figma New Homepage, y 4180 on): the CMS selected work as
- * alternating blue/red cards, staggered left/right down a 1160px column on desktop, stacked below.
+ * alternating blue/red cards, staggered left/right down a 1160px column on desktop, stacked below. The heading is a
+ * sticky backdrop the cards scroll up over; HomeAnimations adds the scrubbed heading recede and card rise. Hovering a
+ * card keeps its design and moves the title from the bottom to the top, with the case study's summary and "Know More"
+ * sliding in from the right.
  */
 export function CaseStudiesSection({ data }: { data: HomeSection<"selectedWork"> }) {
   return (
-    <section aria-labelledby="work-heading" data-home-section="case-studies" className="pb-20 pt-20 lg:pb-[120px] lg:pt-[160px]">
+    <section aria-labelledby="work-heading" data-home-section="case-studies" className={data.heading ? undefined : "pb-20 pt-20 lg:pb-[120px] lg:pt-[160px]"}>
       <div className={HOME_WRAP}>
         {data.heading ? (
-          <h2 id="work-heading" className="mx-auto max-w-[1042px] text-center text-[36px] leading-[1.3] text-[#0b0f19] md:text-[56px] lg:text-[74px] lg:leading-[96px]">{data.heading}</h2>
+          // A screen-tall sticky frame with the heading centred in it: the section opens on the heading in the middle of
+          // a screen of white, the frame pins as the section reaches the top, and the cards (z-10, after the frame)
+          // scroll up over the still-centred heading. Scrolling back simply reverses it.
+          <div data-work-stage className="sticky top-0 z-0 flex h-svh items-center justify-center">
+            <h2 id="work-heading" data-work-heading className="mx-auto max-w-[1042px] text-center text-[36px] leading-[1.3] text-[#0b0f19] md:text-[56px] lg:text-[74px] lg:leading-[96px]">{data.heading}</h2>
+          </div>
         ) : null}
-        <ul className="mx-auto mt-12 flex max-w-[1160px] flex-col gap-6 lg:mt-[100px] lg:gap-[100px]">
+        {/* With the heading, the bottom padding (half a screen plus about half the heading) keeps the frame pinned until
+            the last card has passed above the heading — so the section closes the way it opened, on the heading centred
+            in white, and the frame's lower half is the same white space below it before the next section. */}
+        <ul data-work-cards className={`relative z-10 mx-auto flex max-w-[1160px] flex-col gap-6 lg:gap-[100px] ${data.heading ? "pb-[calc(50svh+6rem)]" : "mt-12 lg:mt-[100px]"}`}>
           {data.items.map((item, i) => {
             const tone = i % 2 === 0 ? "blue" : "red";
             const linked = isLive(item.path);
             return (
-              <li key={item.slug} className={`relative aspect-[535/415] w-full overflow-hidden border lg:w-[535px] ${tone === "blue" ? "border-white/26 bg-bright-blue lg:self-start" : "border-white/30 bg-smash-red lg:self-end"}`}>
+              <li key={item.slug} className={`group relative aspect-[535/415] w-full overflow-hidden border lg:w-[535px] ${tone === "blue" ? "border-white/26 bg-bright-blue lg:self-start" : "border-white/30 bg-smash-red lg:self-end"}`}>
                 <svg aria-hidden="true" viewBox="0 0 535 415" className="absolute inset-0 size-full">{SWIRLS[tone]}</svg>
-                <h3 className="absolute bottom-[7.23%] left-[5.79%] text-2xl leading-[1.3] text-white md:text-[32px]">
-                  {linked ? (
-                    <Link href={item.path} className="text-white no-underline after:absolute after:inset-0 after:content-['']">{item.title}</Link>
-                  ) : (
-                    item.title
-                  )}
-                </h3>
+                {/* Text area (the card's padding box). It is a size container, so the title can rest at its bottom —
+                    translated down by the area's height (100cqh) less its own — and glide to the top on hover with one
+                    transform, whatever the card's size or the title's length. The summary sits under the title's top
+                    position and slides in from the right once the title has passed it (550ms); leaving, it fades out first and
+                    the title follows, so the two never cross. On touch the card stays at rest. */}
+                <div className="absolute inset-x-[5.79%] bottom-[7.23%] top-[10%] [container-type:size]">
+                  <h3 id={`work-${item.slug}`} className="translate-y-[calc(100cqh-100%)] text-2xl leading-[1.3] text-white transition-[translate] delay-200 duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:translate-y-0 group-hover:delay-0 group-has-[:focus-visible]:translate-y-0 group-has-[:focus-visible]:delay-0 motion-reduce:transition-none md:text-[32px]">
+                    {item.title}
+                  </h3>
+                  {item.summary ? (
+                    <p className="mt-3 translate-x-10 whitespace-pre-line text-base leading-[1.45] text-white opacity-0 transition-[opacity,translate] duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-75 group-hover:duration-500 group-hover:delay-[550ms] group-has-[:focus-visible]:translate-x-0 group-has-[:focus-visible]:opacity-75 group-has-[:focus-visible]:duration-500 group-has-[:focus-visible]:delay-[550ms] motion-reduce:transition-none md:mt-4 md:text-xl lg:text-[22px]">
+                      {item.summary}
+                    </p>
+                  ) : null}
+                </div>
+                {linked ? (
+                  // "Know More" is its own link (same page as the card) layered above the card link, so it can react to
+                  // being hovered itself; the card link stays the one keyboard / screen-reader entry, hence the hiding.
+                  // Hover: a white underline draws in from the left (and retracts to the right), the arrow flies out
+                  // to the top-right as a fresh one slides in from the bottom-left, and both brighten to full white.
+                  <Link
+                    href={item.path}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    className="group/more absolute bottom-[9%] right-[5.79%] z-20 inline-flex translate-x-10 items-center gap-4 py-2 text-lg leading-none text-white no-underline opacity-0 transition-[opacity,translate] duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 group-hover:duration-500 group-hover:delay-[550ms] group-has-[:focus-visible]:translate-x-0 group-has-[:focus-visible]:opacity-100 group-has-[:focus-visible]:duration-500 group-has-[:focus-visible]:delay-[550ms] motion-reduce:transition-none md:text-xl"
+                  >
+                    <span className="relative pb-1.5 opacity-80 transition-opacity duration-300 group-hover/more:opacity-100">
+                      Know More
+                      <span className="absolute inset-x-0 bottom-0 h-px origin-right scale-x-0 bg-white transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:origin-left group-hover/more:scale-x-100 motion-reduce:transition-none" />
+                    </span>
+                    <span className="relative size-[21px] shrink-0 overflow-hidden opacity-80 transition-opacity duration-300 group-hover/more:opacity-100">
+                      <HomeAsset name="arrow-up-right-large.svg" width={21} height={21} className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:-translate-y-full group-hover/more:translate-x-full motion-reduce:transition-none" />
+                      <HomeAsset name="arrow-up-right-large.svg" width={21} height={21} className="absolute inset-0 -translate-x-full translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:translate-x-0 group-hover/more:translate-y-0 motion-reduce:transition-none" />
+                    </span>
+                  </Link>
+                ) : null}
+                {/* The whole card is the link (named by its title), above everything else. */}
+                {linked ? <Link href={item.path} aria-labelledby={`work-${item.slug}`} className="absolute inset-0 z-10" /> : null}
               </li>
             );
           })}

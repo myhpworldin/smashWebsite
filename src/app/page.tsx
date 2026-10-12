@@ -4,6 +4,7 @@ import { homeSchemas } from "@/server/seo/page-jsonld";
 import { homeMetadata } from "@/server/seo/next-metadata";
 import { getHomeResponse } from "@/server/seo/request-cache";
 import { HomeAnimations } from "@/components/home/HomeAnimations";
+import { HomeGlobe } from "@/components/home/HomeGlobe";
 import { HeroSection } from "@/components/home/HeroSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ShowcaseSection } from "@/components/home/ShowcaseSection";
@@ -27,7 +28,7 @@ export function generateMetadata(): Promise<Metadata> {
 /**
  * The Home page, rendered from the same payload `GET /api/home` serves (published content only). The top of the
  * page follows the redesign (Figma "Smash Redesign" → New Homepage): hero, About, showcase band, manifesto,
- * Our Services and case studies. The sections the redesign has not reached yet keep the previous design below
+ * Our Services, case studies, the Growth Engine and Our Story. The sections the redesign has not reached yet keep the previous design below
  * them until it does. Every word, list and CMS picture comes from the CMS; a section with nothing to show is skipped.
  */
 export default async function HomePage() {
@@ -43,16 +44,21 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={await homeSchemas()} />
-      {home.hero ? <HeroSection hero={home.hero} /> : null}
-      {home.businessProof ? <AboutSection data={home.businessProof} /> : null}
+      {/* Hero + About share one stacking context so the globe (HomeGlobe, sticky) can sit between their backgrounds
+          and their content, and carry on from the hero into About as the page scrolls. */}
+      <div className="relative isolate">
+        {home.hero ? <HomeGlobe /> : null}
+        {home.hero ? <HeroSection hero={home.hero} /> : null}
+        {home.businessProof ? <AboutSection data={home.businessProof} /> : null}
+      </div>
       <ShowcaseSection />
       {home.story ? <ManifestoSection data={home.story} /> : null}
       {home.services ? <ServicesSection data={home.services} /> : null}
       {home.selectedWork ? <CaseStudiesSection data={home.selectedWork} /> : null}
+      {home.growthEngine ? <GrowthEngine data={home.growthEngine} /> : null}
+      {home.ourStory ? <OurStory data={home.ourStory} /> : null}
       {home.bannerCta ? <BannerCta data={home.bannerCta} /> : null}
-      {home.growthEngine ? <GrowthEngine data={home.growthEngine} className="mt-16 lg:mt-[120px]" /> : null}
       {home.industries ? <Industries data={home.industries} className="mt-16 lg:mt-[120px]" /> : null}
-      {home.ourStory ? <OurStory data={home.ourStory} className="mt-16 lg:mt-[120px]" /> : null}
       {home.team ? <Team data={home.team} className="mt-16 lg:mt-[120px]" /> : null}
       {home.cta ? <TalkGrowth data={home.cta} /> : null}
       <HomeAnimations />

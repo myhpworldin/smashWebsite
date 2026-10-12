@@ -3,9 +3,11 @@ import { HomeAsset, HomeButton } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
 
 /**
- * Home hero (Figma "Smash Redesign" → New Homepage, "Desktop - 1"): blue glows drifting like mist on black (HeroAtmosphere), a centered
+ * Home hero (Figma "Smash Redesign" → New Homepage, "Desktop - 1"): blue glows drifting like mist on black (HeroAtmosphere) under the
+ * dot-matrix globe (HomeGlobe, owned by the page so it can continue into About), a centered
  * two-line heading with the sparkle after its last word, supporting text, the two CTAs and the scroll cue.
- * The global header floats over it as a glass pill (HeaderFrame). Words and CTAs come from the CMS hero.
+ * Layering: the section deliberately has no stacking context of its own — its mist sits below the page's globe layer
+ * (z-1) and its content above it (z-2). The global header floats over it as a glass pill (HeaderFrame). Words and CTAs come from the CMS hero.
  * The heading's line break is not hard-coded: its 940px measure breaks the CMS heading where the design does.
  */
 export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
@@ -13,10 +15,10 @@ export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
   const words = hero.heading.trim().split(/\s+/);
   const lastWord = words.pop();
   return (
-    <section aria-labelledby="hero-heading" data-home-section="hero" className="relative isolate flex min-h-[640px] flex-col items-center overflow-hidden bg-black text-white lg:h-[800px]">
+    <section aria-labelledby="hero-heading" data-home-section="hero" className="relative flex min-h-[640px] flex-col items-center overflow-hidden text-white lg:h-[800px]">
       <HeroAtmosphere />
 
-      <div className="flex w-full max-w-[1440px] flex-col items-center px-4 pb-28 pt-36 text-center md:px-10 lg:pb-0 lg:pt-[221px]">
+      <div className="relative z-[2] flex w-full max-w-[1440px] flex-col items-center px-4 pb-28 pt-36 text-center md:px-10 lg:pb-0 lg:pt-[221px]">
         <h1 id="hero-heading" className="max-w-[940px] text-[40px] capitalize leading-[1.25] [text-shadow:0_4px_66px_rgba(0,0,0,0.28)] sm:text-[56px] lg:text-[80px] lg:leading-[113px]">
           {words.join(" ")}{" "}
           <span className="whitespace-nowrap">
@@ -31,7 +33,7 @@ export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
         </div>
       </div>
 
-      <div aria-hidden="true" className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col gap-0.5 lg:bottom-[70px]">
+      <div aria-hidden="true" className="absolute bottom-10 left-1/2 z-[2] flex -translate-x-1/2 flex-col gap-0.5 lg:bottom-[70px]">
         {["scroll-chevron-faded.svg", "scroll-chevron.svg"].map((name) => (
           <span key={name} className="flex h-[9px] w-[18px] items-center justify-center">
             <HomeAsset name={name} width={9} height={18} className="max-w-none rotate-90" />

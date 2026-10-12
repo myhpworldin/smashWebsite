@@ -2,12 +2,15 @@ import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 import { HOME_WRAP, HomeAsset } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
+import styles from "./ServicesSection.module.css";
 
 /**
  * "Our Services" (Figma New Homepage, y 3367–4180): near-black band, title + "Explore our Services", then the four
- * service groups side by side. The first card is the design's open state — bright blue, taller, with the group's
- * deliverables listed — and the rest sit closed along the same baseline. Each card goes to its category's section
- * of the Services page (`?scrollTo=`, which ServicesCatalogue animates to), as the previous Home did.
+ * service groups side by side. An open card is bright blue, taller, with the group's deliverables listed. On large
+ * screens every card rests closed and the hovered or keyboard-focused one expands out of its closed band towards the
+ * top and bottom; below lg (no hover) the first card is open, as in the design (ServicesSection.module.css — CSS
+ * only, so the section stays a server component). Each card goes to its category's section of the Services page
+ * (`?scrollTo=`, which ServicesCatalogue animates to), as the previous Home did.
  */
 export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
   const title = data.eyebrow ?? data.heading;
@@ -25,14 +28,11 @@ export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
           ) : null}
         </div>
 
-        <ul className="mt-12 grid sm:grid-cols-2 lg:mt-[60px] lg:grid-cols-4 lg:items-end">
-          {data.items.map((service, i) => {
-            const open = i === 0;
-            return (
-              <li
-                key={service.path}
-                className={`relative flex flex-col gap-[22px] px-7 ${open ? "bg-bright-blue pb-[76px] pt-[30px] lg:min-h-[465px]" : "pb-10 pt-7 lg:min-h-[292px]"}`}
-              >
+        <ul className={`${styles.list} mt-12 grid sm:grid-cols-2 lg:mt-[60px] lg:grid-cols-4`}>
+          {data.items.map((service, i) => (
+            <li key={service.path} data-default-open={i === 0 ? "" : undefined} className={styles.card}>
+              <span aria-hidden="true" className={styles.panel} />
+              <div className={styles.body}>
                 <div className="flex flex-col gap-[30px]">
                   <div className="flex h-8 items-center justify-between">
                     <HomeAsset name="service-network.svg" width={32} height={32} />
@@ -47,20 +47,16 @@ export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
                     {service.shortDescription ? <p className="text-base leading-[1.6] text-soft-grey">{service.shortDescription}</p> : null}
                   </div>
                 </div>
-                {open && service.highlights.length ? (
-                  <ul className="text-sm leading-[29px] text-soft-grey">
+                {service.highlights.length ? (
+                  <ul className={`${styles.highlights} text-sm leading-[29px] text-soft-grey`}>
                     {service.highlights.map((item) => <li key={item}>{item}</li>)}
                   </ul>
                 ) : null}
-                {open ? (
-                  <>
-                    <HomeAsset name="arrow-up-right-large.svg" width={21} height={21} className="absolute bottom-[30px] right-[30px]" />
-                    <span aria-hidden="true" className="absolute bottom-0 left-7 h-[27px] w-8 bg-[#1a1a1a]" />
-                  </>
-                ) : null}
-              </li>
-            );
-          })}
+              </div>
+              <HomeAsset name="arrow-up-right-large.svg" width={21} height={21} className={`${styles.arrow} absolute bottom-[30px] right-[30px]`} />
+              <span aria-hidden="true" className={`${styles.notch} absolute bottom-0 left-7 h-[27px] w-8 bg-[#1a1a1a]`} />
+            </li>
+          ))}
         </ul>
       </div>
     </section>

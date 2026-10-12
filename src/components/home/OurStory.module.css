@@ -1,0 +1,61 @@
+/*
+ * Home "Our Story" (Figma New Homepage, group 671:660) on large screens: a stage the photo first fills edge to edge
+ * (component variant "Default", 1440×850), which then shrinks into a 702×680 window at the left (variant "Variant2"),
+ * uncovering the story text that sits underneath it at the right.
+ *
+ * This file is the END state — the photo in its window, the text showing — so the section reads correctly with no
+ * JavaScript and under reduced motion. HomeAnimations scrubs the opening from the full-bleed photo into it.
+ *
+ * The stage is a size container, so everything is a fraction of the 1440×850 frame:
+ *   window   — x 0 → 702 (48.75%), y 85 → 765 (10% → 90%)
+ *   photo    — the square source drawn so its centre sits at (391/1440, 373/850) = (27.17cqw, 43.87cqh), as wide as
+ *              Variant2's 836px (58cqw), and never too small to cover the window on other stage shapes (93cqh)
+ *   text     — x 782 (54.31%), 578 wide (40.14%), 25px below the window's top (y 110)
+ * Below lg the section is a plain stacked layout (OurStory.tsx), and none of this applies.
+ */
+
+@media (min-width: 1024px) {
+  .section {
+    --stage-h: min(850px, 100svh);
+    position: relative;
+  }
+  /* The extra length the stage stays pinned for while the photo shrinks — only when that animation can run. */
+  @media (prefers-reduced-motion: no-preference) {
+    .section {
+      height: calc(var(--stage-h) + 90svh);
+    }
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+    height: var(--stage-h);
+    overflow: hidden;
+    container-type: size;
+  }
+
+  .frame {
+    position: absolute;
+    inset: 0;
+    z-index: 1; /* over the text, as in the design: the text is uncovered, not drawn on top */
+    clip-path: inset(10% 51.25% 10% 0%);
+  }
+
+  .photo {
+    --w: max(58cqw, 93cqh);
+    position: absolute;
+    left: calc(27.17cqw - var(--w) / 2);
+    top: calc(43.87cqh - var(--w) / 2);
+    width: var(--w);
+    height: var(--w);
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .text {
+    position: absolute;
+    left: 54.31%;
+    top: calc(10cqh + 25px);
+    width: min(40.14%, 578px);
+  }
+}

@@ -1,38 +1,53 @@
 import { HOME_WRAP } from "./home-ui";
 import type { HomeSection } from "./shared";
 
+/** The figure's leading number ("400" of "400+", "4.5" of "4.5x", "1,200" of "1,200+"), or null for a word like "Multiple". */
+const LEADING_NUMBER = /^(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?/;
+
 /**
  * The figure's black→red gradient, as Figma draws it: black until ~0.4em in, full SMASH red by ~2.65em (or 90% of a
  * shorter figure such as "400+"), so the red always lands on the figure's last characters. The design sets a
  * leading rupee sign smaller (56px) than the figure that follows it (74px).
+ *
+ * The leading number sits in its own `data-count` span so HomeAnimations can count it up on scroll while the
+ * prefix/suffix stay static text. The server renders the final value, so no-JS and reduced motion show it as-is;
+ * the visual figure is hidden from screen readers (it changes mid-count) and the real value is read from `sr-only`.
  */
 function StatValue({ value }: { value: string }) {
   const rupee = value.startsWith("₹");
+  const rest = rupee ? value.slice(1) : value;
+  const match = LEADING_NUMBER.exec(rest);
+  const number = match ? match[0] : null;
   return (
-    <p className="inline-block bg-[linear-gradient(90deg,#000_0.4em,var(--brand-smash-red)_min(2.65em,90%))] bg-clip-text text-[52px] leading-[1.05] text-transparent lg:text-[74px]">
-      {rupee ? <span className="text-[40px] lg:text-[56px]">₹</span> : null}
-      {rupee ? value.slice(1) : value}
-    </p>
+    <>
+      <p aria-hidden="true" className="inline-block bg-[linear-gradient(90deg,#000_0.4em,var(--brand-smash-red)_min(2.65em,90%))] bg-clip-text text-[52px] leading-[1.05] text-transparent lg:text-[74px]">
+        {rupee ? <span className="text-[40px] lg:text-[56px]">₹</span> : null}
+        {number ? <span data-count={number}>{number}</span> : null}
+        {number ? rest.slice(number.length) : rest}
+      </p>
+      <span className="sr-only">{value}</span>
+    </>
   );
 }
 
 /**
  * "About" (Figma New Homepage, y 800–1710): the faded ABOUT watermark beside the CMS statement, then the three
  * growth stories from `businessProof` — "from" label, the figure (black→red gradient), its unit (`context`) and
- * the story. The watermark is decoration only; the statement is the section's heading.
+ * the story. The watermark is decoration only; the statement is the section's heading. Like the hero it has no
+ * stacking context of its own, so the page's globe (z-1) shows between its background fade and its content (z-2).
  */
 export function AboutSection({ data }: { data: HomeSection<"businessProof"> }) {
   return (
-    <section aria-labelledby="about-heading" data-home-section="about" className={`relative isolate overflow-hidden pb-20 pt-20 text-main-black lg:pb-[130px] lg:pt-[150px]`}>
+    <section aria-labelledby="about-heading" data-home-section="about" className={`relative overflow-hidden pb-20 pt-20 text-main-black lg:pb-[130px] lg:pt-[150px]`}>
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 h-[316px] bg-[linear-gradient(180deg,#fff_0%,#f3f3f3_84.18%)]" />
-      <div className={HOME_WRAP}>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
-          <p aria-hidden="true" className={`shrink-0 text-[96px] font-bold leading-[0.6] text-black/5 md:text-[140px] xl:text-[198px]`}>ABOUT</p>
+      <div className={`relative z-[2] ${HOME_WRAP}`}>
+        <div data-about-row className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+          <p aria-hidden="true" data-about-word className={`shrink-0 origin-left text-[96px] font-bold leading-[0.6] text-black/5 md:text-[140px] xl:text-[198px]`}>ABOUT</p>
           {data.heading ? (
-            <h2 id="about-heading" className="max-w-[563px] text-[28px] leading-[1.3] md:text-[37px] lg:mt-[55px]">{data.heading}</h2>
+            <h2 id="about-heading" className="relative max-w-[563px] text-[28px] leading-[1.3] md:text-[37px] lg:mt-[55px]">{data.heading}</h2>
           ) : null}
         </div>
-        <ul className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8 lg:mt-[120px] xl:gap-[118px]">
+        <ul data-about-stats className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8 lg:mt-[120px] xl:gap-[118px]">
           {data.items.map((item) => (
             <li key={item.order} className="flex max-w-[348px] flex-col gap-6">
               <div className="flex flex-col gap-4">

@@ -126,9 +126,12 @@ img, picture, svg, video {
   max-width: 100%;
 }
 
-/* Never allow an overflowing element to introduce horizontal scroll (phase brief §14). */
+/* Never allow an overflowing element to introduce horizontal scroll (phase brief §14). `clip`, not `hidden`: hidden
+   would make <body> a scroll container, which breaks `position: sticky` (the Home globe's stage); browsers without
+   `clip` keep the `hidden` fallback. */
 html, body {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -171,4 +174,20 @@ button {
     scroll-behavior: auto !important;
   }
 }
+}
+
+/* Home Growth Engine: the active step's progress bar fills across its track, then the carousel advances (its
+   `animationend`). Under reduced motion there is no animation at all — not the global 0.001ms one, which would end
+   instantly and spin the carousel — so nothing autoplays and the bar simply shows the step as complete. */
+@keyframes growth-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.growth-progress {
+  animation: growth-progress linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .growth-progress {
+    animation-name: none !important;
+  }
 }

@@ -1,0 +1,120 @@
+/*
+ * Home "Our Services" cards: one card is open at a time — bright blue, taller, its deliverables listed.
+ *
+ * Below lg (stacked / two-up, mostly touch, so no hover): the first card is open, as in the design, the rest closed.
+ *
+ * lg+ (one row of four): every card is laid out at the open height, so the row never changes size and nothing below
+ * it moves. A closed card shows only its middle band: its blue panel is clipped to that band (and transparent) and its
+ * content sits shifted down into it. Opening sets `--o` to 1, and the clip, colour, content shift and list fade all
+ * follow from it — so the panel grows out of the band towards the top and bottom while the blue comes in. Every card
+ * rests closed; hovering (or keyboard focus) opens one, and leaving it closes it again.
+ * Only clip-path, transform and opacity are animated; reduced motion switches instantly.
+ */
+
+.card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 28px 28px 40px;
+}
+
+.highlights,
+.arrow,
+.notch {
+  display: none;
+}
+
+/* ---- Below lg: only the default card is open ---- */
+@media (max-width: 1023.98px) {
+  .card[data-default-open] .panel {
+    background-color: var(--color-bright-blue);
+  }
+  .card[data-default-open] .body {
+    padding: 30px 28px 76px;
+  }
+  .card[data-default-open] .highlights,
+  .card[data-default-open] .arrow,
+  .card[data-default-open] .notch {
+    display: block;
+  }
+}
+
+/* ---- lg+: hover / focus expansion ---- */
+@media (min-width: 1024px) {
+  .card {
+    /* Open-state height (Figma: 465) and the closed band (Figma: 292) the closed card shows. */
+    --open-min: 465px;
+    --band: 292px;
+    /* 0.7s on a standard ease: it gets going promptly, then settles gently — no snap, no drag. */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur: 0.7s;
+    /* Hover intent: a card waits a beat before opening, so sweeping the pointer across the row doesn't flash every
+       card open; closing starts straight away. */
+    --open-delay: calc(var(--o) * 0.08s);
+    --o: 0;
+    min-height: var(--open-min);
+  }
+
+  /* Who is open: only a keyboard-focused card (or a hovered one, below) — every card, Growth included, rests closed. */
+  .card:has(:focus-visible) {
+    --o: 1;
+  }
+
+  .panel {
+    /* Always blue; the colour comes in through opacity (composited) rather than an animated background (repainted). */
+    background-color: var(--color-bright-blue);
+    opacity: var(--o);
+    /* Closed: clipped to the middle band; open: the whole card. */
+    clip-path: inset(calc((50% - var(--band) / 2) * (1 - var(--o))) 0);
+    transition:
+      clip-path var(--dur) var(--ease) var(--open-delay),
+      opacity calc(var(--dur) * 0.8) ease-in-out var(--open-delay);
+  }
+
+  .body {
+    height: 100%;
+    padding: 30px 28px 76px;
+    /* Closed: the content's top sits 28px into the band (the closed padding) instead of 30px into the card. */
+    transform: translateY(calc((50% - var(--band) / 2 - 2px) * (1 - var(--o))));
+    transition: transform var(--dur) var(--ease) var(--open-delay);
+  }
+
+  .highlights,
+  .arrow,
+  .notch {
+    display: block;
+    opacity: var(--o);
+    /* Fade in as the panel is opening (0.4s, starting 0.3s in); fade out first when closing (0.2s), so the list is
+       gone before the panel closes over it. */
+    transition: opacity calc(0.2s + var(--o) * 0.2s) ease-in-out calc(var(--o) * 0.3s);
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+  .card:hover {
+    --o: 1;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .panel,
+  .body,
+  .highlights,
+  .arrow,
+  .notch {
+    transition: none;
+  }
+}
