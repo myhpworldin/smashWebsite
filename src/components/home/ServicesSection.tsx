@@ -21,9 +21,17 @@ export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
         <div className="flex flex-wrap items-end justify-between gap-6">
           {title ? <h2 id="services-heading" className="text-[40px] leading-[1.2] lg:text-[62px] lg:leading-[83px]">{title}</h2> : null}
           {cta && isLive(cta.target) ? (
-            <Link href={cta.target} className="inline-flex items-center gap-4 text-xl leading-normal text-white no-underline hover:underline">
-              {cta.label}
-              <HomeAsset name="arrow-up-right.svg" width={16} height={16} />
+            // Same hover as the case-study cards' "Know More": a white underline draws in from the left (and retracts
+            // to the right), and the arrow flies out to the top-right as a fresh one slides in from the bottom-left.
+            <Link href={cta.target} className="group/more inline-flex items-center gap-4 text-xl leading-normal text-white no-underline">
+              <span className="relative">
+                {cta.label}
+                <span className="absolute inset-x-0 -bottom-1 h-px origin-right scale-x-0 bg-white transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:origin-left group-hover/more:scale-x-100 group-focus-visible/more:origin-left group-focus-visible/more:scale-x-100 motion-reduce:transition-none" />
+              </span>
+              <span className="relative size-4 shrink-0 overflow-hidden">
+                <HomeAsset name="arrow-up-right.svg" width={16} height={16} className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:-translate-y-full group-hover/more:translate-x-full group-focus-visible/more:-translate-y-full group-focus-visible/more:translate-x-full motion-reduce:transition-none" />
+                <HomeAsset name="arrow-up-right.svg" width={16} height={16} className="absolute inset-0 -translate-x-full translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover/more:translate-x-0 group-hover/more:translate-y-0 group-focus-visible/more:translate-x-0 group-focus-visible/more:translate-y-0 motion-reduce:transition-none" />
+              </span>
             </Link>
           ) : null}
         </div>
