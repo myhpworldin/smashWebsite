@@ -15,10 +15,10 @@ export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
   const words = hero.heading.trim().split(/\s+/);
   const lastWord = words.pop();
   return (
-    <section aria-labelledby="hero-heading" data-home-section="hero" className="relative flex min-h-[640px] flex-col items-center overflow-hidden text-white lg:h-[800px]">
+    <section aria-labelledby="hero-heading" data-home-section="hero" className="relative flex min-h-[max(640px,100svh)] flex-col items-center overflow-hidden text-white lg:h-[800px]">
       <HeroAtmosphere />
 
-      <div className="relative z-[2] flex w-full max-w-[1440px] flex-col items-center px-4 pb-28 pt-36 text-center md:px-10 lg:pb-0 lg:pt-[221px]">
+      <div className="relative z-[2] flex w-full max-w-[1440px] flex-col items-center px-4 pb-28 pt-[15.5rem] text-center md:px-10 lg:pb-0 lg:pt-[221px]">
         <h1 id="hero-heading" className="max-w-[940px] text-[40px] capitalize leading-[1.25] [text-shadow:0_4px_66px_rgba(0,0,0,0.28)] sm:text-[56px] lg:text-[80px] lg:leading-[113px]">
           {words.join(" ")}{" "}
           <span className="whitespace-nowrap">

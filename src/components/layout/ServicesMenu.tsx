@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Asset } from "@/components/home/shared";
 import { NavLink } from "@/components/layout/NavLink";
@@ -13,11 +14,15 @@ type Props = { label: string; href: string; items: { label: string; path: string
  * mega-menu panel (WAI-ARIA disclosure) — "All Services" on top, then one column per category, each headed by the
  * category name with its individual services listed underneath. It opens on hover, on focus and on click/tap of the
  * arrow, and closes on Escape, on a click elsewhere, when focus leaves, and when a link in it is used.
+ * The panel is a solid sheet as wide as the navbar that unrolls out of its lower edge (a clip-path reveal with a
+ * short slide, columns following in a stagger). It is portalled to <body>, positioned from the navbar's rect: the
+ * navbar's own backdrop-filter would otherwise stop the panel's blur from seeing the page behind it.
  */
 export function ServicesMenu({ label, href, items }: Props) {
   const [open, setOpen] = useState(false);
-  // How far to nudge the panel off dead-centre so it stays clear of the viewport edge (mega-menu is wider than the nav bar's own space at narrower desktop widths).
-  const [edgeShift, setEdgeShift] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  // The navbar's box in document coordinates; the panel spans it, just under its lower edge.
+  const [box, setBox] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -28,25 +33,43 @@ export function ServicesMenu({ label, href, items }: Props) {
   const close = () => {
     openedByHover.current = false;
     setOpen(false);
-    setEdgeShift(0);
   };
+  const inside = (node: EventTarget | null) => !!node && (!!rootRef.current?.contains(node as Node) || !!panelRef.current?.contains(node as Node));
 
-  // Keeps the mega-menu on-screen: it's centred under the trigger by default, but at narrower desktop widths that can
-  // push it past the viewport edge (the page itself never scrolls horizontally to accommodate it).
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!open) return;
-    const clampToViewport = () => {
-      const panel = panelRef.current;
-      if (!panel) return;
+    const measure = () => {
+      const bar = rootRef.current?.closest("header > div");
+      if (!bar) return;
+      const r = bar.getBoundingClientRect();
       const margin = 16;
-      const rect = panel.getBoundingClientRect();
-      if (rect.right > window.innerWidth - margin) setEdgeShift(window.innerWidth - margin - rect.right);
-      else if (rect.left < margin) setEdgeShift(margin - rect.left);
-      else setEdgeShift(0);
+      const left = Math.max(r.left, margin);
+      const right = Math.min(r.right, window.innerWidth - margin);
+      setBox({ top: r.bottom + window.scrollY, left: left + window.scrollX, width: right - left });
     };
-    clampToViewport();
-    window.addEventListener("resize", clampToViewport);
-    return () => window.removeEventListener("resize", clampToViewport);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open]);
+
+  // While open the pill and the panel read as one shape: the pill squares its lower corners and takes the panel's solid
+  // colour, then relaxes back to its own look on close.
+  useEffect(() => {
+    const bar = rootRef.current?.closest<HTMLElement>("header > div");
+    if (!open || !bar || getComputedStyle(bar).borderTopLeftRadius === "0px") return;
+    const saved = { transition: bar.style.transition, background: bar.style.backgroundColor };
+    bar.style.transition = "border-radius 450ms cubic-bezier(0.22,1,0.36,1), background-color 450ms ease";
+    bar.style.borderBottomLeftRadius = "0px";
+    bar.style.borderBottomRightRadius = "0px";
+    bar.style.backgroundColor = "#0b1233";
+    return () => {
+      bar.style.borderBottomLeftRadius = "";
+      bar.style.borderBottomRightRadius = "";
+      bar.style.backgroundColor = saved.background;
+      setTimeout(() => (bar.style.transition = saved.transition), 460);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -57,7 +80,7 @@ export function ServicesMenu({ label, href, items }: Props) {
       buttonRef.current?.focus();
     };
     const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) close();
+      if (!inside(e.target)) close();
     };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
@@ -75,17 +98,72 @@ export function ServicesMenu({ label, href, items }: Props) {
   // A short delay so crossing the small gap between the link and the panel does not close it.
   const hideSoon = () => {
     clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(close, 150);
+    closeTimer.current = setTimeout(close, 180);
   };
 
-  return (
+  const ease = "ease-[cubic-bezier(0.22,1,0.36,1)]";
+  const hoverProps = { onPointerEnter: (e: React.PointerEvent) => e.pointerType !== "touch" && show(), onPointerLeave: hideSoon };
+
+  const panel = (
     <div
-      ref={rootRef}
-      className="relative flex items-center"
-      onPointerEnter={(e) => e.pointerType !== "touch" && show()}
-      onPointerLeave={hideSoon}
-      onBlur={(e) => !rootRef.current?.contains(e.relatedTarget) && close()}
+      ref={panelRef}
+      id={menuId}
+      inert={!open}
+      {...hoverProps}
+      onBlur={(e) => !inside(e.relatedTarget) && close()}
+      style={{
+        top: (box?.top ?? 0) - 1,
+        left: box?.left ?? 0,
+        width: box?.width ?? 0,
+        clipPath: open ? "inset(0 -60px -80px -60px round 0 0 32px 32px)" : "inset(0 0 100% 0 round 0 0 32px 32px)",
+        transform: open ? "translateY(0) scaleY(1)" : "translateY(-22px) scaleY(0.94)",
+        transformOrigin: "top center",
+      }}
+      className={`absolute z-[45] transition-[clip-path,transform,opacity,visibility] duration-[550ms] ${ease} ${open ? "visible opacity-100" : "invisible opacity-0"}`}
     >
+      <div className="relative overflow-hidden rounded-b-[32px] bg-[#0b1233] px-10 pb-10 pt-3 text-left font-inter text-white shadow-[0_28px_70px_rgba(0,0,12,0.5)]">
+        <Link
+          href={ROUTES.SERVICES}
+          onClick={close}
+          className="group relative flex items-center justify-between rounded-xl px-3 py-2 text-lg font-semibold text-white no-underline transition-colors hover:text-[#ff6b6b] focus-visible:text-[#ff6b6b]"
+        >
+          All Services
+          <Asset name="icons.svg" width={5} height={9} className="max-w-none rotate-0 opacity-60 brightness-0 invert transition-transform group-hover:translate-x-0.5" />
+        </Link>
+        <div className="relative h-5" />
+        <div className="relative grid gap-x-12" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+          {items.map((item, i) => (
+            <div
+              key={item.path}
+              style={{ transitionDelay: open ? `${150 + i * 70}ms` : "0ms" }}
+              className={`min-w-0 transition-[opacity,transform] duration-500 ${ease} ${open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"} `}
+            >
+              {/* A category heading, not a link — only the individual services below route anywhere. */}
+              <p className="wrap-break-word pb-4 text-xs font-semibold uppercase tracking-[0.1em] text-[#ff6b6b]">{item.label}</p>
+              {item.offerings?.length ? (
+                <ul className="flex flex-col gap-0.5">
+                  {item.offerings.map((offering) => (
+                    <li key={offering.path}>
+                      <Link
+                        href={offering.path}
+                        onClick={close}
+                        className="block wrap-break-word rounded-lg px-2.5 py-2 text-sm font-medium leading-snug text-white/90 no-underline transition-[background-color,color,transform] hover:translate-x-1 hover:bg-white/12 hover:text-white focus-visible:bg-white/12 focus-visible:text-white"
+                      >
+                        {offering.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div ref={rootRef} className="flex items-center" {...hoverProps} onBlur={(e) => !inside(e.relatedTarget) && close()}>
       <NavLink href={href} onClick={close}>{label}</NavLink>
       <button
         ref={buttonRef}
@@ -99,61 +177,9 @@ export function ServicesMenu({ label, href, items }: Props) {
         }}
         className="ml-[9px] grid h-8 w-6 place-items-center rounded"
       >
-        <Asset name="icons.svg" width={5} height={9} className={`max-w-none transition-transform duration-200 ${open ? "-rotate-90" : "rotate-90"}`} />
+        <Asset name="icons.svg" width={5} height={9} className={`max-w-none transition-transform duration-300 ${open ? "-rotate-90" : "rotate-90"}`} />
       </button>
-
-      <div
-        ref={panelRef}
-        id={menuId}
-        style={{ transform: `translateX(calc(-50% + ${edgeShift}px)) translateY(${open ? 0 : -4}px)` }}
-        className={`absolute left-1/2 top-full z-50 w-max max-w-[calc(100vw-2rem)] pt-3 transition-[opacity,transform,visibility] duration-200 ease-out ${open ? "visible opacity-100" : "invisible opacity-0"}`}
-      >
-        <div className="rounded-[28px] border border-black/5 bg-white px-8 py-7 text-left font-inter text-deep-blue shadow-[0_20px_48px_rgba(1,18,74,0.16)]">
-          <Link
-            href={ROUTES.SERVICES}
-            onClick={close}
-            className="group flex items-center justify-between rounded-xl px-3 py-0 text-lg font-semibold no-underline transition-colors hover:text-smash-red focus-visible:text-smash-red"
-          >
-            All Services
-            <Asset name="icons.svg" width={5} height={9} className="max-w-none rotate-0 opacity-40 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <div className="my-5 border-t border-black/8" />
-          {/*
-            Each column is sized to its own content, capped at 184px of TEXT (wrapping past that) — not stretched to
-            match its widest neighbour. That 184px cap sits on an inner wrapper, separate from the divider's own
-            border/padding on the outer grid item: capping them together (as an earlier version did) silently ate the
-            divider's 40px out of the text budget for every column except the first, so "Social Media Management" had
-            far less room to work with than "Conversion Optimisation" and overflowed into the next column's divider.
-            With the budgets equal, `auto-cols-max` lets short lists (e.g. Customer Engagement) shrink instead of
-            leaving stretched, inconsistent trailing whitespace — every gap is the real `gap-x-10`.
-          */}
-          <div className="grid grid-flow-col auto-cols-max gap-x-10">
-            {items.map((item, i) => (
-              <div key={item.path} className={`min-w-0 ${i > 0 ? "border-l border-black/8 pl-10" : ""}`}>
-                <div className="min-w-0 max-w-46">
-                  {/* A category heading, not a link — only the individual services below route anywhere. */}
-                  <p className="wrap-break-word pb-3 text-xs font-semibold uppercase tracking-[0.07em] text-deep-blue/45">{item.label}</p>
-                  {item.offerings?.length ? (
-                    <ul className="flex flex-col gap-0.5">
-                      {item.offerings.map((offering) => (
-                        <li key={offering.path}>
-                          <Link
-                            href={offering.path}
-                            onClick={close}
-                            className="block wrap-break-word rounded-lg px-2.5 py-2 text-sm font-medium leading-snug no-underline transition-colors hover:bg-soft-grey hover:text-smash-red focus-visible:bg-soft-grey focus-visible:text-smash-red"
-                          >
-                            {offering.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {mounted ? createPortal(panel, document.body) : null}
     </div>
   );
 }

@@ -192,7 +192,7 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
       start[i * 3] = R * s * Math.cos(a);
       start[i * 3 + 1] = R * u * 0.7;
       start[i * 3 + 2] = R * s * Math.sin(a);
-      delay[i] = rand() * 0.4;
+      delay[i] = rand() * 0.35;
       kind[i] = k;
       rnd[i] = rand();
       dens[i] = d;
@@ -218,13 +218,24 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
         varying vec4 vDark;
         varying vec4 vLight;
         void main() {
-          float t = clamp((uProgress - aDelay) / 0.6, 0.0, 1.0);
-          t = t * t * (3.0 - 2.0 * t);
-          // Dust drifts in a slow swirl that unwinds as it assembles.
+          // Each mote has its own start and flight time, so the dust gathers in waves instead of all at once.
+          float dur = mix(0.35, 0.5, aRand);
+          float raw = clamp((uProgress - aDelay) / dur, 0.0, 1.0);
+          // Gentle lift-off, long decelerating glide, soft settle.
+          float t = mix(raw * raw * (3.0 - 2.0 * raw), 1.0 - pow(1.0 - raw, 3.0), 0.6);
+          // Dust drifts in a slow swirl that unwinds as it assembles, with a little free-floating wobble.
           float ang = (uTime * 0.06 + aRand * 6.2831) * (1.0 - t) * 0.6;
           vec3 s = aStart;
           s.xz = mat2(cos(ang), -sin(ang), sin(ang), cos(ang)) * s.xz;
+          s += 0.12 * vec3(sin(uTime * 0.7 + aRand * 20.0), cos(uTime * 0.5 + aRand * 31.0), sin(uTime * 0.6 + aRand * 13.0)) * (1.0 - t);
           vec3 p = mix(s, position, t);
+          // The flight curves: motes spiral in along an arc that is widest mid-way and closes onto the surface.
+          vec3 side3 = normalize(cross(s, vec3(0.0, 1.0, 0.1)) + 1e-4);
+          p += side3 * sin(3.14159 * t) * (1.0 - t) * length(s - position) * 0.22 * (0.4 + aRand);
+          // Landing glint: a brief flash as each mote touches down.
+          float g = clamp((uProgress - aDelay - dur) / 0.12, 0.0, 1.0);
+          float glint = g > 0.0 && g < 1.0 ? sin(3.14159 * g) : 0.0;
+          float born = smoothstep(0.0, 1.4, uTime);
 
           vec4 world = modelMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * viewMatrix * world;
@@ -232,7 +243,7 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
           // Facing the camera → full strength; far hemisphere → a faint see-through shell.
           float facing = dot(normalize(world.xyz - uCenter), normalize(cameraPosition - world.xyz));
           float side = mix(0.07, 1.0, smoothstep(-0.15, 0.3, facing)) ;
-          float shown = mix(0.55, side, t);
+          float shown = mix(0.55 * born, side, t) * (1.0 + 0.9 * glint);
           // India is denser than the world field; dim it by its on-screen density (∝ density × altitude²) so it is a
           // highlighted region from afar, not a solid patch, and full-strength single dots up close.
           float dw = aKind > 1.5 ? min(1.0, 27.0 / (aDensity * uAlt * uAlt)) : 1.0;
@@ -243,7 +254,7 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
           vDark = vec4(aKind < 0.5 ? dOcean : (aKind < 1.5 ? dLand : dIndia), (aKind < 0.5 ? 0.4 : (aKind < 1.5 ? 0.85 : 0.95)) * twinkle * dw * shown);
           vLight = vec4(aKind < 0.5 ? lOcean : (aKind < 1.5 ? lLand : lIndia), (aKind < 0.5 ? 0.18 : (aKind < 1.5 ? 0.32 : 0.34)) * dw * shown);
 
-          gl_PointSize = uSize * (aKind < 0.5 ? 0.9 : 1.0) * mix(1.0, 1.9, uZoom) * mix(1.5, 1.0, t);
+          gl_PointSize = uSize * (aKind < 0.5 ? 0.9 : 1.0) * mix(1.0, 1.9, uZoom) * mix(1.5, 1.0, t) * (1.0 + 0.8 * glint);
         }`,
       fragmentShader: /* glsl */ `
         ${LOOK}
@@ -408,8 +419,8 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
   /* ---------- Motion ---------- */
   const tweens: gsap.core.Animation[] = [];
   if (!reducedMotion) {
-    tweens.push(gsap.to(uniforms.uProgress, { value: 1, duration: 3.4, ease: "power2.inOut", delay: 0.15 }));
-    tweens.push(gsap.to(uniforms.uIntro, { value: 1, duration: 1.6, ease: "power2.out", delay: 2.3 }));
+    tweens.push(gsap.to(uniforms.uProgress, { value: 1, duration: 5, ease: "none", delay: 0.2 }));
+    tweens.push(gsap.to(uniforms.uIntro, { value: 1, duration: 2, ease: "power2.out", delay: 3.6 }));
   }
 
   // Scroll: one scrubbed timeline from the top of the hero until the hero has fully scrolled away (or, if About is
@@ -429,7 +440,7 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
               return Math.min(heroTop + hero.offsetHeight, unstick);
             },
             invalidateOnRefresh: true,
-            scrub: 1.2,
+            scrub: 0.25,
           },
         })
         .to(view, { center: 1, duration: 0.6, ease: "power1.inOut" }, 0)
@@ -464,7 +475,7 @@ export function createGlobe({ container, layer, hero, reducedMotion }: Options):
     // a sphere: R = (vh / 2) / (√(d² − 1) · tan(fov / 2)).
     const vh = container.clientHeight || 1;
     const vw = container.clientWidth || 1;
-    const radiusPx = Math.min(0.25 * vw, 0.75 * heroH);
+    const radiusPx = Math.min((vw < 768 ? 0.45 : 0.28) * vw, 0.75 * heroH);
     const heroDist = Math.sqrt(1 + (vh / (2 * radiusPx * Math.tan(FOV / 2))) ** 2);
     // Camera altitude interpolated in log space, so the dive feels like a steady hyper-zoom.
     const heroAlt = heroDist - 1;
