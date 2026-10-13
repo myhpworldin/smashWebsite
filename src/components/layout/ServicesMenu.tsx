@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Asset } from "@/components/home/shared";
@@ -8,6 +8,8 @@ import { NavLink } from "@/components/layout/NavLink";
 import { ROUTES } from "@/lib/routes";
 
 type Props = { label: string; href: string; items: { label: string; path: string; offerings?: { label: string; path: string }[] }[] };
+
+const subscribeNone = () => () => {};
 
 /**
  * The header's "Services" item: the link itself still goes to /services, and the arrow beside it opens a single
@@ -20,7 +22,8 @@ type Props = { label: string; href: string; items: { label: string; path: string
  */
 export function ServicesMenu({ label, href, items }: Props) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  // false on the server and during hydration, true afterwards — the portal target (document.body) exists only then.
+  const mounted = useSyncExternalStore(subscribeNone, () => true, () => false);
   // The navbar's box in document coordinates; the panel spans it, just under its lower edge.
   const [box, setBox] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -35,8 +38,6 @@ export function ServicesMenu({ label, href, items }: Props) {
     setOpen(false);
   };
   const inside = (node: EventTarget | null) => !!node && (!!rootRef.current?.contains(node as Node) || !!panelRef.current?.contains(node as Node));
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;

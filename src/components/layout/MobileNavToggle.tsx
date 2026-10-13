@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import type { NavItem } from "@/lib/nav";
 import { NavLink } from "@/components/layout/NavLink";
 import styles from "./Header.module.css";
 
 const EASE = "ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+const subscribeNone = () => () => {};
 
 /**
  * Mobile navigation: a glass side drawer that slides in from the right over a blurred scrim.
@@ -18,13 +20,12 @@ const EASE = "ease-[cubic-bezier(0.22,1,0.36,1)]";
 export function MobileNavToggle({ items }: { items: NavItem[] }) {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  // false on the server and during hydration, true afterwards — the portal target (document.body) exists only then.
+  const mounted = useSyncExternalStore(subscribeNone, () => true, () => false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   const close = () => setOpen(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
