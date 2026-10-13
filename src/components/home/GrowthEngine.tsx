@@ -1,152 +1,179 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { HomeAsset } from "./home-ui";
+import { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { GrowthCursor } from "./growth/GrowthCursor";
+import { GrowthDotField } from "./growth/GrowthDotField";
 import type { HomeSection } from "./shared";
 
-/** The design's two photographs, alternating step by step (Figma: step 01 → the first, step 02 → the second). */
-const PHOTOS = ["/media/home/growth-photo-1.jpg", "/media/home/growth-photo-2.jpg"];
-/** How long each step stays before the carousel moves on (its progress bar fills over this time). */
-const STEP_MS = 6000;
-const SWIPE_PX = 50;
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
+
+const DIM = "rgba(255,255,255,0.32)";
+const ACTIVE_NUMBER = "#e90101"; // --brand-smash-red
+/** Scroll-time units on the pinned timeline: each hand-over takes TRANSITION, then the open step rests for HOLD so it can be read. */
+const TRANSITION = 1;
+const HOLD = 0.8;
+/** Scroll distance the pin lasts, per step, as a fraction of the viewport height. */
+const SCROLL_PER_STEP = 0.6;
 
 /**
- * "SMASH Growth Engine" (Figma New Homepage, node 606:974 and its frames 635:120 / 641:208): a near-black band with the
- * title and round prev/next arrows, over a carousel of the CMS growth steps — each a white card (uppercase title,
- * number, description, progress bar) followed by a photograph. The active step's card + photo fill the 1140px
- * column; the neighbours peek in at either edge behind a frosted veil.
+ * "SMASH Growth Engine": a pinned, scroll-driven list of the CMS growth steps. A thin vertical track runs down the left
+ * with a glowing dot; as the section pins and the page scrolls, the dot travels from step to step and each step in turn
+ * opens like an accordion — number and title brighten, the description expands — while the one before collapses and dims.
  *
- * Motion: the active card's progress bar fills over STEP_MS and the carousel then advances (looping). It pauses while
- * the cards are hovered, while anything in the section has focus, and while it is off screen; the arrows and a horizontal swipe move one step at a time. The track only ever moves
- * by transform. Reduced motion: no autoplay, no sliding (the bar shows the active step as complete).
+ * The motion is one scrubbed GSAP timeline (scroll position ⇄ timeline time, so scrolling back runs it in reverse), with a
+ * short rest after every hand-over. Description heights are measured (`scrollHeight`) by function-based values that
+ * ScrollTrigger re-evaluates on every refresh, so wrapping at any width is handled; the dot reads the live position of
+ * the step titles each frame, so it stays attached while rows above it open and close.
+ *
+ * Without JS, or with reduced motion, nothing is collapsed, pinned or animated: every step is shown open.
  */
 export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
   const steps = data.steps;
   const count = steps.length;
-  const [active, setActive] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const [visible, setVisible] = useState(false);
   const section = useRef<HTMLElement>(null);
-  const cards = useRef<(HTMLLIElement | null)[]>([]);
-  const swipeStart = useRef<number | null>(null);
 
-  const go = useCallback((delta: number) => setActive((i) => (i + delta + count) % count), [count]);
-
-  // The track's offset is the active card's own position, measured — so it is exact at every breakpoint and card width.
   useLayoutEffect(() => {
-    const measure = () => setOffset(cards.current[active]?.offsetLeft ?? 0);
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (section.current) ro.observe(section.current);
-    return () => ro.disconnect();
-  }, [active]);
+    const root = section.current;
+    if (!root || count < 2) return;
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const track = root.querySelector<HTMLElement>("[data-ge-track]");
+      const dot = root.querySelector<HTMLElement>("[data-ge-dot]");
+      const fill = root.querySelector<HTMLElement>("[data-ge-fill]");
+      const titles = gsap.utils.toArray<HTMLElement>("[data-ge-title]", root);
+      const numbers = gsap.utils.toArray<HTMLElement>("[data-ge-number]", root);
+      const descs = gsap.utils.toArray<HTMLElement>("[data-ge-desc]", root);
+      if (!track || !dot || !fill || titles.length !== count) return;
 
-  // Autoplay only while the section is on screen.
-  useEffect(() => {
-    const el = section.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.25 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+      // Resting state: the first step open and bright, the rest collapsed and dim.
+      gsap.set(descs.slice(1), { height: 0, opacity: 0 });
+      gsap.set(titles.slice(1), { color: DIM });
+      gsap.set(numbers.slice(1), { color: DIM });
+      gsap.set(numbers[0], { color: ACTIVE_NUMBER });
+      gsap.set(dot, { opacity: 1 });
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: root,
+          start: "top top",
+          end: () => `+=${Math.round(count * SCROLL_PER_STEP * window.innerHeight)}`,
+          pin: true,
+          scrub: 0.5,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      // Every tween states both of its values and defers applying them, so a step can be opened by one tween and
+      // closed by a later one without the later one's start value being painted at build time.
+      const open = (i: number, at: number) => {
+        tl.fromTo(descs[i], { height: 0, opacity: 0 }, { height: () => descs[i].scrollHeight, opacity: 1, duration: TRANSITION, ease: "power2.inOut", immediateRender: false }, at)
+          .fromTo(titles[i], { color: DIM }, { color: "#fff", duration: TRANSITION, immediateRender: false }, at)
+          .fromTo(numbers[i], { color: DIM }, { color: ACTIVE_NUMBER, duration: TRANSITION, immediateRender: false }, at);
+      };
+      const close = (i: number, at: number) => {
+        tl.fromTo(descs[i], { height: () => descs[i].scrollHeight, opacity: 1 }, { height: 0, opacity: 0, duration: TRANSITION, ease: "power2.inOut", immediateRender: false }, at)
+          .fromTo(titles[i], { color: "#fff" }, { color: DIM, duration: TRANSITION, immediateRender: false }, at)
+          .fromTo(numbers[i], { color: ACTIVE_NUMBER }, { color: DIM, duration: TRANSITION, immediateRender: false }, at);
+      };
+
+      const hand: { start: number }[] = [];
+      let t = HOLD; // the first step rests open before anything moves
+      for (let i = 1; i < count; i++) {
+        close(i - 1, t);
+        open(i, t);
+        hand.push({ start: t });
+        t += TRANSITION + HOLD;
+      }
+      tl.to({}, { duration: 0.001 }, t); // extend the timeline to include the last rest
+
+      // The dot sits on the vertical middle of the active title, gliding between the two titles of a hand-over;
+      // the rows are measured live because the accordion is moving them. Its fill line follows it down the track.
+      const ease = gsap.parseEase("power2.inOut");
+      const titleY = (i: number) => {
+        const r = titles[i].getBoundingClientRect();
+        return r.top + r.height / 2 - track.getBoundingClientRect().top;
+      };
+      const place = () => {
+        const time = tl.time();
+        let from = 0;
+        let to = 0;
+        let k = 0;
+        for (let i = 0; i < hand.length; i++) {
+          if (time >= hand[i].start + TRANSITION) from = to = i + 1;
+          else if (time > hand[i].start) {
+            from = i;
+            to = i + 1;
+            k = ease((time - hand[i].start) / TRANSITION);
+            break;
+          } else break;
+        }
+        const y = from === to ? titleY(from) : titleY(from) + (titleY(to) - titleY(from)) * k;
+        gsap.set(dot, { y });
+        gsap.set(fill, { height: y });
+      };
+      tl.eventCallback("onUpdate", place);
+      ScrollTrigger.addEventListener("refresh", place);
+      place();
+
+      return () => {
+        ScrollTrigger.removeEventListener("refresh", place);
+        gsap.set([...descs, ...titles, ...numbers, dot, fill], { clearProps: "all" });
+      };
+    });
+    return () => mm.revert();
+  }, [count]);
 
   if (!count) return null;
-  const playing = visible && !hovered && !focused;
+  const words = data.heading?.trim().split(/\s+/) ?? [];
+  const lastWord = words.pop();
 
   return (
     <section
       ref={section}
       aria-labelledby="growth-engine-heading"
-      aria-roledescription="carousel"
       data-home-section="growth-engine"
-      className="overflow-hidden bg-[#1a1a1a] py-20 text-white lg:py-[140px]"
-      // Keyboard focus pauses; a mouse click on an arrow (which also focuses it) must not stop autoplay for good.
-      onFocus={(e) => setFocused(e.target.matches(":focus-visible"))}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false);
-      }}
+      className="relative flex min-h-[100svh] items-center overflow-hidden bg-black py-16 text-white"
     >
-      <div className="mx-auto w-full max-w-[1220px] px-4 md:px-10">
-        <div className="flex items-center justify-between gap-6">
-          {data.heading ? (
-            <h2 id="growth-engine-heading" className="text-[34px] font-medium leading-[1.2] md:text-5xl lg:text-[62px] lg:leading-[96px]">
-              {data.heading}
-            </h2>
-          ) : null}
-          {count > 1 ? (
-            <div className="flex shrink-0 items-center gap-4 lg:gap-10">
-              <button type="button" onClick={() => go(-1)} aria-label="Previous step" className="rounded-full transition-transform duration-300 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                <HomeAsset name="growth-arrow.svg" width={58} height={58} className="size-12 rotate-180 lg:size-[58px]" />
-              </button>
-              <button type="button" onClick={() => go(1)} aria-label="Next step" className="rounded-full transition-transform duration-300 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                <HomeAsset name="growth-arrow.svg" width={58} height={58} className="size-12 lg:size-[58px]" />
-              </button>
-            </div>
-          ) : null}
+      {/* The hero's palette: black under soft bright-blue and deep-blue glows (#0058C8 / #061A9E), red kept for accents. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_90%_at_0%_20%,rgba(0,88,200,0.55),transparent_70%),radial-gradient(55%_80%_at_100%_100%,rgba(6,26,158,0.7),transparent_70%),radial-gradient(40%_60%_at_85%_0%,rgba(6,26,158,0.35),transparent_70%)]" />
+      {/* The interactive dot field (Three.js); without WebGL the section keeps the glows alone. */}
+      <GrowthDotField />
+      <GrowthCursor />
+
+      <div className="relative mx-auto grid w-full max-w-[1220px] grid-cols-[28px_minmax(0,1fr)] gap-x-5 px-4 md:grid-cols-[72px_minmax(0,1fr)] md:gap-x-8 md:px-10">
+        {/* The track: a thin line with a glowing dot that travels down it. */}
+        <div data-ge-track aria-hidden="true" className="relative">
+          <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/15" />
+          <span data-ge-fill className="absolute left-1/2 top-0 h-0 w-px -translate-x-1/2 bg-gradient-to-b from-bright-blue to-smash-red" />
+          <span data-ge-dot className="absolute left-1/2 top-0 -ml-[7px] -mt-[7px] size-3.5 rounded-full bg-white opacity-0 shadow-[0_0_0_4px_rgba(0,88,200,0.55),0_0_22px_6px_rgba(0,88,200,0.85)]" />
         </div>
 
-        <div
-          className="mt-10 touch-pan-y lg:mt-[60px]"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          onPointerDown={(e) => {
-            swipeStart.current = e.clientX;
-          }}
-          onPointerUp={(e) => {
-            if (swipeStart.current === null) return;
-            const dx = e.clientX - swipeStart.current;
-            swipeStart.current = null;
-            if (Math.abs(dx) > SWIPE_PX) go(dx < 0 ? 1 : -1);
-          }}
-          onPointerCancel={() => {
-            swipeStart.current = null;
-          }}
-        >
-          <ol
-            className="relative flex gap-4 transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none lg:gap-[30px]"
-            style={{ transform: `translate3d(${-offset}px, 0, 0)` }}
-          >
-            {steps.map((step, i) => {
-              const current = i === active;
-              return [
-                <li
-                  key={`step-${step.order}`}
-                  ref={(el) => {
-                    cards.current[i] = el;
-                  }}
-                  aria-roledescription="slide"
-                  aria-label={`${i + 1} of ${count}`}
-                  className="relative flex min-h-[300px] w-[82vw] max-w-[500px] shrink-0 flex-col justify-between rounded-[20px] bg-white px-6 pb-9 pt-8 text-black md:w-[440px] lg:h-[340px] lg:w-[500px] lg:px-[30px] lg:pt-10"
-                >
-                  <div className="flex flex-col gap-5 lg:gap-[30px]">
-                    <div className="flex items-center justify-between text-[22px] font-medium leading-[1.4] lg:text-[26px]">
-                      <h3 className="uppercase">{step.title}</h3>
-                      <span aria-hidden="true" className="opacity-40">{String(step.order).padStart(2, "0")}</span>
-                    </div>
-                    {step.description ? <p className="text-lg leading-[1.44] text-black/90 lg:text-[22px]">{step.description}</p> : null}
+        <div className="min-w-0">
+          {data.heading ? (
+            <h2 id="growth-engine-heading" className="text-[clamp(30px,6vh,56px)] font-medium leading-[1.1] tracking-tight">
+              {words.join(" ")}{" "}
+              <span className="font-serif font-normal italic text-white/90">{lastWord}</span>
+            </h2>
+          ) : null}
+
+          <ol className="mt-[clamp(20px,4vh,44px)] flex flex-col gap-[clamp(10px,2vh,20px)]">
+            {steps.map((step) => (
+              <li key={step.order}>
+                <div className="flex items-baseline gap-4 md:gap-6">
+                  <span data-ge-number className="w-8 shrink-0 font-mono text-sm tracking-widest md:text-base">{String(step.order).padStart(2, "0")}</span>
+                  <h3 data-ge-title className="text-[clamp(24px,4.6vh,42px)] font-medium uppercase leading-[1.1] tracking-tight">{step.title}</h3>
+                </div>
+                {step.description ? (
+                  <div data-ge-desc className="overflow-hidden">
+                    <p className="max-w-[640px] pb-1 pl-12 pt-3 text-base leading-[1.55] text-white/75 md:pl-14 md:text-lg">{step.description}</p>
                   </div>
-                  {/* Progress: the design's 4px rounded track (black 10%) with the bright-blue fill growing across it. */}
-                  <span aria-hidden="true" className="relative mt-8 block h-1 w-full overflow-hidden rounded-full bg-black/10">
-                    {current ? (
-                      <span
-                        key={active}
-                        className="growth-progress absolute inset-y-0 left-0 w-full origin-left rounded-full bg-bright-blue"
-                        style={{ animationDuration: `${STEP_MS}ms`, animationPlayState: playing ? "running" : "paused" }}
-                        onAnimationEnd={() => go(1)}
-                      />
-                    ) : null}
-                  </span>
-                  <Frost on={!current} blur="backdrop-blur-[2px]" />
-                </li>,
-                <li key={`photo-${step.order}`} aria-hidden="true" className="relative w-[82vw] max-w-[610px] shrink-0 overflow-hidden rounded-[20px] md:w-[520px] lg:h-[340px] lg:w-[610px]">
-                  <Image src={PHOTOS[i % PHOTOS.length]} alt="" fill sizes="(min-width: 1024px) 610px, 82vw" className="object-cover" />
-                  <Frost on={!current} blur="backdrop-blur-[7px]" />
-                </li>,
-              ];
-            })}
+                ) : null}
+              </li>
+            ))}
           </ol>
         </div>
       </div>
@@ -154,12 +181,3 @@ export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
   );
 }
 
-/** The design's veil over the cards outside the active pair: white 20% with a backdrop blur (7px on photos, 2px on cards). */
-function Frost({ on, blur }: { on: boolean; blur: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 rounded-[20px] bg-white/20 ${blur} transition-opacity duration-500 ${on ? "opacity-100" : "opacity-0"}`}
-    />
-  );
-}

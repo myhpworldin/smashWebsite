@@ -11,9 +11,7 @@ import { ShowcaseSection } from "@/components/home/ShowcaseSection";
 import { ManifestoSection } from "@/components/home/ManifestoSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { CaseStudiesSection } from "@/components/home/CaseStudiesSection";
-import { BannerCta } from "@/components/home/BannerCta";
 import { GrowthEngine } from "@/components/home/GrowthEngine";
-import { Industries } from "@/components/home/Industries";
 import { OurStory } from "@/components/home/OurStory";
 import { Team } from "@/components/home/Team";
 
@@ -56,8 +54,6 @@ export default async function HomePage() {
       {home.selectedWork ? <CaseStudiesSection data={home.selectedWork} /> : null}
       {home.growthEngine ? <GrowthEngine data={home.growthEngine} /> : null}
       {home.ourStory ? <OurStory data={home.ourStory} /> : null}
-      {home.bannerCta ? <BannerCta data={home.bannerCta} /> : null}
-      {home.industries ? <Industries data={home.industries} className="mt-16 lg:mt-[120px]" /> : null}
       {home.team ? <Team data={home.team} className="mt-16 lg:mt-[120px]" /> : null}
       <HomeAnimations />
     </>
