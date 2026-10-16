@@ -7,7 +7,7 @@ import { leads } from "@/server/db/schema";
 import { orNotFound } from "@/server/seo/page-resolver";
 import { getPublishedServiceBySlug } from "@/server/modules/services/services.service";
 import { listLeadActivity } from "@/server/modules/leads/lead-activity.service";
-import { getCurrentAdmin } from "@/server/api/admin-session";
+import { requireCurrentAdmin } from "@/server/api/admin-session";
 import { LEAD_PRIORITIES, LEAD_PRIORITY_LABEL, LEAD_STATUSES, LEAD_STATUS_LABEL } from "@/lib/lead-options";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminCard } from "@/components/admin/AdminCard";
@@ -47,8 +47,9 @@ const Field = ({ label, value }: { label: string; value: ReactNode }) => (
  */
 export default async function AdminLeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const admin = await requireCurrentAdmin();
   const db = getDb();
-  const [lead, admin] = await Promise.all([orNotFound(() => getRowById(db, leads, id, "Lead")), getCurrentAdmin()]);
+  const lead = await orNotFound(() => getRowById(db, leads, id, "Lead"));
   const [service, activity] = await Promise.all([
     lead.primaryService ? getPublishedServiceBySlug(db, lead.primaryService).catch(() => null) : Promise.resolve(null),
     listLeadActivity(db, id),
@@ -84,7 +85,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
             <h2 className={styles.sectionHeading}>CRM Management</h2>
             <LeadEnumControl leadId={lead.id} field="status" label="Status" value={lead.status} options={LEAD_STATUSES} labels={LEAD_STATUS_LABEL} />
             <LeadEnumControl leadId={lead.id} field="priority" label="Priority" value={lead.priority} options={LEAD_PRIORITIES} labels={LEAD_PRIORITY_LABEL} />
-            {admin ? <LeadAssignmentControl leadId={lead.id} assignedTo={lead.assignedTo} currentAdminEmail={admin.email} /> : null}
+            <LeadAssignmentControl leadId={lead.id} assignedTo={lead.assignedTo} currentAdminEmail={admin.email} />
           </AdminCard>
 
           <AdminCard className={styles.section}>

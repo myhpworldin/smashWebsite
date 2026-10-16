@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Inbox } from "lucide-react";
 import { getDb } from "@/server/db/client";
-import { getCurrentAdmin } from "@/server/api/admin-session";
+import { requireCurrentAdmin } from "@/server/api/admin-session";
 import { logger } from "@/server/lib/logger";
 import { getLeadPrioritySummary, getLeadStatusSummary, listLeads } from "@/server/modules/leads/leads.service";
 import { listLeadsQuerySchema } from "@/server/modules/leads/leads.schema";
@@ -32,7 +32,7 @@ const formatDate = (value: Date) => value.toLocaleDateString("en-US", { month: "
  * size, narrowed to 5 for display.
  */
 export default async function AdminDashboardPage() {
-  const admin = (await getCurrentAdmin())!;
+  const admin = await requireCurrentAdmin();
   const db = getDb();
 
   let summary: Awaited<ReturnType<typeof getLeadStatusSummary>> | null = null;

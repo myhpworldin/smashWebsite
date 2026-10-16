@@ -8,27 +8,25 @@ import { serviceOfferingDetailDto, toPublicSeo, type ServiceOfferingDetail } fro
 import { serviceOfferingSource } from "@/server/seo/adapters";
 import { resolveMetadata } from "@/server/seo/metadata";
 import { publicizeMedia } from "@/server/media/public";
-import { PageHero } from "@/components/layout/PageHero";
-import { ServiceSplitSection } from "@/components/sections/ServiceSplitSection";
-import { ServiceCapabilitiesSection } from "@/components/sections/ServiceCapabilitiesSection";
-import { ServiceProcessSection } from "@/components/sections/ServiceProcessSection";
-import { ServiceOutcomeSection } from "@/components/sections/ServiceOutcomeSection";
-import { RelatedContentSection } from "@/components/sections/RelatedContentSection";
-import { RelatedCaseStudySection } from "@/components/sections/RelatedCaseStudySection";
-import { FaqSection } from "@/components/sections/FaqSection";
-import { ServiceCtaSection } from "@/components/sections/ServiceCtaSection";
+import { SheetHero } from "@/components/layout/SheetHero";
+import { SheetMotion } from "@/components/layout/SheetMotion";
+import { ServiceHeroField } from "@/components/service/ServiceHeroField";
+import { ServiceMotion } from "@/components/service/ServiceMotion";
+import { ServiceIntro, ServiceCapabilities, ServiceProcess, ServiceOutcome, ServiceRelated, ServiceCases } from "@/components/service/ServiceSections";
+import { ServiceFaq } from "@/components/service/ServiceFaq";
 
 /**
- * Stage 1, Phase 1 — Service Detail Foundation (Figma node 165:306), reusable across all 19 future services.
- * Nested under its category (`/services/[slug]/[offeringSlug]`, e.g. `/services/growth/meta-ads`) rather than
- * flat: the flat `/services/[slug]` route already means "category" in this codebase, and reusing it here would
- * risk a real slug collision with the 4 existing category routes sharing this same `services` collection (Phase 0
- * audit §19's flagged routing risk). The outer segment is named `[slug]`, not `[category]`, because Next.js
- * requires every dynamic segment at the same route level to share one name — it already conflicted with the
- * sibling `services/[slug]/page.tsx` category route until renamed to match (found live in this phase: `next dev`
- * refused to start at all with two differently-named segments in the same position). `requirePublishedRoute`'s
- * redirect-aware resolver isn't used here (it assumes a one-level content path); `orNotFound` alone is sufficient,
- * since `getPublishedServiceOffering` already throws NOT_FOUND for an unpublished category or an offering with no slug.
+ * An individual service (`/services/[slug]/[offeringSlug]`, e.g. `/services/growth/meta-ads`), in the Home page's
+ * language: the dark hero with drifting glows and a Three.js point field, then sheets that slide over one another —
+ * introduction, why it matters, capabilities, what you receive (a rail that fills as you scroll), outcomes, related
+ * services, results and FAQ — each with its own GSAP motion (ServiceMotion / SheetMotion).
+ * Every word still comes from the offering's content; nothing here is invented.
+ *
+ * Nested under its category rather than flat: the flat `/services/[slug]` route already means "category" and reusing
+ * it would risk a real slug collision. The outer segment is named `[slug]`, not `[category]`, because Next.js
+ * requires every dynamic segment at the same route level to share one name. `orNotFound` alone is enough here:
+ * `getPublishedServiceOffering` already throws NOT_FOUND for an unpublished category or an offering with no slug.
+ * There is no visible breadcrumb trail (the design is nav + title only); the BreadcrumbList structured data is unaffected.
  */
 export const dynamic = "force-dynamic";
 
@@ -50,26 +48,27 @@ export default async function Page({ params }: { params: Promise<{ slug: string;
 
   return (
     <>
-      {/* No visible breadcrumb trail: the approved Figma hero (node 165:306) is nav + centred title only —
-          confirmed against the actual design after an earlier attempt to fit breadcrumbs inside the hero
-          deviated from it. The BreadcrumbList structured data below is unaffected; it's invisible markup and
-          still gives search engines the same Home → Category → Service hierarchy. */}
       <JsonLd data={await serviceOfferingSchemas(categorySlug, offeringSlug)} />
-      <PageHero id="service-offering-heading" title={offering.headline} image={offering.heroImage ?? undefined} />
-      <ServiceSplitSection data={offering.introduction} headingId="introduction-heading" />
-      <ServiceSplitSection data={offering.importance} headingId="importance-heading" reverse takeaways={offering.importance?.takeaways} />
-      <ServiceCapabilitiesSection data={offering.capabilities} headingId="capabilities-heading" />
-      <ServiceProcessSection data={offering.process} headingId="process-heading" />
-      <ServiceOutcomeSection data={offering.outcome} headingId="outcome-heading" />
-      <RelatedContentSection
-        heading="Related Services"
-        headingId="related-services-heading"
-        items={offering.relatedServices.map((s) => ({ title: s.title, slug: s.slug, path: s.path }))}
-        sourceType="service"
-      />
-      <RelatedCaseStudySection items={offering.relatedCaseStudies} headingId="related-work-heading" />
-      <FaqSection items={offering.faqs} headingId="faq-heading" />
-      <ServiceCtaSection cta={offering.cta} headingId="cta-heading" />
+      <div data-sheet-top data-mist-host className="relative">
+        <SheetHero
+          id="service-offering-heading"
+          title={offering.headline}
+          description={offering.shortDescription}
+          image={offering.heroImage?.url}
+          backdrop={<ServiceHeroField />}
+          descriptionWidth="max-w-[720px]"
+        />
+        <ServiceIntro data={offering.introduction} headingId="introduction-heading" first />
+      </div>
+      <ServiceIntro data={offering.importance} headingId="importance-heading" reverse tone="grey" takeaways={offering.importance?.takeaways} />
+      <ServiceCapabilities data={offering.capabilities} headingId="capabilities-heading" />
+      <ServiceProcess data={offering.process} headingId="process-heading" />
+      <ServiceOutcome data={offering.outcome} headingId="outcome-heading" />
+      <ServiceRelated heading="Related Services" headingId="related-services-heading" items={offering.relatedServices.map((s) => ({ title: s.title, slug: s.slug, path: s.path }))} />
+      <ServiceCases items={offering.relatedCaseStudies} headingId="related-work-heading" />
+      <ServiceFaq items={offering.faqs} headingId="faq-heading" />
+      <SheetMotion />
+      <ServiceMotion />
     </>
   );
 }

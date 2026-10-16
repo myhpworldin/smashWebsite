@@ -118,3 +118,28 @@
     transition: none;
   }
 }
+
+/* ---- Backdrop: the highlighted chart point breathes (ServicesBackdrop.tsx) ---- */
+.pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+}

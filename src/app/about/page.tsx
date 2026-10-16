@@ -5,9 +5,12 @@ import { teamMemberDto } from "@/server/api/serializers";
 import { publicizeMedia } from "@/server/media/public";
 import { staticPageMetadata } from "@/server/seo/next-metadata";
 import { ROUTES } from "@/lib/routes";
-import { PageHero } from "@/components/layout/PageHero";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { HomeAnimations } from "@/components/home/HomeAnimations";
 import { Team } from "@/components/home/Team";
+import { SheetHero } from "@/components/layout/SheetHero";
+import { SheetMotion } from "@/components/layout/SheetMotion";
+import { AboutMotion } from "@/components/about/AboutMotion";
 import { StoryHeading, CultureBanner, MissionVision } from "@/components/about/AboutStory";
 import { OurValues } from "@/components/about/OurValues";
 import { GrowthApproach } from "@/components/about/GrowthApproach";
@@ -16,18 +19,30 @@ import type { TeamMember } from "@/server/api/serializers";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * "Our Team" is switched off for now (no published members to show yet). Set this to `true` to bring it back: the section, its
+ * data fetch and the empty-state fallback below are all still here, and the spacing around Culture returns to what it was.
+ */
+const SHOW_TEAM = false;
+
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.ABOUT);
 }
 
 /**
- * About Us (Figma "Smash Website Design", frame "About Us"). The narrative copy below (story, mission/vision,
- * values, process, culture) is the approved Figma copy — there is no CMS model for it, the same rule Careers'
- * "Why Smash" reasons follow (see careers/page.tsx). "Our Team" is real, published `TeamMember` data, styled like
- * Home's team section; a page with nothing published yet still shows the rest of the (approved, non-fabricated) page.
+ * About Us, redesigned in the Home page's language (same hero with drifting mist, rounded sheets that slide over one
+ * another, scroll-paced motion — see HomeAnimations / AboutMotion). The narrative copy below (story, mission/vision,
+ * values, process, culture) is the approved Figma copy ("Smash Website Design", frame "About Us") — there is no CMS
+ * model for it, the same rule Careers' "Why Smash" reasons follow (see careers/page.tsx), and the words are unchanged
+ * by the redesign. "Our Team" is real, published `TeamMember` data, styled like Home's team section; a page with
+ * nothing published yet still shows the rest of the (approved, non-fabricated) page. Currently switched off (`SHOW_TEAM`).
+ *
+ * Rhythm: the hero is sticky and the Story sheet slides over it; then white → "Built to move" → dark Mission/Vision
+ * sheet → blue Values sheet → white Growth sheet, each overlapping the one before with the same rounded top, then the
+ * team and culture. Home's `HomeAnimations` supplies the generic `data-reveal` fade-ups; `AboutMotion` the rest.
  */
 export default async function AboutPage() {
-  const rows = await listPublishedTeam(getDb());
+  const rows = SHOW_TEAM ? await listPublishedTeam(getDb()) : [];
   const team = publicizeMedia(rows.map(teamMemberDto), []) as TeamMember[];
   const teamData = {
     eyebrow: "Our Team",
@@ -39,32 +54,38 @@ export default async function AboutPage() {
 
   return (
     <>
-      <PageHero
-        id="about-heading"
-        title="Who we are"
-        description="SMASH is a full-service growth and marketing agency shaped by operators, strategists, creatives and technologists who understand that good work has to move the business forward."
-        descriptionWidth="max-w-[760px]"
-        image={{ url: "/media/aboutus-banner.png", alt: "" }}
-        centerGlow={false}
-      />
+      <div data-sheet-top data-mist-host className="relative">
+        <SheetHero
+          id="about-heading"
+          title="Who we are"
+          description="SMASH is a full-service growth and marketing agency shaped by operators, strategists, creatives and technologists who understand that good work has to move the business forward."
+          image="/media/aboutus-banner.png"
+        />
+        <StoryHeading />
+      </div>
 
-      <StoryHeading className="mt-16 lg:mt-[100px]" />
-      <CultureBanner className="mt-10 lg:mt-[60px]" />
-      <MissionVision className="mt-6 lg:mt-8" />
+      <CultureBanner />
+      <MissionVision />
+      <OurValues />
+      <GrowthApproach />
 
-      <OurValues className="mt-16 lg:mt-[100px]" />
+      {SHOW_TEAM ? (
+        <div className="relative bg-white">
+          {team.length ? (
+            <Team data={teamData} />
+          ) : (
+            <section aria-label="Our team" className="py-16 lg:py-[100px]">
+              <EmptyState message="Our team page is being finalized — check back soon." />
+            </section>
+          )}
+        </div>
+      ) : null}
 
-      <GrowthApproach className="py-16 lg:py-[100px]" />
+      <Culture className={SHOW_TEAM ? "py-16 lg:py-[100px]" : "pb-16 lg:pb-[120px]"} />
 
-      {team.length ? (
-        <Team data={teamData} className="bg-linear-to-b from-neutral-100/50 to-neutral-400/10" />
-      ) : (
-        <section aria-label="Our team" className="py-16 lg:py-[100px]">
-          <EmptyState message="Our team page is being finalized — check back soon." />
-        </section>
-      )}
-
-      <Culture className="py-16 lg:py-[100px]" />
+      <HomeAnimations />
+      <SheetMotion />
+      <AboutMotion />
     </>
   );
 }

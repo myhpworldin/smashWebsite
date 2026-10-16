@@ -1,0 +1,50 @@
+/* About-only styles. The hero load-in and the pointer light are shared: components/layout/sheet.module.css. */
+
+/* The target icon between Mission and Vision: two rings that breathe out of it. */
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ring {
+    animation: ring 3.2s ease-out infinite;
+  }
+  .ring:nth-child(2) {
+    animation-delay: 1.6s;
+  }
+}
+@keyframes ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Growth stages: once AboutMotion has taken over (data-live) the stage in the middle of the screen is lit, the rest dim. */
+.stageList[data-live] .stage {
+  opacity: 0.32;
+  transition: opacity 0.5s ease;
+}
+.stageList[data-live] .stage[data-active] {
+  opacity: 1;
+}
+.stage .num {
+  transition: color 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.stage[data-active] .num {
+  color: var(--brand-smash-red);
+  transform: translateX(6px);
+}
+.stage .title {
+  transition: color 0.5s ease;
+}
+.stage[data-active] .title {
+  color: var(--brand-deep-blue);
+}

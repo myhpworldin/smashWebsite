@@ -1,36 +1,61 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { GrowthCursor } from "./growth/GrowthCursor";
-import { GrowthDotField } from "./growth/GrowthDotField";
 import type { HomeSection } from "./shared";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
-const DIM = "rgba(255,255,255,0.32)";
-const ACTIVE_NUMBER = "#e90101"; // --brand-smash-red
-/** Scroll-time units on the pinned timeline: each hand-over takes TRANSITION, then the open step rests for HOLD so it can be read. */
+/**
+ * One photo per phase, in order. 1–3 (Strategy, Create, Attract) are the Figma design's own; 4–6 (Convert, Optimise,
+ * Scale) were generated in the same warm, natural-light editorial style, since the design has no photo for them.
+ */
+const PHOTOS = [1, 2, 3, 4, 5, 6].map((n) => `/media/home/growth-engine-${n}.jpg`);
+/**
+ * The phase descriptions from the Figma design ("Smash Redesign" → Frame 1261159082), by step order. A phase shows its
+ * design copy here and falls back to the CMS description for any step the design does not cover. (The design's
+ * Strategy line begins "e take"; it is set as "We take".)
+ */
+const PHASE_COPY: Record<number, string> = {
+  1: "We take the time to understand your business, target audience, objectives, and market opportunities to build a strategic growth plan aligned with your vision and long-term business goals.",
+  2: "We transform the strategy into powerful, engaging campaigns, compelling content, and impactful brand communication designed to capture attention, connect with your target audience, and bring your business vision to life.",
+  3: "We connect your business with the right audience through targeted marketing strategies and performance-driven campaigns that build brand awareness, drive quality traffic, and attract potential customers who are more likely to convert.",
+  4: "We turn customer interest into meaningful business opportunities through structured follow-ups, CRM systems, WhatsApp marketing, and dedicated call centre support that nurture leads, strengthen customer relationships, and drive higher conversion rates.",
+  5: "We transform the strategy into powerful, engaging campaigns, compelling content, and impactful brand communication designed to capture attention, connect with your target audience, and bring your business vision to life.",
+  6: "We scale what delivers results by investing more in successful strategies, expanding high-performing campaigns, and continuously refining our approach to drive consistent performance and sustainable long-term business growth.",
+};
+/** Resting opacity of a step that is not open (Figma: 26%). */
+const DIM = 0.26;
+/** The photos not in the middle slot sit a touch zoomed in and settle to 1 as they arrive. */
+const SETTLE = 1.12;
+/** Timeline units: a hand-over takes TRANSITION, then the open step rests for HOLD so it can be read. */
 const TRANSITION = 1;
-const HOLD = 0.8;
-/** Scroll distance the pin lasts, per step, as a fraction of the viewport height. */
+const HOLD = 0.6;
+/** Scroll distance of the pin, per step, as a fraction of the viewport height. */
 const SCROLL_PER_STEP = 0.6;
+/** Figma's frame height, which the photo window matches whenever the viewport has the room. */
+const DESIGN_HEIGHT = 813;
+
+/** "STRATEGY" → "Strategy": the design sets the titles in sentence case, the CMS stores them in capitals. */
+const sentence = (title: string) => (title === title.toUpperCase() ? title.charAt(0) + title.slice(1).toLowerCase() : title);
 
 /**
- * "SMASH Growth Engine": a pinned, scroll-driven list of the CMS growth steps. A thin vertical track runs down the left
- * with a glowing dot; as the section pins and the page scrolls, the dot travels from step to step and each step in turn
- * opens like an accordion — number and title brighten, the description expands — while the one before collapses and dims.
+ * "SMASH Growth Engine" (Figma "Smash Redesign" → Frame 1261159081, 1440×813): the steps run down the left — number and
+ * title, the open one with its description — separated by hairlines, and a vertical strip of photos runs down the right,
+ * showing the open step's photo in the middle slot with the neighbouring photos peeking in above and below.
  *
- * The motion is one scrubbed GSAP timeline (scroll position ⇄ timeline time, so scrolling back runs it in reverse), with a
- * short rest after every hand-over. Description heights are measured (`scrollHeight`) by function-based values that
- * ScrollTrigger re-evaluates on every refresh, so wrapping at any width is handled; the dot reads the live position of
- * the step titles each frame, so it stays attached while rows above it open and close.
+ * The section pins while the page scrolls, and scroll position drives one scrubbed GSAP timeline (scrolling back runs it
+ * in reverse): each hand-over closes one step and opens the next while the photo strip slides by exactly one photo, the
+ * arriving photo settling from a slight zoom. A short rest after every hand-over keeps the open step readable. Heights and
+ * offsets are measured by function-based values that ScrollTrigger re-evaluates on every refresh, so any wrapping or
+ * viewport size is handled. Below lg the strip shows a single photo above the list.
  *
- * Without JS, or with reduced motion, nothing is collapsed, pinned or animated: every step is shown open.
+ * Without JS, or with reduced motion, nothing is pinned, collapsed or moved: every step is open and the photos are stacked.
  */
 export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
-  const steps = data.steps;
+  const steps = data.steps.slice(0, PHOTOS.length);
   const count = steps.length;
   const section = useRef<HTMLElement>(null);
 
@@ -38,21 +63,41 @@ export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
     const root = section.current;
     if (!root || count < 2) return;
     const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const track = root.querySelector<HTMLElement>("[data-ge-track]");
-      const dot = root.querySelector<HTMLElement>("[data-ge-dot]");
-      const fill = root.querySelector<HTMLElement>("[data-ge-fill]");
-      const titles = gsap.utils.toArray<HTMLElement>("[data-ge-title]", root);
-      const numbers = gsap.utils.toArray<HTMLElement>("[data-ge-number]", root);
+    mm.add({ lg: "(min-width: 1024px)", motion: "(prefers-reduced-motion: no-preference)" }, (context) => {
+      const { lg, motion } = context.conditions as { lg: boolean; motion: boolean };
+      if (!motion) return;
+      const win = root.querySelector<HTMLElement>("[data-ge-window]");
+      const strip = root.querySelector<HTMLElement>("[data-ge-strip]");
+      const slides = gsap.utils.toArray<HTMLElement>("[data-ge-slide]", root);
+      const photos = gsap.utils.toArray<HTMLElement>("[data-ge-photo]", root);
+      const left = root.querySelector<HTMLElement>("[data-ge-left]");
+      const list = root.querySelector<HTMLElement>("[data-ge-list]");
+      const rows = gsap.utils.toArray<HTMLElement>("[data-ge-row]", root);
       const descs = gsap.utils.toArray<HTMLElement>("[data-ge-desc]", root);
-      if (!track || !dot || !fill || titles.length !== count) return;
+      if (!win || !strip || !left || !list || slides.length !== count || rows.length !== count) return;
 
-      // Resting state: the first step open and bright, the rest collapsed and dim.
+      // The window is as tall as the design's frame when the viewport allows, and as one photo on small screens.
+      // The list always reserves the room of its tallest state (one description open), so the heading above it and the
+      // block's vertical centring stay put as descriptions of different lengths open and close.
+      const size = () => {
+        gsap.set(win, { height: lg ? Math.min(DESIGN_HEIGHT, window.innerHeight - 64) : slides[0].offsetHeight, overflow: "hidden" });
+        gsap.set(list, { minHeight: 0 });
+        const open = descs.reduce((sum, d) => sum + d.offsetHeight, 0);
+        gsap.set(list, { minHeight: list.offsetHeight - open + Math.max(...descs.map((d) => d.scrollHeight)) });
+        // Centre the text block on the photo window (left top-aligned otherwise, so the no-script layout starts at the top).
+        gsap.set(left, { marginTop: lg ? Math.max(0, (win.clientHeight - left.offsetHeight) / 2) : 0 });
+      };
+      // Where the strip sits so photo `i` is centred in the window.
+      const stripY = (i: number) => () => (win.clientHeight - slides[i].offsetHeight) / 2 - slides[i].offsetTop;
+
+      size();
+      ScrollTrigger.addEventListener("refreshInit", size);
+
+      // Resting state: the first step open and bright, the rest collapsed and dim; the strip on the first photo.
+      gsap.set(strip, { y: stripY(0) });
+      gsap.set(photos.slice(1), { scale: SETTLE });
+      gsap.set(rows.slice(1), { opacity: DIM });
       gsap.set(descs.slice(1), { height: 0, opacity: 0 });
-      gsap.set(titles.slice(1), { color: DIM });
-      gsap.set(numbers.slice(1), { color: DIM });
-      gsap.set(numbers[0], { color: ACTIVE_NUMBER });
-      gsap.set(dot, { opacity: 1 });
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
@@ -61,7 +106,7 @@ export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
           start: "top top",
           end: () => `+=${Math.round(count * SCROLL_PER_STEP * window.innerHeight)}`,
           pin: true,
-          scrub: 0.5,
+          scrub: 0.8,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
@@ -69,115 +114,67 @@ export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
 
       // Every tween states both of its values and defers applying them, so a step can be opened by one tween and
       // closed by a later one without the later one's start value being painted at build time.
-      const open = (i: number, at: number) => {
-        tl.fromTo(descs[i], { height: 0, opacity: 0 }, { height: () => descs[i].scrollHeight, opacity: 1, duration: TRANSITION, ease: "power2.inOut", immediateRender: false }, at)
-          .fromTo(titles[i], { color: DIM }, { color: "#fff", duration: TRANSITION, immediateRender: false }, at)
-          .fromTo(numbers[i], { color: DIM }, { color: ACTIVE_NUMBER, duration: TRANSITION, immediateRender: false }, at);
-      };
-      const close = (i: number, at: number) => {
-        tl.fromTo(descs[i], { height: () => descs[i].scrollHeight, opacity: 1 }, { height: 0, opacity: 0, duration: TRANSITION, ease: "power2.inOut", immediateRender: false }, at)
-          .fromTo(titles[i], { color: "#fff" }, { color: DIM, duration: TRANSITION, immediateRender: false }, at)
-          .fromTo(numbers[i], { color: ACTIVE_NUMBER }, { color: DIM, duration: TRANSITION, immediateRender: false }, at);
-      };
-
-      const hand: { start: number }[] = [];
+      const move = { duration: TRANSITION, ease: "power2.inOut", immediateRender: false } as const;
       let t = HOLD; // the first step rests open before anything moves
       for (let i = 1; i < count; i++) {
-        close(i - 1, t);
-        open(i, t);
-        hand.push({ start: t });
+        tl.fromTo(descs[i - 1], { height: () => descs[i - 1].scrollHeight, opacity: 1 }, { height: 0, opacity: 0, ...move }, t)
+          .fromTo(rows[i - 1], { opacity: 1 }, { opacity: DIM, ...move }, t)
+          .fromTo(descs[i], { height: 0, opacity: 0 }, { height: () => descs[i].scrollHeight, opacity: 1, ...move }, t)
+          .fromTo(rows[i], { opacity: DIM }, { opacity: 1, ...move }, t)
+          .fromTo(strip, { y: stripY(i - 1) }, { y: stripY(i), duration: TRANSITION, ease: "power3.inOut", immediateRender: false }, t)
+          .fromTo(photos[i - 1], { scale: 1 }, { scale: SETTLE, ...move }, t)
+          .fromTo(photos[i], { scale: SETTLE }, { scale: 1, ...move }, t);
         t += TRANSITION + HOLD;
       }
       tl.to({}, { duration: 0.001 }, t); // extend the timeline to include the last rest
 
-      // The dot sits on the vertical middle of the active title, gliding between the two titles of a hand-over;
-      // the rows are measured live because the accordion is moving them. Its fill line follows it down the track.
-      const ease = gsap.parseEase("power2.inOut");
-      const titleY = (i: number) => {
-        const r = titles[i].getBoundingClientRect();
-        return r.top + r.height / 2 - track.getBoundingClientRect().top;
-      };
-      const place = () => {
-        const time = tl.time();
-        let from = 0;
-        let to = 0;
-        let k = 0;
-        for (let i = 0; i < hand.length; i++) {
-          if (time >= hand[i].start + TRANSITION) from = to = i + 1;
-          else if (time > hand[i].start) {
-            from = i;
-            to = i + 1;
-            k = ease((time - hand[i].start) / TRANSITION);
-            break;
-          } else break;
-        }
-        const y = from === to ? titleY(from) : titleY(from) + (titleY(to) - titleY(from)) * k;
-        gsap.set(dot, { y });
-        gsap.set(fill, { height: y });
-      };
-      tl.eventCallback("onUpdate", place);
-      ScrollTrigger.addEventListener("refresh", place);
-      place();
-
       return () => {
-        ScrollTrigger.removeEventListener("refresh", place);
-        gsap.set([...descs, ...titles, ...numbers, dot, fill], { clearProps: "all" });
+        ScrollTrigger.removeEventListener("refreshInit", size);
+        gsap.set([win, strip, left, list, ...photos, ...rows, ...descs], { clearProps: "all" });
       };
     });
     return () => mm.revert();
   }, [count]);
 
   if (!count) return null;
-  const words = data.heading?.trim().split(/\s+/) ?? [];
-  const lastWord = words.pop();
 
   return (
-    <section
-      ref={section}
-      aria-labelledby="growth-engine-heading"
-      data-home-section="growth-engine"
-      className="relative flex min-h-[100svh] items-center overflow-hidden bg-black py-16 text-white"
-    >
-      {/* The hero's palette: black under soft bright-blue and deep-blue glows (#0058C8 / #061A9E), red kept for accents. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_90%_at_0%_20%,rgba(0,88,200,0.55),transparent_70%),radial-gradient(55%_80%_at_100%_100%,rgba(6,26,158,0.7),transparent_70%),radial-gradient(40%_60%_at_85%_0%,rgba(6,26,158,0.35),transparent_70%)]" />
-      {/* The interactive dot field (Three.js); without WebGL the section keeps the glows alone. */}
-      <GrowthDotField />
-      <GrowthCursor />
+    <section ref={section} aria-labelledby="growth-engine-heading" data-home-section="growth-engine" className="relative overflow-hidden bg-[#1a1a1a] text-white">
+      <div className="mx-auto grid min-h-[100svh] w-full max-w-[1440px] content-center gap-10 px-4 py-12 md:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.88fr)] lg:items-start lg:gap-x-12 xl:grid-cols-[578px_508px] xl:justify-between xl:gap-x-0 xl:pl-20 xl:pr-[90px]">
+        <div data-ge-left className="flex flex-col gap-8 lg:gap-[clamp(28px,5svh,56px)]">
+          {data.heading ? <h2 id="growth-engine-heading" className="text-[20px] font-normal leading-normal">{data.heading}</h2> : <span id="growth-engine-heading" className="sr-only">Growth Engine</span>}
 
-      <div className="relative mx-auto grid w-full max-w-[1220px] grid-cols-[28px_minmax(0,1fr)] gap-x-5 px-4 md:grid-cols-[72px_minmax(0,1fr)] md:gap-x-8 md:px-10">
-        {/* The track: a thin line with a glowing dot that travels down it. */}
-        <div data-ge-track aria-hidden="true" className="relative">
-          <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/15" />
-          <span data-ge-fill className="absolute left-1/2 top-0 h-0 w-px -translate-x-1/2 bg-gradient-to-b from-bright-blue to-smash-red" />
-          <span data-ge-dot className="absolute left-1/2 top-0 -ml-[7px] -mt-[7px] size-3.5 rounded-full bg-white opacity-0 shadow-[0_0_0_4px_rgba(0,88,200,0.55),0_0_22px_6px_rgba(0,88,200,0.85)]" />
-        </div>
-
-        <div className="min-w-0">
-          {data.heading ? (
-            <h2 id="growth-engine-heading" className="text-[clamp(30px,6vh,56px)] font-medium leading-[1.1] tracking-tight">
-              {words.join(" ")}{" "}
-              <span className="font-serif font-normal italic text-white/90">{lastWord}</span>
-            </h2>
-          ) : null}
-
-          <ol className="mt-[clamp(20px,4vh,44px)] flex flex-col gap-[clamp(10px,2vh,20px)]">
-            {steps.map((step) => (
-              <li key={step.order}>
-                <div className="flex items-baseline gap-4 md:gap-6">
-                  <span data-ge-number className="w-8 shrink-0 font-mono text-sm tracking-widest md:text-base">{String(step.order).padStart(2, "0")}</span>
-                  <h3 data-ge-title className="text-[clamp(24px,4.6vh,42px)] font-medium uppercase leading-[1.1] tracking-tight">{step.title}</h3>
+          <ol data-ge-list className="flex flex-col">
+            {steps.map((step, i) => (
+              <li key={step.order} className={i ? "mt-6 bg-[url('/media/home/growth-line.svg')] bg-[length:100%_1px] bg-top bg-no-repeat pt-6 lg:mt-[clamp(14px,2.6svh,32px)] lg:pt-[clamp(14px,2.6svh,32px)]" : undefined}>
+                <div data-ge-row>
+                  <div className="flex items-center gap-4 text-[28px] font-bold leading-[1.1] md:text-[34px] xl:gap-6 xl:text-[clamp(30px,4.6svh,40px)] xl:leading-[1.1]">
+                    <span className="w-[1.125em] shrink-0 tabular-nums">{String(step.order).padStart(2, "0")}</span>
+                    <h3 className="font-bold">{sentence(step.title)}</h3>
+                  </div>
                 </div>
-                {step.description ? (
+                {(PHASE_COPY[step.order] ?? step.description) ? (
                   <div data-ge-desc className="overflow-hidden">
-                    <p className="max-w-[640px] pb-1 pl-12 pt-3 text-base leading-[1.55] text-white/75 md:pl-14 md:text-lg">{step.description}</p>
+                    <p className="max-w-[495px] pl-[calc(1.125em+16px)] pt-4 text-base leading-[1.42] text-white/90 md:text-[18px] xl:pl-[69px] xl:pt-5">{PHASE_COPY[step.order] ?? step.description}</p>
                   </div>
                 ) : null}
               </li>
             ))}
           </ol>
         </div>
+
+        <div data-ge-window aria-hidden="true" className="w-full max-w-[508px] lg:justify-self-end xl:justify-self-auto">
+          <div data-ge-strip className="flex flex-col gap-4 lg:gap-[30px]">
+            {PHOTOS.slice(0, count).map((src, i) => (
+              <div key={src} data-ge-slide className="relative aspect-[508/353] w-full shrink-0 overflow-hidden">
+                <div data-ge-photo className="absolute inset-0">
+                  <Image src={src} alt="" fill sizes="(min-width: 1024px) 508px, 100vw" priority={i === 0} className="object-cover" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
 }
-

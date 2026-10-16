@@ -52,13 +52,16 @@ function SocialIcon({ name }: { name: string }) {
   );
 }
 
-/** Footer links at the design's 60% white, full white on hover / focus. */
+/**
+ * Footer links at 60% white, full white on hover / focus. The column titles above them are full white, so a title and its
+ * links never share one colour: the titles are what the eye lands on, the links sit back until they are pointed at.
+ */
 const LINK = "text-white no-underline opacity-60 transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100";
 
 function Column({ title, links, className = "" }: { title: string; links: FooterLink[]; className?: string }) {
   return (
     <div className={`flex flex-col gap-4 leading-[1.3] ${className}`}>
-      <p className="text-[22px] font-medium text-white opacity-60">{title}</p>
+      <p className="text-[22px] font-medium text-white">{title}</p>
       <ul className="flex flex-col gap-3.5 text-[18px]">
         {links.map((l) => (
           <li key={l.label}>{isLive(l.path) ? <Link href={l.path} className={LINK}>{l.label}</Link> : <span className="text-white opacity-60">{l.label}</span>}</li>
@@ -148,18 +151,18 @@ export async function Footer() {
             <Column title="Company" links={COMPANY_LINKS} className="md:w-[131px]" />
             {contact && (contact.phone || contact.email || contact.address) ? (
               <div className="col-span-2 flex flex-col gap-4 leading-[1.3] md:col-span-1">
-                <p className="text-[22px] font-medium text-white/80 opacity-60">Get In Touch</p>
-                <ul className="flex flex-col gap-3.5 text-[18px] text-white/80">
+                <p className="text-[22px] font-medium text-white">Get In Touch</p>
+                <ul className="flex flex-col gap-3.5 text-[18px]">
                   {contact.phone ? (
                     <li className="flex items-center gap-3.5">
                       <Asset name="call.svg" width={16} height={16} />
-                      <a href={`tel:${contact.phone.replace(/\s+/g, "")}`} className={`${LINK} text-white/80`}>{contact.phone}</a>
+                      <a href={`tel:${contact.phone.replace(/\s+/g, "")}`} className={LINK}>{contact.phone}</a>
                     </li>
                   ) : null}
                   {contact.email ? (
                     <li className="flex items-center gap-3.5">
                       <Asset name="email.svg" width={16} height={12} />
-                      <a href={`mailto:${contact.email}`} className={`${LINK} break-all text-white/80`}>{contact.email}</a>
+                      <a href={`mailto:${contact.email}`} className={`${LINK} break-all`}>{contact.email}</a>
                     </li>
                   ) : null}
                   {contact.address ? (
@@ -167,7 +170,7 @@ export async function Footer() {
                       <span className="grid size-4 shrink-0 place-items-center pt-1 opacity-80">
                         <Asset name="location.svg" width={13.2} height={15.6} />
                       </span>
-                      <span className="max-w-[313px] opacity-60">{contact.address}</span>
+                      <span className="max-w-[313px] text-white opacity-60">{contact.address}</span>
                     </li>
                   ) : null}
                 </ul>
@@ -184,7 +187,7 @@ export async function Footer() {
               </li>
             ))}
           </ul>
-          <p className="text-center text-base text-white/80 opacity-[0.62]">&copy; {new Date().getFullYear()} {settings?.siteName ?? "SMASH International"}. All rights reserved.</p>
+          <p className="text-center text-base text-white/80 opacity-[0.62]">&copy; {new Date().getFullYear()} {settings?.siteName ?? "SMASH Digital Media Private Limited"}. All rights reserved.</p>
         </div>
       </div>
       <FooterMotion />
@@ -196,7 +199,8 @@ export async function Footer() {
           aria-label="Chat with us on WhatsApp"
           className="fixed bottom-6 right-4 z-50 grid size-[60px] place-items-center md:right-10 xl:right-[60px]"
         >
-          <Image src="/media/figma/ellipse-5.svg" alt="" width={100} height={100} unoptimized className="pointer-events-none absolute -inset-5 size-[100px] max-w-none" />
+          {/* The frosted halo around the button, centred on it (the exported Figma ellipse sat 8px high, so it peeked out above the button). */}
+          <span aria-hidden="true" className="pointer-events-none absolute -inset-1.5 rounded-full bg-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.1)] backdrop-blur-[2px]" />
           <span className="relative grid size-14 place-items-center rounded-full bg-[#25d366]">
             <Image src="/media/figma/whatsapp.svg" alt="" width={30} height={30} unoptimized />
           </span>

@@ -16,22 +16,22 @@ import { catalogueFields, SERVICE_CATALOGUE } from "@/server/db/services-design-
  * The title carries the brand itself because the Home title is not suffixed with the site name.
  */
 export const HOME_SEO = {
-  metaTitle: "SMASH International | Growth & Performance Marketing Agency",
+  metaTitle: "SMASH Digital Media Private Limited | Growth & Performance Marketing Agency",
   metaDescription: "SMASH is an agency built from real business experience. We combine strategy, creativity, technology and performance marketing to help businesses grow.",
 } as const;
 
 /**
- * Global identity plus the footer/contact details (Figma "footer-variation-3"). The address is the client's real
- * office; phone and email are still the design's stand-in values, not confirmed — replace them in the CMS once the
- * client provides the real ones.
- * Social links are left out entirely since the design gives icons only, no handles/URLs.
+ * Global identity plus the footer/contact details (Figma "footer-variation-3"). The address, phone and email are the client's
+ * real ones (see the git history: "Use the real contact email address", "…the real phone number"). There is no separate WhatsApp
+ * number on record, so WhatsApp uses the business phone — change `whatsapp` in the CMS if the team uses another.
  */
 export const SITE_IDENTITY = {
-  siteName: "SMASH International",
+  /** The company's registered name. It is the footer copyright, the Legal pages' company name, the title suffix on inner pages and the Organization name in structured data. */
+  siteName: "SMASH Digital Media Private Limited",
   siteDescription: "Strategy, creativity, technology and performance marketing built from real business experience.",
   contact: {
     phone: "+91 95399 00003",
-    whatsapp: "+91 1234567890",
+    whatsapp: "+91 95399 00003",
     email: "smash@sysmantech.net",
     address: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020",
   },
@@ -102,6 +102,9 @@ export async function syncTeamRoster(db: Db) {
   }
 }
 
+/** The Figma "Our Services" cards' summary line. The design repeats one sentence on all four cards, so every service starts with it. */
+const SERVICE_SUMMARY = "Put your brand in front of the right people and turn attention into measurable growth.";
+
 /**
  * Loads the copy of the approved Figma homepage into the CMS through the same services the admin API uses, so the
  * homepage can be edited from then on. The design's own placeholders are kept as they are and marked: the team
@@ -127,7 +130,7 @@ export async function importHomeDesignContent(db: Db) {
 
   const services = [];
   for (const [i, group] of SERVICE_CATALOGUE.entries()) {
-    services.push(await createService(db, { name: group.name, slug: group.slug, shortDescription: `[SAMPLE] ${group.name} short description.`, description: `[SAMPLE] ${group.name} page body, to be written.`, ...catalogueFields(group, i), status: "published" }));
+    services.push(await createService(db, { name: group.name, slug: group.slug, shortDescription: SERVICE_SUMMARY, description: `[SAMPLE] ${group.name} page body, to be written.`, ...catalogueFields(group, i), status: "published" }));
   }
 
   // Summaries are the Figma homepage cards' hover copy (headline line, then the campaign line).
@@ -173,7 +176,7 @@ export async function importHomeDesignContent(db: Db) {
       points: ["WE MADE MISTAKES.", "WE TESTED.", "WE LEARNED.", "WE CHANGED.", "WE UNDERSTOOD CUSTOMERS.", "WE EXECUTED."].map((title) => ({ title })),
       cta: { label: "More About Us", target: "/about" },
     },
-    servicesSection: { eyebrow: "Our Services", heading: "A Unified Agency Offering Built Around the Transaction.", cta: { label: "View All Services", target: "/services" } },
+    servicesSection: { eyebrow: "Our Services", heading: "A Unified Agency Offering Built Around the Transaction.", cta: { label: "Explore our Services", target: "/services" } },
     growthEngine: {
       eyebrow: "Our Services",
       heading: "SMASH Growth Engine",

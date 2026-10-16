@@ -2,10 +2,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 30px 20px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 24px;
+  padding: 28px 20px;
+  border: 1px solid rgba(1, 18, 74, 0.1);
+  border-radius: 28px;
   background: #fff;
+  box-shadow: 0 40px 90px -50px rgba(1, 18, 74, 0.35);
   /* Scopes .honeypot's absolute positioning to the form itself, so its off-screen
      offset can never widen the page's own scrollable area. */
   position: relative;
@@ -13,7 +14,13 @@
 
 @media (min-width: 640px) {
   .form {
-    padding: 30px;
+    padding: 36px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form {
+    padding: 44px;
   }
 }
 
@@ -37,13 +44,31 @@
   overflow: hidden;
 }
 
-/* `.form .submit` outranks Button's own `.button` rule so the design's full-width 56px-radius CTA applies. */
+/* `.form .submit` outranks Button's own `.button` rule so the design's full-width 56px-radius CTA applies. It lifts on
+   hover with a red glow under it, and the arrow runs ahead. */
 .form .submit {
   width: 100%;
   padding-block: 18px;
   border-radius: 56px;
   gap: 12px;
   line-height: 1.21;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, opacity 0.2s ease;
+}
+.form .submit img {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  .form .submit:hover:not(:disabled) {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px -16px rgba(233, 1, 1, 0.6);
+  }
+  .form .submit:hover:not(:disabled) img {
+    transform: translateX(6px);
+  }
+}
+.form .submit:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .note {

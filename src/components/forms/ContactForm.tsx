@@ -121,7 +121,7 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
 
   return (
     <>
-    <form ref={formRef} onSubmit={onSubmit} noValidate className={styles.form} aria-label="Strategy request">
+    <form ref={formRef} onSubmit={onSubmit} noValidate data-contact-form className={styles.form} aria-label="Strategy request">
       <div className={styles.row}>
         <FormField label="Full Name" name="name" required autoComplete="name" maxLength={CONTACT_MAX.name} placeholder="e.g. Peter Parker" value={values.name} onChange={set("name")} onBlur={check("name")} error={fieldErrors.name} />
         <FormField label="Company Name" name="companyName" autoComplete="organization" maxLength={CONTACT_MAX.companyName} placeholder="e.g. Daily Bugle Enterprises" value={values.companyName} onChange={set("companyName")} onBlur={check("companyName")} error={fieldErrors.companyName} />

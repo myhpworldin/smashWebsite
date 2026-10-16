@@ -1,0 +1,24 @@
+/*
+ * The Legal pages' own details: the contents list follows the reader (LegalMotion sets data-active on the link of the
+ * section in view), and the long-form text keeps a comfortable measure. Hover and active states are CSS-only.
+ */
+
+.tocLink {
+  position: relative;
+  color: rgba(0, 0, 0, 0.55);
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+.tocLink:hover,
+.tocLink:focus-visible {
+  color: var(--brand-ink);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+.tocLink[data-active] {
+  color: var(--brand-bright-blue);
+  font-weight: 500;
+}
+
+/* Inside a section, a heading directly after text gets a little extra room. */
+.prose > h3:not(:first-child) {
+  margin-top: 0.75rem;
+}

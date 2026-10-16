@@ -1,0 +1,60 @@
+/*
+ * Shared by the redesigned inner pages (About, Contact): the CSS-only load-in of the hero, and the pointer light on
+ * cards. The hero's load-in must work before JavaScript runs, so nothing is hidden waiting for hydration (the H1 is
+ * the page's LCP). Everything scroll-driven lives in SheetMotion.tsx and each page's own motion component.
+ */
+
+/* The hero heading: each word rises out of its own mask, one after another. */
+@media (prefers-reduced-motion: no-preference) {
+  .word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    /* room for descenders, given back so the line height does not change */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .wordInner {
+    display: inline-block;
+    animation: rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i) * 90ms + 250ms);
+  }
+  .fadeUp {
+    animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(115%);
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* A soft light that follows the pointer across a card (SheetMotion sets --mx / --my). Hover devices only. */
+.spot {
+  position: relative;
+  isolation: isolate;
+}
+.spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot, rgba(255, 255, 255, 0.12)), transparent 62%);
+}
+@media (hover: hover) {
+  .spot:hover::before {
+    opacity: 1;
+  }
+}

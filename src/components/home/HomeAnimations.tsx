@@ -231,13 +231,48 @@ export function HomeAnimations() {
           );
         }
       }
-      gsap.utils.toArray<HTMLElement>("[data-work-cards] > li").forEach((card) => {
+      const cardList = gsap.utils.toArray<HTMLElement>("[data-work-cards] > li");
+      cardList.forEach((card) => {
         gsap.fromTo(
           card,
           { y: 70, scale: 0.95 },
           { y: 0, scale: 1, ease: "power1.out", scrollTrigger: { trigger: card, start: "top bottom", end: "top 55%", scrub: 0.6 } },
         );
       });
+
+      // Each card's former hover effect, now driven by scroll: the title glides from the bottom of its text area to the
+      // top (`--t`), then the summary and "Know More" slide in from the right (`--s`). A card's progress is the larger of
+      //   - a scrubbed value that follows its scroll position (0 as its top rises past 80% of the screen, 1 at 35%), so it
+      //     runs as fast as the page is scrolled and backwards when scrolled back; and
+      //   - a timed value that starts as the card passes 72% and runs for CASE_MIN_SECONDS, so slow scrolling — or stopping
+      //     part-way — never leaves the effect crawling: it always completes at least that fast. (The old hover took about
+      //     1.05s from first movement to the last element in place.)
+      // Without this (no JS, reduced motion) the cards' CSS defaults show the finished state.
+      const CASE_MIN_SECONDS = 0.8;
+      const title = gsap.parseEase("power3.inOut"); // the hover's cubic-bezier(0.65, 0, 0.35, 1)
+      const summary = gsap.parseEase("power2.out");
+      cardList.forEach((card) => {
+        const progress = { scrub: 0, timed: 0 };
+        const apply = () => {
+          const p = Math.max(progress.scrub, progress.timed);
+          card.style.setProperty("--t", title(gsap.utils.clamp(0, 1, p / 0.62)).toFixed(4));
+          card.style.setProperty("--s", summary(gsap.utils.clamp(0, 1, (p - 0.4) / 0.6)).toFixed(4));
+        };
+        apply();
+        gsap.to(progress, { scrub: 1, ease: "none", onUpdate: apply, scrollTrigger: { trigger: card, start: "top 80%", end: "top 35%", scrub: 0.3 } });
+        gsap.to(progress, {
+          timed: 1,
+          duration: CASE_MIN_SECONDS,
+          ease: "none",
+          onUpdate: apply,
+          scrollTrigger: { trigger: card, start: "top 72%", toggleActions: "play none none reverse" },
+        });
+      });
+      return () =>
+        cardList.forEach((card) => {
+          card.style.removeProperty("--t");
+          card.style.removeProperty("--s");
+        });
     });
 
     // Our Story (large screens): the stage pins while the photo shrinks from filling the band into its window at the

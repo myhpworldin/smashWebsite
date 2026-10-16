@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { staticPageMetadata } from "@/server/seo/next-metadata";
 import { ROUTES } from "@/lib/routes";
-import { LegalPageBody } from "@/components/content/LegalPageBody";
+import { cookieDoc } from "@/lib/legal-content";
+import { LegalDocument } from "@/components/legal/LegalDocument";
 
-// generateMetadata reads SiteSettings (staticPageMetadata → getSiteContext), same as every other page.
+// generateMetadata and the company details in the copy both read SiteSettings, same as every other page.
 export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -11,5 +12,5 @@ export function generateMetadata(): Promise<Metadata> {
 }
 
 export default function CookiePolicyPage() {
-  return <LegalPageBody title="Cookie Policy" />;
+  return <LegalDocument build={cookieDoc} />;
 }

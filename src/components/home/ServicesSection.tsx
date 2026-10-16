@@ -2,7 +2,23 @@ import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 import { HOME_WRAP, HomeAsset } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
+import { ServicesBackdrop } from "./ServicesBackdrop";
 import styles from "./ServicesSection.module.css";
+
+/**
+ * The project's marker for copy the design does not provide (see server/db/home-design-content.ts): the CMS requires a
+ * service description, so the Home import fills it with "[SAMPLE] … short description." until an editor writes the real
+ * one. The cards never show it — a card shows its description only once it is real copy.
+ */
+const isPlaceholder = (text: string) => text.trimStart().startsWith("[SAMPLE]");
+
+/**
+ * The Figma "Our Services" cards' summary line (the design repeats one sentence on all four). A card shows it, closed
+ * or open, until an editor writes the service's own short description in the CMS — a placeholder or empty description
+ * falls back to this, a real one always wins.
+ */
+const DESIGN_SUMMARY = "Put your brand in front of the right people and turn attention into measurable growth.";
+const summaryOf = (description: string | null | undefined) => (description && !isPlaceholder(description) ? description : DESIGN_SUMMARY);
 
 /**
  * "Our Services" (Figma New Homepage, y 3367–4180): near-black band, title + "Explore our Services", then the four
@@ -10,14 +26,16 @@ import styles from "./ServicesSection.module.css";
  * screens every card rests closed and the hovered or keyboard-focused one expands out of its closed band towards the
  * top and bottom; below lg (no hover) the first card is open, as in the design (ServicesSection.module.css — CSS
  * only, so the section stays a server component). Each card goes to its category's section of the Services page
- * (`?scrollTo=`, which ServicesCatalogue animates to), as the previous Home did.
+ * (`?scrollTo=`, which ServicesCatalogue animates to), as the previous Home did. Every card shows its summary, closed
+ * or open, as in the design.
  */
 export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
   const title = data.eyebrow ?? data.heading;
   const cta = data.cta;
   return (
-    <section aria-labelledby="services-heading" data-home-section="services" className="bg-[#1a1a1a] pb-16 pt-20 text-white lg:pb-[85px] lg:pt-[120px]">
-      <div className={HOME_WRAP}>
+    <section aria-labelledby="services-heading" data-home-section="services" className="relative z-10 isolate -mt-[100svh] min-h-svh overflow-hidden bg-[#1a1a1a] pb-16 motion-reduce:mt-0 pt-20 text-white lg:pb-[85px] lg:pt-[120px]">
+      <ServicesBackdrop />
+      <div className={`${HOME_WRAP} relative`}>
         <div className="flex flex-wrap items-end justify-between gap-6">
           {title ? <h2 id="services-heading" className="text-[40px] leading-[1.2] lg:text-[62px] lg:leading-[83px]">{title}</h2> : null}
           {cta && isLive(cta.target) ? (
@@ -52,7 +70,7 @@ export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
                         {service.name}
                       </Link>
                     </h3>
-                    {service.shortDescription ? <p className="text-base leading-[1.6] text-soft-grey">{service.shortDescription}</p> : null}
+                    <p className="text-base leading-[1.6] text-soft-grey">{summaryOf(service.shortDescription)}</p>
                   </div>
                 </div>
                 {service.highlights.length ? (

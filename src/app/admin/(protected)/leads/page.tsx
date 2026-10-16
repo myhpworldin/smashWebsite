@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Inbox, SearchX } from "lucide-react";
 import { getDb } from "@/server/db/client";
-import { getCurrentAdmin } from "@/server/api/admin-session";
+import { requireCurrentAdmin } from "@/server/api/admin-session";
 import { listLeadsQuerySchema, type ListLeadsQuery } from "@/server/modules/leads/leads.schema";
 import { getLeadStatusSummary, listLeads } from "@/server/modules/leads/leads.service";
 import { listPublishedServices } from "@/server/modules/services/services.service";
@@ -37,6 +37,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
  * everything.
  */
 export default async function AdminLeadsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  await requireCurrentAdmin();
   const raw = await searchParams;
   // Malformed/out-of-range values fall back to the defaults rather than erroring the page — same
   // rule every other listing page in this project follows (/work, /insights); the strict API
@@ -114,7 +115,7 @@ function LeadsResultsSkeleton() {
 
 async function LeadsResults({ query, filterQueryString, globalTotal }: { query: ListLeadsQuery; filterQueryString: Record<string, string>; globalTotal: number | null }) {
   const db = getDb();
-  const admin = await getCurrentAdmin();
+  const admin = await requireCurrentAdmin();
   let leadsResult: Awaited<ReturnType<typeof listLeads>> | null = null;
   let serviceNameBySlug = new Map<string, string>();
   try {
@@ -161,7 +162,7 @@ async function LeadsResults({ query, filterQueryString, globalTotal }: { query: 
 
   return (
     <>
-      <LeadsTable leads={rows} currentAdminEmail={admin?.email ?? ""} />
+      <LeadsTable leads={rows} currentAdminEmail={admin.email} />
       <Pagination
         page={query.page}
         totalPages={totalPages}

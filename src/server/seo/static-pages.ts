@@ -27,12 +27,27 @@ export const STATIC_PAGES: Record<string, StaticPage> = {
   [ROUTES.INSIGHTS]: { title: "Insights", searchIntent: "informational" },
   [ROUTES.CAREERS]: { title: "Careers", searchIntent: "navigational" },
   [ROUTES.CONTACT]: { title: "Contact", searchIntent: "transactional" },
-  // Stage 4, Phase 7: routed and rendered, but noindex until management supplies
-  // approved legal copy (PAGE_SPECIFICATIONS.md §14) — an honest "built, not yet
-  // indexable" state, not a fabricated policy. Flip robotsIndex once real content lands.
-  [ROUTES.PRIVACY_POLICY]: { title: "Privacy Policy", searchIntent: "navigational", robotsIndex: false },
-  [ROUTES.TERMS]: { title: "Terms of Use", searchIntent: "navigational", robotsIndex: false },
-  [ROUTES.COOKIE_POLICY]: { title: "Cookie Policy", searchIntent: "navigational", robotsIndex: false },
+  // The Legal pages now carry full copy (src/lib/legal-content.ts) but stay noindex until management / legal sign it
+  // off (PAGE_SPECIFICATIONS.md §14). To publish them to search engines, drop `robotsIndex: false` here and update
+  // the two tests that pin it (tests/seo-metadata.test.ts, tests/indexing.test.ts).
+  [ROUTES.PRIVACY_POLICY]: {
+    title: "Privacy Policy",
+    searchIntent: "navigational",
+    robotsIndex: false,
+    metaDescription: "How SMASH collects, uses, shares and protects personal information gathered through this website, and the rights and choices you have.",
+  },
+  [ROUTES.TERMS]: {
+    title: "Terms & Conditions",
+    searchIntent: "navigational",
+    robotsIndex: false,
+    metaDescription: "The terms that apply when you use the SMASH website: acceptable use, intellectual property, disclaimers, liability and governing law.",
+  },
+  [ROUTES.COOKIE_POLICY]: {
+    title: "Cookie Policy",
+    searchIntent: "navigational",
+    robotsIndex: false,
+    metaDescription: "The cookies and similar technologies the SMASH website uses, why, how long they last and how to control them.",
+  },
 };
 
 export const HOME_LABEL = "Home";

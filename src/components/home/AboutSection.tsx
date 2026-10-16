@@ -33,12 +33,13 @@ function StatValue({ value }: { value: string }) {
 /**
  * "About" (Figma New Homepage, y 800–1710): the faded ABOUT watermark beside the CMS statement, then the three
  * growth stories from `businessProof` — "from" label, the figure (black→red gradient), its unit (`context`) and
- * the story. The watermark is decoration only; the statement is the section's heading. Like the hero it has no
- * stacking context of its own, so the page's globe (z-1) shows between its background fade and its content (z-2).
+ * the story. The watermark is decoration only; the statement is the section's heading. It follows the hero, whose
+ * globe dive finishes inside the hero's own runway: About's rounded top slides up over the last screen of that
+ * pinned stage (the -100svh overlap, see hero-runway.ts), so the hero hands over to a plain white section with no globe behind it.
  */
 export function AboutSection({ data }: { data: HomeSection<"businessProof"> }) {
   return (
-    <section aria-labelledby="about-heading" data-home-section="about" className={`relative overflow-hidden pb-20 pt-20 text-main-black lg:pb-[130px] lg:pt-[150px]`}>
+    <section aria-labelledby="about-heading" data-home-section="about" className="relative z-10 -mt-[100svh] overflow-hidden rounded-t-[28px] bg-white pb-20 pt-20 text-main-black motion-reduce:mt-0 lg:rounded-t-[48px] lg:pb-[130px] lg:pt-[150px]">
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 h-[316px] bg-[linear-gradient(180deg,#fff_0%,#f3f3f3_84.18%)]" />
       <div className={`relative z-[2] ${HOME_WRAP}`}>
         <div data-about-row className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">

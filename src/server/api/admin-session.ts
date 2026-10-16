@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { getEnv } from "@/server/config/env";
 import { getDb } from "@/server/db/client";
 import { AppError } from "@/server/lib/errors";
@@ -100,3 +101,16 @@ export async function getAuthenticatedAdmin(db: Db): Promise<PublicAdminUser | n
 
 /** Per-request memoisation (same pattern as `seo/request-cache.ts`): the login page, the protected layout and the protected entry page all ask "who is signed in", so it is read and verified against the database only once per request. */
 export const getCurrentAdmin = cache(() => getAuthenticatedAdmin(getDb()));
+
+/**
+ * For protected pages: the signed-in admin, or a redirect to the login screen. Every page under
+ * `(protected)/` must call this itself rather than rely on the group's layout — a layout does not
+ * gate the segments below it (the router renders them independently, and a layout is not re-rendered
+ * on client-side navigation), so a page reached with an expired or missing session would otherwise run
+ * with no admin. Sharing `getCurrentAdmin`'s per-request cache, this costs no extra database read.
+ */
+export async function requireCurrentAdmin(): Promise<PublicAdminUser> {
+  const admin = await getCurrentAdmin();
+  if (!admin) redirect("/admin/login");
+  return admin;
+}

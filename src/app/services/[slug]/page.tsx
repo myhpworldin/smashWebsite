@@ -8,19 +8,10 @@ import { serviceDetailDto, toPublicSeo, type ServiceDetail } from "@/server/api/
 import { serviceSource } from "@/server/seo/adapters";
 import { resolveMetadata } from "@/server/seo/metadata";
 import { publicizeMedia } from "@/server/media/public";
-import { buildBreadcrumbs } from "@/server/seo/breadcrumbs";
+import { getDb } from "@/server/db/client";
+import { listPublishedServiceCatalogue } from "@/server/modules/services/services.service";
 import { ROUTES } from "@/lib/routes";
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-import { Container } from "@/components/ui/Container";
-import { Hero } from "@/components/sections/Hero";
-import { TitledCopySection } from "@/components/sections/TitledCopySection";
-import { DeliverablesSection } from "@/components/sections/DeliverablesSection";
-import { ProcessSection } from "@/components/sections/ProcessSection";
-import { ToolsSection } from "@/components/sections/ToolsSection";
-import { RelatedCaseStudySection } from "@/components/sections/RelatedCaseStudySection";
-import { RelatedContentSection } from "@/components/sections/RelatedContentSection";
-import { FaqSection } from "@/components/sections/FaqSection";
-import { ServiceCtaSection } from "@/components/sections/ServiceCtaSection";
+import { ServiceCategoryView } from "@/components/service/ServiceCategoryView";
 import { ServiceEngagementTracker } from "@/components/analytics/ServiceEngagementTracker";
 
 // Resolves published content by slug only.
@@ -30,40 +21,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return serviceMetadata((await params).slug);
 }
 
+/**
+ * A service category (`/services/growth`), in the same language as its offerings' pages: the dark hero with the
+ * Three.js point field, then sheets sliding over one another. Its deliverables are the cards — each one that has its own
+ * page links to it — followed by whichever of the problem / solution / process / tools / results / FAQ / CTA the service
+ * actually has; a section with nothing to show is skipped, never faked.
+ */
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   await requirePublishedRoute("service", slug);
   const raw = await orNotFound(() => getService(slug));
 
-  // Same composition GET /api/services/:slug uses (public-content.controller.ts)
-  // — the page and the API can never disagree.
+  // Same composition GET /api/services/:slug uses (public-content.controller.ts) — the page and the API can never disagree.
   const site = await getSiteContext();
   const seo = toPublicSeo(resolveMetadata(site, serviceSource(raw)));
   const service = publicizeMedia(serviceDetailDto(raw, seo), ["hero"]) as ServiceDetail;
 
-  const crumbs = buildBreadcrumbs(ROUTES.SERVICE(slug), service.name);
+  // A deliverable links to its own page once it has one; the catalogue lists the same deliverables in the same order.
+  const group = (await listPublishedServiceCatalogue(getDb())).find((g) => g.slug === slug);
+  const cards = service.deliverables.map((d, i) => {
+    const offering = group?.cards[i]?.offeringSlug;
+    return { ...d, href: offering ? ROUTES.SERVICE_OFFERING(slug, offering) : null };
+  });
 
   return (
     <>
       <JsonLd data={await serviceSchemas(slug)} />
       <ServiceEngagementTracker slug={slug} name={service.name} />
-      <Container><Breadcrumbs crumbs={crumbs} /></Container>
-      {/* Every indexable page needs exactly one H1; `hero` is optional content, `name` is not — fall back to it so a service with no hero configured is never headingless. */}
-      {service.hero ? <Hero hero={service.hero} /> : <Container><h1>{service.name}</h1></Container>}
-      <TitledCopySection data={service.problem} heading="The Business Problem" headingId="problem-heading" />
-      <TitledCopySection data={service.solution} heading="How SMASH Solves It" headingId="solution-heading" />
-      <DeliverablesSection items={service.deliverables} headingId="deliverables-heading" />
-      <ProcessSection items={service.process} headingId="process-heading" />
-      <ToolsSection items={service.tools} headingId="tools-heading" />
-      <RelatedCaseStudySection items={service.relatedCaseStudies} headingId="results-heading" />
-      <RelatedContentSection
-        heading="Related Insights"
-        headingId="related-insights-heading"
-        items={service.relatedInsights.map((i) => ({ title: i.title, slug: i.slug, path: i.path, description: i.excerpt }))}
-        sourceType="service"
-      />
-      <FaqSection items={service.faqs} headingId="faq-heading" />
-      <ServiceCtaSection cta={service.cta} headingId="cta-heading" />
+      <ServiceCategoryView service={service} cards={cards} />
     </>
   );
 }

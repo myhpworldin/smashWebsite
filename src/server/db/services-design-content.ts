@@ -39,7 +39,7 @@ export const SERVICE_CATALOGUE: Group[] = [
     ],
   },
   {
-    name: "Customer Engagement", slug: "customer-engagement", eyebrow: "Customer Lifecycle",
+    name: "Customer Connect", slug: "customer-engagement", eyebrow: "Customer Lifecycle",
     cards: [
       { title: "WhatsApp Marketing", description: "Broadcast campaigns and conversational commerce.", icon: "message-circle" },
       { title: "Lead Management System", shortTitle: "Lead Management", description: "Centralised tracking from inquiry to conversion.", icon: "user-check" },

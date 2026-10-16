@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -12,8 +13,15 @@ if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
  * back when scrolled up. Renders nothing; it animates the `data-footer-row` / `data-footer-word` markup the (server
  * rendered) Footer already has, so the footer stays a server component and works on every page. Reduced motion
  * builds nothing and leaves the watermark where it is rendered.
+ *
+ * The footer lives in the root layout, so it is not remounted when the visitor navigates between pages — but every
+ * page has a different height (Home pins sections and is ~15,000px tall). The scroll trigger is therefore rebuilt on
+ * every route change, after the new page has mounted, and measured last (`refreshPriority: -1`) so Home's pinned sections
+ * above it are counted; left alone it kept stale measurements and the watermark never moved on a page reached by a link
+ * rather than a fresh load.
  */
 export function FooterMotion() {
+  const pathname = usePathname();
   useLayoutEffect(() => {
     const mm = gsap.matchMedia();
     mm.add({ ok: "(prefers-reduced-motion: no-preference)", desktop: "(min-width: 1024px)" }, (context) => {
@@ -36,13 +44,21 @@ export function FooterMotion() {
             end: desktop ? "clamp(top 55%)" : "clamp(top 70%)", // clamped: the footer ends the page, so the row may never climb higher
             scrub: 0.8,
             invalidateOnRefresh: true,
+            // The footer ends the page: its positions must be measured after every pin above it has added its scroll
+            // distance. ScrollTrigger measures in creation order, and a layout that outlives the page is created first.
+            refreshPriority: -1,
           },
         })
         .fromTo(word, { x: startX, y: desktop ? 28 : 14, scale: desktop ? 1.06 : 1 }, { x: 0, y: 0, scale: 1, ease: "power2.out", duration: 1 }, 0)
         .fromTo(word, { autoAlpha: 0 }, { autoAlpha: rest, duration: 0.3 }, 0);
     });
-    return () => mm.revert();
-  }, []);
+    // Images and pinned sections below the fold settle a beat after the page mounts; measure once more when they have.
+    const refresh = window.setTimeout(() => ScrollTrigger.refresh(), 600);
+    return () => {
+      window.clearTimeout(refresh);
+      mm.revert();
+    };
+  }, [pathname]);
 
   return null;
 }

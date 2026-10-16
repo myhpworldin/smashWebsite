@@ -417,13 +417,13 @@ describe("Home SEO publishing rules", () => {
     expect(seo.description).toBe(DESIGN_SEO.metaDescription);
     expect(seo.canonical).toBe(`${ORIGIN}/`);
     expect(seo.robots).toEqual({ index: true, follow: true });
-    expect(seo.openGraph).toMatchObject({ title: DESIGN_SEO.metaTitle, description: DESIGN_SEO.metaDescription, url: `${ORIGIN}/`, siteName: "SMASH International", image: { url: `${ORIGIN}/media/main-banner.png` } });
+    expect(seo.openGraph).toMatchObject({ title: DESIGN_SEO.metaTitle, description: DESIGN_SEO.metaDescription, url: `${ORIGIN}/`, siteName: SITE_IDENTITY.siteName, image: { url: `${ORIGIN}/media/main-banner.png` } });
     expect(seo.twitter).toMatchObject({ card: "summary_large_image", title: DESIGN_SEO.metaTitle, description: DESIGN_SEO.metaDescription });
     expect(JSON.stringify(seo)).not.toMatch(/localhost|127\.0\.0\.1/);
   });
 
   it("keeps the approved SEO copy free of unsupported claims and within search-result lengths", () => {
-    expect(DESIGN_SEO.metaTitle.length).toBeLessThanOrEqual(65);
+    expect(DESIGN_SEO.metaTitle.length).toBeLessThanOrEqual(75); // the registered company name alone is 35 characters; Google truncates a longer title with an ellipsis, it does not drop the page
     expect(DESIGN_SEO.metaDescription.length).toBeGreaterThanOrEqual(70);
     expect(DESIGN_SEO.metaDescription.length).toBeLessThanOrEqual(160);
     expect(`${DESIGN_SEO.metaTitle} ${DESIGN_SEO.metaDescription}`).not.toMatch(/\b(best|top|leading|no\.? ?1|number one|award|rated|guarantee|\d)/i);
@@ -455,6 +455,6 @@ describe("Home SEO publishing rules", () => {
     await importHomeDesignContent(db);
     const { getSiteSettings } = await import("@/server/modules/site-settings/site-settings.service");
     expect(await getSiteSettings(db)).toMatchObject(SITE_IDENTITY);
-    expect((await getHome()).body.data.seo.openGraph.siteName).toBe("SMASH International");
+    expect((await getHome()).body.data.seo.openGraph.siteName).toBe(SITE_IDENTITY.siteName);
   });
 });

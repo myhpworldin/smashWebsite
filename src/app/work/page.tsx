@@ -6,11 +6,15 @@ import { publicizeMedia } from "@/server/media/public";
 import { pageQuerySchema, pageMeta } from "@/server/api/query";
 import { staticPageMetadata } from "@/server/seo/next-metadata";
 import { ROUTES } from "@/lib/routes";
-import { PageHero } from "@/components/layout/PageHero";
-import { PillLink, WRAP } from "@/components/home/shared";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { CaseStudyCard } from "@/components/content/CaseStudyCard";
+import { SheetHero, SHEET } from "@/components/layout/SheetHero";
+import { SheetMotion } from "@/components/layout/SheetMotion";
+import { HomeAnimations } from "@/components/home/HomeAnimations";
+import { MaskLine } from "@/components/about/AboutWords";
+import { WRAP } from "@/components/home/shared";
+import { WorkCaseCard } from "@/components/work/WorkCaseCard";
+import { WorkMotion } from "@/components/work/WorkMotion";
 import type { CaseStudySummary } from "@/server/api/serializers";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +26,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 }
 
 /**
- * Our Works listing (Phase 2): the same PageHero/WRAP/PillLink language every other page uses, no new
- * visual system. Copy in the hero/intro/CTA is fixed page copy (like Careers' "Why Smash" reasons) — there's
- * no CMS model for it — everything below the intro (title, summary, services, image) comes from the same
- * `listPublishedCaseStudies` source the old page used; nothing here duplicates or forks that data.
+ * Our Work, redesigned in the language of About and Contact: the SheetHero (mist, words rising out of masks) with a white
+ * sheet sliding over it, an intro that sets out how each project is told, then the case studies as large deep-blue cards
+ * (photo that opens as it scrolls in, the headline result counting up). Everything about a project comes from the same `listPublishedCaseStudies` source
+ * as before; the page copy around it is fixed. It shows outcomes only — never a client's private data (see WorkCaseCard).
  */
 export default async function WorkPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const raw = await searchParams;
@@ -39,47 +43,51 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <PageHero
-        id="work-heading"
-        title="Real Work. Real Businesses. Real Growth."
-        description="A selection of SMASH projects across growth, performance marketing, social &amp; creative, technology and customer engagement — real work for real businesses."
-        descriptionWidth="max-w-[760px]"
-      >
-        <PillLink href={ROUTES.CONTACT} tone="red" arrow="white">Let&rsquo;s Work Together</PillLink>
-      </PageHero>
+      <div data-sheet-top data-mist-host className="relative">
+        <SheetHero
+          id="work-heading"
+          title="Our Work"
+          description="Businesses come to us with a goal. These are the results we reached together, shared with care for the data behind them."
+          descriptionWidth="max-w-[760px]"
+          image="/media/aboutus-banner.png"
+        />
 
-      <section aria-label="About our work" className={`${WRAP} py-16 lg:py-[100px]`}>
-        <p className="mx-auto max-w-[820px] text-center font-inter text-xl leading-[1.65] text-black/90">
-          From strategy and creative to performance, technology and customer engagement, our work is built around
-          solving real business challenges — the same growth engine that runs across every SMASH service.
-        </p>
-      </section>
-
-      <section aria-labelledby="work-grid-heading" className={`${WRAP} pb-16 lg:pb-[120px]`}>
-        <h2 id="work-grid-heading" className="sr-only">Selected work</h2>
-        {caseStudies.length ? (
-          <>
-            <div className="grid gap-6 md:grid-cols-2 lg:gap-10">
-              {caseStudies.map((item) => <CaseStudyCard key={item.slug} caseStudy={item} />)}
+        <section aria-labelledby="work-intro-heading" className={`relative z-10 bg-white pb-20 pt-20 lg:pb-[140px] lg:pt-[130px] ${SHEET}`}>
+          <div className={`${WRAP} flex flex-col gap-16 lg:gap-[100px]`}>
+            <div className="flex flex-col gap-12 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+              <div className="flex max-w-[640px] flex-col gap-4">
+                <h2 id="work-intro-heading" className="font-inter text-[32px] font-medium leading-[1.15] text-ink md:text-[44px] md:leading-[54px]">
+                  <MaskLine as="span">Where they started.</MaskLine>
+                  <MaskLine as="span">What we did.</MaskLine>
+                  <MaskLine as="span">What it achieved.</MaskLine>
+                </h2>
+              </div>
+              <p data-reveal="fade-up" className="max-w-[520px] font-inter text-xl leading-[1.65] text-black/80">
+                Every project here is told the same way, from the problem a business brought us to the outcome it saw. We show the achievement, and keep the business&rsquo;s own data private.
+              </p>
             </div>
-            <div className="mt-10">
-              <Pagination page={meta.page} totalPages={meta.totalPages} basePath={ROUTES.WORK} />
-            </div>
-          </>
-        ) : (
-          <EmptyState message="Selected work is being updated — check back soon." />
-        )}
-      </section>
 
-      <section aria-labelledby="work-cta-heading" className={`${WRAP} pb-16 lg:pb-20`}>
-        <div className="flex flex-col justify-between gap-8 rounded-[30px] border border-black/30 bg-white px-6 py-10 shadow-[0_4px_10px_rgba(0,0,0,0.02)] lg:flex-row lg:items-center lg:gap-[114px] lg:px-10 lg:py-[49px]">
-          <div className="flex max-w-[920px] flex-col gap-[7px]">
-            <h2 id="work-cta-heading" className="font-inter text-2xl font-medium leading-[1.4] text-black md:text-[32px] md:leading-[53px]">Have a business challenge?</h2>
-            <p className="font-inter text-xl leading-[30px] text-black/90">Let&rsquo;s build what comes next.</p>
+            <div className="flex flex-col gap-10">
+              <h2 className="sr-only">Selected work</h2>
+              {caseStudies.length ? (
+                <>
+                  <ul className="flex flex-col gap-8 lg:gap-[72px]">
+                    {caseStudies.map((item, i) => <WorkCaseCard key={item.slug} caseStudy={item} index={i} />)}
+                  </ul>
+                  <Pagination page={meta.page} totalPages={meta.totalPages} basePath={ROUTES.WORK} />
+                </>
+              ) : (
+                <EmptyState message="Selected work is being updated — check back soon." />
+              )}
+            </div>
           </div>
-          <PillLink href={ROUTES.CONTACT} tone="red" arrow="white" className="shrink-0 self-start lg:self-center">Get Started</PillLink>
-        </div>
-      </section>
+        </section>
+      </div>
+
+      <HomeAnimations />
+      <SheetMotion />
+      <WorkMotion />
     </>
   );
 }
+

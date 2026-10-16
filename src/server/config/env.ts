@@ -15,6 +15,15 @@ export const envSchema = z.object({
   MONGODB_URI: optional(z.string().refine((v) => /^mongodb(\+srv)?:\/\//.test(v), "Must start with mongodb:// or mongodb+srv://")),
   /** Database name; defaults to the one in MONGODB_URI's path. */
   MONGODB_DB: optional(z.string()),
+  /**
+   * Cloudinary account for the Home showcase video. Only `CLOUDINARY_CLOUD_NAME` (a public identifier, it is in every
+   * delivery URL) and `CLOUDINARY_SHOWCASE_VIDEO` (the video's public ID) are read at render time; the key and secret
+   * are SECRET, for uploading only, and are declared here so they are validated and never read anywhere else.
+   */
+  CLOUDINARY_CLOUD_NAME: optional(z.string()),
+  CLOUDINARY_API_KEY: optional(z.string()),
+  CLOUDINARY_API_SECRET: optional(z.string()),
+  CLOUDINARY_SHOWCASE_VIDEO: optional(z.string()),
   /** Comma-separated hostnames allowed to serve media besides this site, e.g. "cdn.example.com,*.img.example.com". */
   MEDIA_ALLOWED_HOSTS: optional(
     z.string().refine(

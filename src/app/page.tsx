@@ -4,11 +4,10 @@ import { homeSchemas } from "@/server/seo/page-jsonld";
 import { homeMetadata } from "@/server/seo/next-metadata";
 import { getHomeResponse } from "@/server/seo/request-cache";
 import { HomeAnimations } from "@/components/home/HomeAnimations";
-import { HomeGlobe } from "@/components/home/HomeGlobe";
 import { HeroSection } from "@/components/home/HeroSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ShowcaseSection } from "@/components/home/ShowcaseSection";
-import { ManifestoSection } from "@/components/home/ManifestoSection";
+import { SheetMotion } from "@/components/layout/SheetMotion";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { CaseStudiesSection } from "@/components/home/CaseStudiesSection";
 import { GrowthEngine } from "@/components/home/GrowthEngine";
@@ -41,15 +40,10 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={await homeSchemas()} />
-      {/* Hero + About share one stacking context so the globe (HomeGlobe, sticky) can sit between their backgrounds
-          and their content, and carry on from the hero into About as the page scrolls. */}
-      <div className="relative isolate">
-        {home.hero ? <HomeGlobe /> : null}
-        {home.hero ? <HeroSection hero={home.hero} /> : null}
-        {home.businessProof ? <AboutSection data={home.businessProof} /> : null}
-      </div>
+      {home.hero ? <HeroSection hero={home.hero} /> : null}
+      {home.businessProof ? <AboutSection data={home.businessProof} /> : null}
       <ShowcaseSection />
-      {home.story ? <ManifestoSection data={home.story} /> : null}
+      <SheetMotion />
       {home.services ? <ServicesSection data={home.services} /> : null}
       {home.selectedWork ? <CaseStudiesSection data={home.selectedWork} /> : null}
       {home.growthEngine ? <GrowthEngine data={home.growthEngine} /> : null}
