@@ -12,6 +12,8 @@
     "db:migrate": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/migrate.ts",
     "db:import-home": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/import-home-design.ts",
     "db:import-careers": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/import-careers-design.ts",
+    "db:audit-process-copy": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/audit-service-process-copy.ts",
+    "db:update-process-copy": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/update-service-process-copy.ts",
     "db:sync-team": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/sync-team.ts",
     "db:seed": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed.ts",
     "db:seed-admin": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed-admin.ts",
