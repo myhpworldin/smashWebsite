@@ -1,23 +1,26 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
-import Image from "next/image";
 import { getEnv } from "@/server/config/env";
 import { ShowcaseVideo } from "@/components/home/ShowcaseVideo";
 
-const POSTER = "/media/home/showcase-poster.png";
-/** The design's motion clip for this band. Drop the file here and it plays; until then the poster frame shows. */
-const VIDEO = "/media/home/showcase.mp4";
 const ALT = "Campaign showcase video: ad creatives, performance dashboards and results";
 
 /**
- * The clip lives on Cloudinary when CLOUDINARY_SHOWCASE_VIDEO (its public ID, e.g. "smash-video_u8p4h5") is set.
+ * The Home clip's Cloudinary account and public ID. Both are public identifiers (they are in every delivery URL, and the page
+ * HTML), not secrets, so they are the defaults here: the video then plays on any host without dashboard set-up, instead of
+ * quietly falling back to the still poster when the two CLOUDINARY_* variables were never added to the hosting environment (as
+ * happened on the first deploy). CLOUDINARY_CLOUD_NAME / CLOUDINARY_SHOWCASE_VIDEO still override them, to switch the clip.
+ */
+const DEFAULT_CLOUD = "dkhp61uik";
+const DEFAULT_VIDEO_ID = "smash-video_u8p4h5";
+
+/**
  * Compression happens on delivery, not in the file: `f_auto:video` picks WebM or MP4 per browser, `q_auto` tunes
  * the bitrate and `w_1600` caps the width, so the uploaded original can stay untouched. The poster is the clip's
  * first frame. Only the cloud name is used here — the API key and secret are for uploading and never leave the server.
  */
 function cloudinaryShowcase() {
-  const { CLOUDINARY_CLOUD_NAME: cloud, CLOUDINARY_SHOWCASE_VIDEO: id } = getEnv();
-  if (!cloud || !id) return null;
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_SHOWCASE_VIDEO } = getEnv();
+  const cloud = CLOUDINARY_CLOUD_NAME || DEFAULT_CLOUD;
+  const id = CLOUDINARY_SHOWCASE_VIDEO || DEFAULT_VIDEO_ID;
   const base = `https://res.cloudinary.com/${cloud}/video/upload`;
   return { src: `${base}/f_auto:video,q_auto,w_1600/${id}`, poster: `${base}/so_0,f_auto,q_auto,w_1600/${id}.jpg` };
 }
@@ -31,20 +34,14 @@ function cloudinaryShowcase() {
  * The clip is muted, looped and ambient — it carries no audio and says nothing the page doesn't say in text.
  */
 export function ShowcaseSection() {
-  const remote = cloudinaryShowcase();
-  const local = !remote && existsSync(path.join(process.cwd(), "public", VIDEO));
-  const media = remote ?? (local ? { src: VIDEO, poster: POSTER } : null);
+  const media = cloudinaryShowcase();
 
   return (
     <section aria-label="Campaign showcase" data-home-section="showcase" className="relative h-[260svh] bg-white motion-reduce:h-auto">
-      {remote ? <link rel="preconnect" href="https://res.cloudinary.com" /> : null}
+      <link rel="preconnect" href="https://res.cloudinary.com" />
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden motion-reduce:static motion-reduce:h-auto motion-reduce:py-16">
         <div className="relative aspect-video w-full overflow-hidden bg-[#0b1230] lg:aspect-auto lg:h-svh motion-reduce:lg:aspect-video motion-reduce:lg:h-auto">
-          {media ? (
-            <ShowcaseVideo src={media.src} poster={media.poster} label={ALT} />
-          ) : (
-            <Image src={POSTER} alt={ALT} fill sizes="100vw" className="object-cover" />
-          )}
+          <ShowcaseVideo src={media.src} poster={media.poster} label={ALT} />
         </div>
       </div>
     </section>
