@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
 
-/** Terms, Privacy and Cookie policies: the same SheetHero as About and Contact, so the same floating pill header. */
-const LEGAL_PATHS = [ROUTES.TERMS, ROUTES.PRIVACY_POLICY, ROUTES.COOKIE_POLICY];
+/** Terms, Privacy and Cookie policies, and the FAQ: the same SheetHero as About and Contact, so the same floating pill header. */
+const LEGAL_PATHS = [ROUTES.TERMS, ROUTES.PRIVACY_POLICY, ROUTES.COOKIE_POLICY, ROUTES.FAQ];
 
 /**
  * Pages whose full-bleed hero sits behind the header (Home, About, Contact, Services, Careers, Our Work).

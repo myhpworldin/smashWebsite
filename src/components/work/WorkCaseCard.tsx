@@ -15,11 +15,11 @@ export function WorkCaseCard({ caseStudy, index }: { caseStudy: CaseStudySummary
   const flip = index % 2 === 1;
   const lines = caseStudy.summary.split(/\n+/).map((l) => l.trim()).filter(Boolean);
   return (
-    <li data-work-card className="group relative isolate overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,var(--brand-deep-blue)_0%,#022bb0_160%)] text-white lg:rounded-[40px]">
+    <li data-work-card className="group relative isolate overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,var(--brand-deep-blue)_0%,#022bb0_160%)] text-white">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <HomeAsset name="manifesto-glow-red.svg" width={1059} height={1064} className={`absolute max-w-none opacity-60 ${flip ? "-left-[560px] -top-[560px]" : "-right-[560px] -top-[560px]"}`} />
       </div>
-      <div className="grid lg:grid-cols-2">
+      <div className={`grid ${flip ? "lg:grid-cols-[1fr_46.25%]" : "lg:grid-cols-[46.25%_1fr]"}`}>
         <div data-work-photo className={`relative aspect-[640/448] overflow-hidden bg-navy lg:aspect-auto lg:min-h-[540px] ${flip ? "lg:order-2" : ""}`}>
           {caseStudy.image ? (
             <div data-work-img className="absolute inset-0">
@@ -31,8 +31,8 @@ export function WorkCaseCard({ caseStudy, index }: { caseStudy: CaseStudySummary
 
         <div className="relative flex flex-col justify-center gap-6 p-7 lg:p-14">
           <div data-work-rise className="flex flex-col gap-4">
-            {caseStudy.industry ? <p className="font-inter text-sm font-semibold uppercase leading-[normal] text-white/70">{caseStudy.industry}</p> : null}
-            <h3 className="font-manrope text-[32px] font-semibold leading-[1.2] md:text-[44px]">{caseStudy.title}</h3>
+            {caseStudy.industry ? <p className="font-inter text-base leading-[normal] text-white/75 capitalize lg:text-[22.5px]">{caseStudy.industry}</p> : null}
+            <h3 className="font-inter text-[32px] font-medium leading-[1.2] md:text-[44px] lg:text-[54px]">{caseStudy.title}</h3>
             {lines.map((line, i) => <p key={i} className={`font-inter leading-[1.6] ${i === 0 ? "text-lg text-white/90 md:text-xl" : "text-base text-white/75"}`}>{line}</p>)}
           </div>
 

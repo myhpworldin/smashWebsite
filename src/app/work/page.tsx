@@ -12,7 +12,6 @@ import { SheetHero, SHEET } from "@/components/layout/SheetHero";
 import { SheetMotion } from "@/components/layout/SheetMotion";
 import { HomeAnimations } from "@/components/home/HomeAnimations";
 import { MaskLine } from "@/components/about/AboutWords";
-import { WRAP } from "@/components/home/shared";
 import { WorkCaseCard } from "@/components/work/WorkCaseCard";
 import { WorkMotion } from "@/components/work/WorkMotion";
 import type { CaseStudySummary } from "@/server/api/serializers";
@@ -53,16 +52,17 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
         />
 
         <section aria-labelledby="work-intro-heading" className={`relative z-10 bg-white pb-20 pt-20 lg:pb-[140px] lg:pt-[130px] ${SHEET}`}>
-          <div className={`${WRAP} flex flex-col gap-16 lg:gap-[100px]`}>
-            <div className="flex flex-col gap-12 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-              <div className="flex max-w-[640px] flex-col gap-4">
-                <h2 id="work-intro-heading" className="font-inter text-[32px] font-medium leading-[1.15] text-ink md:text-[44px] md:leading-[54px]">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-16 px-4 md:px-10 lg:gap-[160px] xl:px-20">
+            {/* Same two columns as the cards below (the photo, then the story): the paragraph starts where the story does. */}
+            <div className="flex flex-col gap-12 lg:grid lg:grid-cols-[46.25%_1fr] lg:items-end lg:gap-0">
+              <div className="flex flex-col gap-4">
+                <h2 id="work-intro-heading" className="font-inter text-[32px] font-medium leading-[1.15] text-ink md:text-[44px] md:leading-[54px] lg:text-[54px] lg:leading-[1.2]">
                   <MaskLine as="span">Where they started.</MaskLine>
                   <MaskLine as="span">What we did.</MaskLine>
                   <MaskLine as="span">What it achieved.</MaskLine>
                 </h2>
               </div>
-              <p data-reveal="fade-up" className="max-w-[520px] font-inter text-xl leading-[1.65] text-black/80">
+              <p data-reveal="fade-up" className="max-w-[760px] font-inter text-xl leading-[1.65] text-black/80 lg:pb-3.5 lg:text-[22.5px] lg:leading-[34px]">
                 Every project here is told the same way, from the problem a business brought us to the outcome it saw. We show the achievement, and keep the business&rsquo;s own data private.
               </p>
             </div>

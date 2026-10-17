@@ -56,6 +56,22 @@ export const envSchema = z.object({
   ADMIN_EMAIL: optional(z.email("Must be a valid email address")),
   /** SECRET, seed-only: the initial CRM admin account's password, used once to create the row then discarded — never stored itself, only its hash. */
   ADMIN_PASSWORD: optional(z.string().min(MIN_ADMIN_PASSWORD_LENGTH, `Must be at least ${MIN_ADMIN_PASSWORD_LENGTH} characters`)),
+  /**
+   * SECRET: Resend API key, used to email the visitor a confirmation and the team the new enquiry
+   * (`src/server/email/`). Unset disables email entirely: a submission is still saved, nothing is sent, and one
+   * warning is logged per attempt. Never read anywhere but `src/server/email/send.ts`.
+   */
+  RESEND_API_KEY: optional(z.string()),
+  /**
+   * The From address of every email, as `name@domain` or `Display Name <name@domain>`. The domain must be one
+   * verified in Resend. Email is skipped (with a logged warning) while this is unset.
+   */
+  EMAIL_FROM: optional(z.string()),
+  /**
+   * Optional, comma-separated: who is told about each new enquiry. Unset = the contact email in Site Settings
+   * (so an editor can change it without a deploy).
+   */
+  ENQUIRY_NOTIFY_EMAIL: optional(z.string().refine((v) => v.split(",").every((e) => z.email().safeParse(e.trim()).success), "Comma-separated email addresses only")),
 }).superRefine((env, ctx) => {
   if (!URL.canParse(env.NEXT_PUBLIC_SITE_URL)) return; // already reported by the field check; do not throw here
   // Canonical URLs are built from this value, so production must not fall back to localhost.

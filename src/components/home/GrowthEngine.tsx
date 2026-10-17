@@ -23,7 +23,7 @@ const PHASE_COPY: Record<number, string> = {
   2: "We transform the strategy into powerful, engaging campaigns, compelling content, and impactful brand communication designed to capture attention, connect with your target audience, and bring your business vision to life.",
   3: "We connect your business with the right audience through targeted marketing strategies and performance-driven campaigns that build brand awareness, drive quality traffic, and attract potential customers who are more likely to convert.",
   4: "We turn customer interest into meaningful business opportunities through structured follow-ups, CRM systems, WhatsApp marketing, and dedicated call centre support that nurture leads, strengthen customer relationships, and drive higher conversion rates.",
-  5: "We transform the strategy into powerful, engaging campaigns, compelling content, and impactful brand communication designed to capture attention, connect with your target audience, and bring your business vision to life.",
+  5: "We track every campaign and customer touchpoint, identify what is working and what is not, and keep testing and refining our creatives, targeting, and funnels to improve results and lower the cost of every conversion.",
   6: "We scale what delivers results by investing more in successful strategies, expanding high-performing campaigns, and continuously refining our approach to drive consistent performance and sustainable long-term business growth.",
 };
 /** Resting opacity of a step that is not open (Figma: 26%). */

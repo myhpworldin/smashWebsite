@@ -1,0 +1,107 @@
+/*
+ * The FAQ accordion. Each question is a native <details>, so it opens and closes without JavaScript and every answer
+ * is in the page's HTML. Only the plus mark and the answer's arrival are animated.
+ */
+.item summary {
+  list-style: none;
+  cursor: pointer;
+}
+.item summary::-webkit-details-marker {
+  display: none;
+}
+
+.plus {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.plus::before,
+.plus::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.plus::after {
+  transform: rotate(90deg);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.item[open] .plus {
+  transform: rotate(180deg);
+}
+.item[open] .plus::after {
+  transform: rotate(0deg);
+}
+
+/* The open question reads in the brand's deep blue, with a red rule drawn down the item's left edge. */
+.item {
+  position: relative;
+}
+.item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--brand-smash-red);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.item[open]::before {
+  transform: scaleY(1);
+}
+.item[open] .question {
+  color: var(--brand-deep-blue);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .item[open] .answer {
+    animation: arrive 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Contents list: the current topic gets the red line and full-strength text, as in the Legal pages' contents. */
+.topic {
+  position: relative;
+  color: rgba(0, 0, 0, 0.6);
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+.topic:hover,
+.topic:focus-visible,
+.topic[data-active] {
+  color: var(--brand-ink);
+}
+.topic[data-active] {
+  background: var(--color-soft-grey, #f8f8f8);
+}
+.topic::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--brand-smash-red);
+  transform: scaleY(0);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.topic[data-active]::before {
+  transform: scaleY(1);
+}

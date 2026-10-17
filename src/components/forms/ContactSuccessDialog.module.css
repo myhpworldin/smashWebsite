@@ -1,72 +1,277 @@
-.close {
-  position: absolute;
-  top: 29px;
-  right: 31px;
+/* The dialog itself: a little wider than the shared default, clipped to its rounded corners so the header bleeds to them. */
+.dialog {
+  width: min(480px, calc(100vw - 32px));
+  border: 0;
+  border-radius: 28px;
+  overflow-x: hidden;
+  box-shadow: 0 40px 90px rgba(1, 10, 40, 0.35);
+}
+
+.head {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  height: 196px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(233, 1, 1, 0.34), transparent 55%),
+    radial-gradient(90% 90% at 0% 100%, rgba(120, 170, 255, 0.3), transparent 60%),
+    linear-gradient(160deg, var(--brand-deep-blue), var(--brand-bright-blue));
+}
+
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  background: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
   cursor: pointer;
+  transition: background-color 0.25s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.close:hover,
+.close:focus-visible {
+  background: rgba(255, 255, 255, 0.26);
+  transform: rotate(90deg);
 }
 
-.art {
+/* The badge, its two pulsing rings and the sparks all share one centre. */
+.badgeWrap {
   position: relative;
-  width: 205px;
-  height: 156px;
-  margin: 50px auto 0;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
 }
-
-.sparkles {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 205px;
-  height: 140px;
+.badge {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--brand-deep-blue);
+  box-shadow: 0 14px 40px rgba(1, 10, 40, 0.35);
 }
-
 .tick {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.ring {
   position: absolute;
-  left: 47px;
-  top: 46px;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  opacity: 0;
+}
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+}
+.sparkRed {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #ff5a5a;
 }
 
-.text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin: 36px auto 0;
-  padding-inline: 20px;
-  max-width: 394px;
+.body {
+  outline: none;
+  padding: 30px 36px 34px;
   text-align: center;
 }
-
-.text h2 {
+.eyebrow {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 22px;
-  font-weight: 500;
-  line-height: normal;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-smash-red);
+}
+.title {
+  margin: 8px 0 0;
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--brand-deep-blue);
 }
-
-.text p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 22px;
-  color: rgba(0, 0, 0, 0.8);
+.text {
+  margin: 14px auto 0;
+  max-width: 380px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.72);
+}
+.text strong {
+  font-weight: 600;
+  color: var(--brand-ink, #0b0f19);
+}
+.nowrap {
+  white-space: nowrap;
 }
 
-/* `.text ~ .action` outranks Button's `.button` so the design's 16px / 18px-padding size applies. */
-.text ~ .action {
+.steps {
   display: flex;
-  width: fit-content;
-  margin: 23px auto 42px;
-  min-height: 48px;
-  padding: 12px 18px;
+  flex-direction: column;
+  gap: 10px;
+  margin: 26px 0 0;
+  padding: 18px 20px;
+  list-style: none;
+  text-align: left;
+  border-radius: 16px;
+  background: var(--color-soft-grey, #f8f8f8);
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.78);
+}
+.num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-deep-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 26px;
+  margin-top: 26px;
+}
+.more {
   font-size: 16px;
   font-weight: 500;
+  color: var(--brand-deep-blue);
+  text-decoration: underline;
+  text-decoration-color: rgba(1, 18, 74, 0.3);
+  text-underline-offset: 5px;
+  transition: text-decoration-color 0.2s ease, color 0.2s ease;
+}
+.more:hover,
+.more:focus-visible {
+  color: var(--brand-bright-blue);
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 480px) {
+  .head {
+    height: 168px;
+  }
+  .body {
+    padding: 26px 22px 28px;
+  }
+  .title {
+    font-size: 28px;
+  }
+}
+
+/* The sequence: header content first, then the text and steps rising one after another, then the actions. */
+@media (prefers-reduced-motion: no-preference) {
+  .badge {
+    animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  }
+  .tick {
+    animation: draw 0.55s cubic-bezier(0.65, 0, 0.35, 1) 0.65s both;
+  }
+  .ring {
+    animation: pulse 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+  }
+  .ringLate {
+    animation-delay: 0.85s;
+  }
+  .spark {
+    animation: burst 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both;
+  }
+  .eyebrow,
+  .title,
+  .text,
+  .actions {
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .eyebrow {
+    animation-delay: 0.5s;
+  }
+  .title {
+    animation-delay: 0.58s;
+  }
+  .text {
+    animation-delay: 0.68s;
+  }
+  .steps {
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.78s both;
+  }
+  .steps li {
+    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) calc(0.9s + var(--i) * 0.09s) both;
+  }
+  .actions {
+    animation-delay: 1.2s;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+@keyframes burst {
+  from {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(-40px) scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }

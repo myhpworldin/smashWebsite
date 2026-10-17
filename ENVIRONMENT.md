@@ -16,6 +16,9 @@ Three deployment tiers, distinguished by `APP_ENV` (not `NODE_ENV`): `developmen
 | `CMS_EDITOR_API_TOKEN` | server-only, **secret** | optional, requires `ADMIN_API_TOKEN` to also be set | Must differ from it; min 32 chars |
 | `ADMIN_SESSION_SECRET` | server-only, **secret** | optional | CRM admin session signing secret, min 32 chars |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | server-only, **secret** (password) | optional, must be set together | Seed-script only (`scripts/seed-admin.ts`) — not read by the running application |
+| `RESEND_API_KEY` | server-only, **secret** | optional | Resend API key (`src/server/email/send.ts`). Unset = no email is sent; enquiries are still saved |
+| `EMAIL_FROM` | server-only | optional (needed with the key) | From address, `a@b.com` or `Name <a@b.com>`; its domain must be verified in Resend |
+| `ENQUIRY_NOTIFY_EMAIL` | server-only | optional | Comma-separated team recipients of each new enquiry; unset = the contact email in Site Settings |
 | 6 analytics `NEXT_PUBLIC_*` vars (GA4, GTM, Meta Pixel, Google Ads ID + conversion label, Site Verification) | **public** | optional | Read in `src/lib/analytics-config.ts`; none are secrets by nature (they're client-side tracking IDs, meant to be public) |
 
 No server secret uses the `NEXT_PUBLIC_` prefix — verified both by manual review and by an automated test (`tests/security.test.ts`) that enforces only the reviewed `NEXT_PUBLIC_*` variables above appear anywhere in source, and that `process.env` is read only from a fixed, reviewed list of files (`env.ts`, `site-url.ts`, `media-config.ts`, `analytics-config.ts`, `next.config.ts`, `scripts/lib/mongod.ts`).

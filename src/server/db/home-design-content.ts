@@ -103,7 +103,6 @@ export async function syncTeamRoster(db: Db) {
 }
 
 /** The Figma "Our Services" cards' summary line. The design repeats one sentence on all four cards, so every service starts with it. */
-const SERVICE_SUMMARY = "Put your brand in front of the right people and turn attention into measurable growth.";
 
 /**
  * Loads the copy of the approved Figma homepage into the CMS through the same services the admin API uses, so the
@@ -130,7 +129,7 @@ export async function importHomeDesignContent(db: Db) {
 
   const services = [];
   for (const [i, group] of SERVICE_CATALOGUE.entries()) {
-    services.push(await createService(db, { name: group.name, slug: group.slug, shortDescription: SERVICE_SUMMARY, description: `[SAMPLE] ${group.name} page body, to be written.`, ...catalogueFields(group, i), status: "published" }));
+    services.push(await createService(db, { name: group.name, slug: group.slug, shortDescription: group.summary, description: `[SAMPLE] ${group.name} page body, to be written.`, ...catalogueFields(group, i), status: "published" }));
   }
 
   // Summaries are the Figma homepage cards' hover copy (headline line, then the campaign line).

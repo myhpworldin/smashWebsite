@@ -2,8 +2,8 @@ import "server-only";
 import { AppError } from "@/server/lib/errors";
 import { toleratesOutages } from "@/server/seo/env-context";
 import { ROUTES } from "@/lib/routes";
-import { careerPageJsonLd, caseStudyPageJsonLd, homeJsonLd, insightPageJsonLd, servicePageJsonLd, breadcrumbJsonLd, type JsonLd } from "@/server/seo/schema";
-import { HOME_LABEL } from "@/server/seo/static-pages";
+import { careerPageJsonLd, caseStudyPageJsonLd, faqJsonLd, homeJsonLd, insightPageJsonLd, servicePageJsonLd, breadcrumbJsonLd, type JsonLd } from "@/server/seo/schema";
+import { HOME_LABEL, STATIC_PAGES } from "@/server/seo/static-pages";
 import { getCareer, getCaseStudy, getHome, getInsight, getService, getServiceOffering, getSiteContext } from "@/server/seo/request-cache";
 
 export async function serviceSchemas(slug: string): Promise<JsonLd[]> {
@@ -54,4 +54,14 @@ export async function homeSchemas(): Promise<JsonLd[]> {
     if (!(err instanceof AppError && err.code === "NOT_FOUND") && !toleratesOutages()) throw err; // outage in production: fail, never emit a partial page
     return []; // Home unpublished (or a tolerated outage): emit nothing rather than guess
   }
+}
+
+/** The FAQ page: FAQPage for exactly the questions it renders, plus its Home → FAQ breadcrumbs. */
+export async function faqPageSchemas(faqs: { question: string; answer: string }[]): Promise<JsonLd[]> {
+  const site = await getSiteContext();
+  const crumbs = [
+    { name: HOME_LABEL, path: ROUTES.HOME },
+    { name: STATIC_PAGES[ROUTES.FAQ].title, path: ROUTES.FAQ },
+  ];
+  return [faqJsonLd(faqs), breadcrumbJsonLd(site, crumbs)].filter((x): x is JsonLd => x !== null);
 }

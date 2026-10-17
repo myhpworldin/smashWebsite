@@ -10,15 +10,27 @@
   width: min(430px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
-}
-
-.modal[open] {
-  animation: modal-in var(--motion-duration-base) var(--motion-easing);
+  /* Keeps the pop-in smooth: only the compositor's properties move. */
+  will-change: transform, opacity;
 }
 
 .modal::backdrop {
-  background: rgba(0, 0, 0, 0.23);
-  backdrop-filter: blur(7px);
+  background: rgba(1, 10, 40, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+/* In: the dim and blur fade up while the card rises and settles. Out: the same, quicker, in reverse. */
+.modal[open] {
+  animation: modal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.modal[open]::backdrop {
+  animation: backdrop-in 0.45s ease both;
+}
+.modal[open][data-closing] {
+  animation: modal-out 0.32s cubic-bezier(0.4, 0, 1, 1) both;
+}
+.modal[open][data-closing]::backdrop {
+  animation: backdrop-out 0.32s ease both;
 }
 
 :global(body:has(dialog[open])) {
@@ -28,6 +40,31 @@
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(28px) scale(0.95);
+  }
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal[open],
+  .modal[open]::backdrop,
+  .modal[open][data-closing],
+  .modal[open][data-closing]::backdrop {
+    animation: none;
   }
 }

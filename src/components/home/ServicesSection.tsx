@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
+import { SERVICE_SUMMARIES } from "@/server/db/services-design-content";
 import { HOME_WRAP, HomeAsset } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
 import { ServicesBackdrop } from "./ServicesBackdrop";
@@ -13,12 +14,11 @@ import styles from "./ServicesSection.module.css";
 const isPlaceholder = (text: string) => text.trimStart().startsWith("[SAMPLE]");
 
 /**
- * The Figma "Our Services" cards' summary line (the design repeats one sentence on all four). A card shows it, closed
- * or open, until an editor writes the service's own short description in the CMS — a placeholder or empty description
- * falls back to this, a real one always wins.
+ * Each "Our Services" card's summary line. A card shows the service's own short description from the CMS; a placeholder
+ * or empty description falls back to that service's summary in the catalogue (services-design-content.ts).
  */
-const DESIGN_SUMMARY = "Put your brand in front of the right people and turn attention into measurable growth.";
-const summaryOf = (description: string | null | undefined) => (description && !isPlaceholder(description) ? description : DESIGN_SUMMARY);
+const summaryOf = (description: string | null | undefined, slug: string) =>
+  description && !isPlaceholder(description) ? description : SERVICE_SUMMARIES[slug] ?? null;
 
 /**
  * "Our Services" (Figma New Homepage, y 3367–4180): near-black band, title + "Explore our Services", then the four
@@ -70,7 +70,7 @@ export function ServicesSection({ data }: { data: HomeSection<"services"> }) {
                         {service.name}
                       </Link>
                     </h3>
-                    <p className="text-base leading-[1.6] text-soft-grey">{summaryOf(service.shortDescription)}</p>
+                    <p className="text-base leading-[1.6] text-soft-grey">{summaryOf(service.shortDescription, service.slug)}</p>
                   </div>
                 </div>
                 {service.highlights.length ? (

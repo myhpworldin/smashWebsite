@@ -38,6 +38,8 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  // What the dialog quotes back: the form empties itself on success, and the dialog keeps showing it while it animates out.
+  const [submitted, setSubmitted] = useState({ name: "", phone: "" });
   const inFlight = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   // No `contact_form_view` — that's already `page_view` scoped to /contact (ANALYTICS_EVENTS.md's
@@ -96,6 +98,7 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
 
     if (isApiSuccess(result)) {
       setStatus("idle");
+      setSubmitted({ name: values.name, phone: values.phone });
       setConfirmed(true);
       setValues(EMPTY);
       // No submitted content (name/email/message) is ever sent as an event parameter — phase brief §15.
@@ -113,11 +116,9 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
     }
   }
 
-  /** The submit button was disabled while sending, so the browser has no earlier focus to restore: return it to the form. */
-  const closeConfirmation = () => {
-    setConfirmed(false);
-    formRef.current?.querySelector<HTMLElement>("button[type=submit]")?.focus();
-  };
+  /** The submit button was disabled while sending, so the browser has no earlier focus to restore: once the dialog has closed, return it to the form. */
+  const closeConfirmation = () => setConfirmed(false);
+  const focusSubmit = () => formRef.current?.querySelector<HTMLElement>("button[type=submit]")?.focus();
 
   return (
     <>
@@ -152,7 +153,7 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
       </Button>
       <p className={styles.note}>We typically review and respond to strategy applications within 12 business hours.</p>
     </form>
-    <ContactSuccessDialog open={confirmed} onClose={closeConfirmation} />
+    <ContactSuccessDialog open={confirmed} onClose={closeConfirmation} onClosed={focusSubmit} name={submitted.name} phone={submitted.phone} />
     </>
   );
 }

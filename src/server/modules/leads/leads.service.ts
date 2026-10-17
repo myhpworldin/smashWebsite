@@ -6,6 +6,7 @@ import { AppError } from "@/server/lib/errors";
 import { phoneKey } from "@/lib/contact-validation";
 import { LEAD_PRIORITIES, LEAD_STATUSES, type LeadActivityType } from "@/lib/lead-options";
 import { enquiryInputSchema } from "@/server/modules/enquiries/enquiries.schema";
+import type { EnquiryDetails } from "@/server/email/templates";
 import { recordLeadActivity, type LeadActivityRow } from "./lead-activity.service";
 import { addLeadNoteSchema, leadUpdateSchema, type LeadSort, type ListLeadsQuery } from "./leads.schema";
 
@@ -31,9 +32,9 @@ const DUPLICATE_SUBMISSION_WINDOW_MS = 30_000;
  * `createEnquiry`) rather than surfaced as an error, so an adaptive bot gets no signal about what
  * tripped the trap.
  */
-export async function createLead(db: Db, input: unknown) {
+export async function createLead(db: Db, input: unknown): Promise<{ id: string | null; created: boolean; details?: EnquiryDetails }> {
   const { honeypot, ...data } = enquiryInputSchema.parse(input);
-  if (honeypot) return { id: null };
+  if (honeypot) return { id: null, created: false };
 
   let primaryService: string | null = null;
   if (data.serviceOfInterest) {
@@ -47,7 +48,7 @@ export async function createLead(db: Db, input: unknown) {
     { phoneKey: key, fullName: data.name, location: data.location, createdAt: { $gte: new Date(Date.now() - DUPLICATE_SUBMISSION_WINDOW_MS) } },
     { sort: { createdAt: -1 }, projection: { _id: 1 } },
   );
-  if (recentDuplicate) return { id: recentDuplicate._id as string };
+  if (recentDuplicate) return { id: recentDuplicate._id as string, created: false };
 
   const row = await insertRow(db, leads, {
     fullName: data.name,
@@ -66,7 +67,12 @@ export async function createLead(db: Db, input: unknown) {
   // `actor: null` — a system event, not an admin action (CRM Phase 6: the timeline renders a null actor as "System"/no byline, never a fabricated name).
   await recordLeadActivity(db, { leadId: row.id, type: "LEAD_CREATED", actor: null });
 
-  return { id: row.id };
+  // What the emails quote: the submission as saved, with the service by its name (the lead stores its slug).
+  const details: EnquiryDetails = {
+    name: data.name, companyName: data.companyName, website: data.website, phone: data.phone, email: data.email?.toLowerCase(), location: data.location,
+    service: data.serviceOfInterest, budget: data.monthlyBudget, goal: data.primaryGoal, message: data.message,
+  };
+  return { id: row.id, created: true, details };
 }
 
 export type LeadRow = RowOf<"leads">;

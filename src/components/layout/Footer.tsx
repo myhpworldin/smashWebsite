@@ -12,8 +12,8 @@ type FooterLink = { label: string; path: string };
 /** The design's link columns. A page that is not built yet is shown as plain text, never linked (it would 404). */
 const QUICK_LINKS: FooterLink[] = [
   { label: "Home", path: ROUTES.HOME },
-  { label: "Insights", path: ROUTES.INSIGHTS },
-  { label: "FAQ", path: "/faqs" },
+  { label: "Our Works", path: ROUTES.WORK },
+  { label: "FAQ", path: ROUTES.FAQ },
 ];
 const COMPANY_LINKS: FooterLink[] = [
   { label: "About Us", path: ROUTES.ABOUT },

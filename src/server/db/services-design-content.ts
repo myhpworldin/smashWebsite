@@ -5,11 +5,12 @@
  * kept in public/media/figma.
  */
 type Card = { title: string; shortTitle?: string; description: string; icon: string };
-type Group = { name: string; slug: string; eyebrow: string; cards: Card[] };
+type Group = { name: string; slug: string; eyebrow: string; summary: string; cards: Card[] };
 
 export const SERVICE_CATALOGUE: Group[] = [
   {
     name: "Growth", slug: "growth", eyebrow: "Performance Marketing",
+    summary: "Performance marketing that turns paid reach into qualified leads and measurable returns.",
     cards: [
       { title: "Meta Ads", description: "Precision-targeted campaigns across Facebook & Instagram.", icon: "share-2" },
       { title: "Google Ads & Search Engine Precision", shortTitle: "Google Ads", description: "Search, display & shopping campaigns for maximum ROAS.", icon: "search" },
@@ -20,6 +21,7 @@ export const SERVICE_CATALOGUE: Group[] = [
   },
   {
     name: "Social & Creative", slug: "social-and-creative", eyebrow: "Creative & Production",
+    summary: "Scroll-stopping content, campaigns and video that build your brand and keep audiences engaged.",
     cards: [
       { title: "Social Media Management", description: "Strategy, content, scheduling & community management.", icon: "message-square" },
       { title: "Campaign Concepts", description: "Big-idea campaigns for launches and brand stories.", icon: "lightbulb-off" },
@@ -30,6 +32,7 @@ export const SERVICE_CATALOGUE: Group[] = [
   },
   {
     name: "Technology", slug: "technology", eyebrow: "Digital Infrastructure",
+    summary: "Fast, conversion-focused websites, CRMs and automations that power your growth.",
     cards: [
       { title: "High-Converting Websites", shortTitle: "Websites", description: "High-converting websites built for speed and performance.", icon: "laptop-minimal" },
       { title: "Landing Pages", description: "Conversion-optimised pages for campaigns and leads.", icon: "target" },
@@ -40,6 +43,7 @@ export const SERVICE_CATALOGUE: Group[] = [
   },
   {
     name: "Customer Connect", slug: "customer-engagement", eyebrow: "Customer Lifecycle",
+    summary: "WhatsApp, calling and follow-up systems that turn every inquiry into a customer.",
     cards: [
       { title: "WhatsApp Marketing", description: "Broadcast campaigns and conversational commerce.", icon: "message-circle" },
       { title: "Lead Management System", shortTitle: "Lead Management", description: "Centralised tracking from inquiry to conversion.", icon: "user-check" },
@@ -48,6 +52,9 @@ export const SERVICE_CATALOGUE: Group[] = [
     ],
   },
 ];
+
+/** Each group's one-line card summary on Home, by service slug. */
+export const SERVICE_SUMMARIES: Record<string, string> = Object.fromEntries(SERVICE_CATALOGUE.map((g) => [g.slug, g.summary]));
 
 /** The service fields the catalogue defines, in the shape the services API stores. */
 export const catalogueFields = (group: Group, index: number) => ({

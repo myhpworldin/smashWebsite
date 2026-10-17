@@ -140,15 +140,15 @@ describe("sitemap", () => {
 
     const entries = await buildSitemap(db, prod);
     expect(urls(entries)).toEqual([
-      `${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/careers/role`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/insights/first-article`,
+      `${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/careers/role`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/insights/first-article`,
       `${ORIGIN}/services`, `${ORIGIN}/services/performance-marketing`, `${ORIGIN}/work`, `${ORIGIN}/work/acme`,
     ]);
     expect(new Set(urls(entries)).size).toBe(entries.length);
-    const noRecordBehindIt = new Set([`${ORIGIN}/services`, `${ORIGIN}/work`, `${ORIGIN}/insights`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`]);
+    const noRecordBehindIt = new Set([`${ORIGIN}/services`, `${ORIGIN}/work`, `${ORIGIN}/insights`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`]);
     for (const e of entries) {
       const u = new URL(e.url);
       expect([u.origin, u.search, u.hash]).toEqual([ORIGIN, "", ""]);
-      // The /work, /insights, /about, /careers and /contact hubs are static pages with no content record behind them, so they legitimately have no lastModified (sitemap.ts's `add(route, null)`).
+      // The /work, /insights, /about, /careers, /contact and /faq pages are static pages with no content record behind them, so they legitimately have no lastModified (sitemap.ts's `add(route, null)`).
       if (!noRecordBehindIt.has(e.url)) expect(e.lastModified).toBeInstanceOf(Date);
     }
     expect(entries.find((e) => e.url.endsWith("performance-marketing"))!.lastModified).toEqual(pub.updatedAt);
@@ -160,14 +160,14 @@ describe("sitemap", () => {
     // /work, /insights, /about, /careers, /contact and /services have page files and are correctly listed.
     // /privacy-policy, /terms and /cookie-policy (Stage 4, Phase 7) have real page files too, but stay out
     // of the sitemap because static-pages.ts marks them noindex until their legal copy is approved.
-    for (const route of STATIC_ROUTES.filter((r) => r !== "/" && r !== "/work" && r !== "/insights" && r !== "/about" && r !== "/careers" && r !== "/contact" && r !== "/services")) {
+    for (const route of STATIC_ROUTES.filter((r) => r !== "/" && r !== "/work" && r !== "/insights" && r !== "/about" && r !== "/careers" && r !== "/contact" && r !== "/faq" && r !== "/services")) {
       expect(listed).not.toContain(canonicalUrl(route, ORIGIN));
     }
-    expect(listed).toEqual([`${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`]);
+    expect(listed).toEqual([`${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`]);
   });
 
   it("omits Home until it is published or if it opts out", async () => {
-    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
+    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
     // /work, /insights, /about, /careers and /contact are live static routes independent of Home's publish state; only Home's own presence is under test here.
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
     await saveHomePage(db, { hero: { heading: "H" } });
@@ -177,13 +177,13 @@ describe("sitemap", () => {
   });
 
   it("updates itself as content is published, unpublished and renamed", async () => {
-    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
+    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
     const s = await createService(db, svc("new-service"));
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
     await updateService(db, s.id, { status: "published" });
-    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/new-service`, `${ORIGIN}/work`]);
+    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/new-service`, `${ORIGIN}/work`]);
     await updateService(db, s.id, { slug: "renamed-service" });
-    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/renamed-service`, `${ORIGIN}/work`]); // old slug gone; it 301s
+    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/renamed-service`, `${ORIGIN}/work`]); // old slug gone; it 301s
     expect(await resolvePublicRoute(db, "/services/new-service")).toMatchObject({ kind: "redirect", to: "/services/renamed-service" });
     await updateService(db, s.id, { status: "draft" });
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
@@ -235,7 +235,7 @@ describe("sitemap and canonical audit", () => {
     await saveHomePage(db, { status: "published", seo: HOME_SEO, hero: { heading: "H" } });
     await saveSiteSettings(db, { siteName: "SMASH" });
     const { entries, issues } = await auditSitemap(db, prod);
-    expect(entries).toHaveLength(10); // Home, service, case study, insight, and the /work, /insights, /about, /careers, /contact, /services hubs
+    expect(entries).toHaveLength(11); // Home, service, case study, insight, and the /work, /insights, /about, /careers, /contact, /faq, /services pages
     expect(issues).toEqual([]);
   });
 

@@ -27,6 +27,11 @@ export const STATIC_PAGES: Record<string, StaticPage> = {
   [ROUTES.INSIGHTS]: { title: "Insights", searchIntent: "informational" },
   [ROUTES.CAREERS]: { title: "Careers", searchIntent: "navigational" },
   [ROUTES.CONTACT]: { title: "Contact", searchIntent: "transactional" },
+  [ROUTES.FAQ]: {
+    title: "Frequently Asked Questions",
+    searchIntent: "informational",
+    metaDescription: "Answers to common questions about SMASH: our growth, creative, technology and customer engagement services, the SMASH Growth Engine, how we work and how to get started.",
+  },
   // The Legal pages now carry full copy (src/lib/legal-content.ts) but stay noindex until management / legal sign it
   // off (PAGE_SPECIFICATIONS.md §14). To publish them to search engines, drop `robotsIndex: false` here and update
   // the two tests that pin it (tests/seo-metadata.test.ts, tests/indexing.test.ts).

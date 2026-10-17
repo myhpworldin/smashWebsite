@@ -16,6 +16,7 @@ Every public route, its data source, and its current SEO status. "Verified" mean
 | Careers (hub) | `/careers` | Job listing catalogue | n/a | Verified — `staticPageMetadata` | Verified — self | None (hub page) | Verified — static entry | Always indexable |
 | Career | `/careers/[slug]` | One job listing | Verified | Verified — `careerMetadata(slug)` | Verified | BreadcrumbList only — no JobPosting (honest omission: `datePosted`/`validThrough` don't exist on the Career model) | Verified — published only | Published + indexable |
 | Contact | `/contact` | Contact page | n/a | Verified — `staticPageMetadata` | Verified — self | None | Verified — static entry | Always indexable |
+| FAQ | `/faq` | Frequently asked questions | n/a | Verified — `staticPageMetadata`, page-specific description | Verified — self | FAQPage (exactly the questions rendered, from `src/lib/faq-content.ts`) + BreadcrumbList | Verified — static entry | Always indexable |
 | Privacy / Terms / Cookie Policy | `/privacy-policy`, `/terms`, `/cookie-policy` | Legal pages | n/a | Verified — title only | Verified — self | None | Excluded from sitemap | Deliberately `noindex` until approved legal copy lands (Stage 4, Phase 7) |
 | Preview pages | `/preview/**` | Editor preview of a single draft | n/a | Hand-rolled, always `noindex,nofollow` | n/a | None | Never included | Never indexable, regardless of content status |
 | Admin | `/admin/**` | CMS editor UI | n/a | n/a | n/a | n/a | Never included | Never indexable; also blocked in robots.txt |
