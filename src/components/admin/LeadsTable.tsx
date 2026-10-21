@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Calendar, Mail, MapPin, Phone, Tag } from "lucide-react";
 import { LeadStatusBadge } from "@/components/admin/AdminBadge";
@@ -32,8 +33,8 @@ const formatDate = (value: Date) => value.toLocaleString("en-US", { day: "numeri
 export function LeadsTable({ leads, currentAdminEmail }: { leads: LeadTableRow[]; currentAdminEmail: string }) {
   return (
     <ul className={styles.list}>
-      {leads.map((lead) => (
-        <li key={lead.id} className={styles.row} data-new={lead.status === "NEW" || undefined}>
+      {leads.map((lead, i) => (
+        <li key={lead.id} className={styles.row} data-new={lead.status === "NEW" || undefined} style={{ "--i": Math.min(i, 10) } as CSSProperties}>
           <span className={styles.avatar} aria-hidden="true">{lead.fullName.charAt(0).toUpperCase()}</span>
 
           <div className={styles.body}>

@@ -9,6 +9,7 @@ import { RATE_LIMITS, checkRateLimit, clientKey, type RateLimitConfig } from "@/
 import { requireAdminAuth, type AdminRole } from "@/server/api/admin-auth";
 import { requireAdminSession } from "@/server/api/admin-session";
 import type { PublicAdminUser } from "@/server/modules/admin-users/admin-users.service";
+import { revalidatePublicPages } from "@/server/seo/public-cache";
 
 export type ControllerContext = { db: Db; url: URL; params: Record<string, string | undefined> };
 /** `eagerMedia`: top-level keys of `data` that hold above-the-fold media (hint: load eagerly). */
@@ -186,6 +187,8 @@ export function adminApi(controller: WriteController, opts: { requireRole?: Admi
         body,
         role,
       });
+      // Public pages are cached (public-cache.ts): a content write that succeeded drops them, so the next visit shows it.
+      if (BODY_METHODS.has(request.method) || request.method === "DELETE") revalidatePublicPages();
       return ok(data, { meta, headers: { "Cache-Control": "no-store", "X-Request-Id": requestId } });
     } catch (err) {
       return fail(err, { request: req });

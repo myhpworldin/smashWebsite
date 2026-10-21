@@ -76,7 +76,9 @@ describe("database: schema catalog", () => {
     // "enquiries" (which merges repeat submissions by phone), plus its append-only activity/audit timeline.
     // "admin_users" (CRM Phase 2) is the new CRM admin-identity model — unrelated to, and never merged
     // with, the pre-existing CMS admin API's two shared bearer tokens (`admin-auth.ts`).
-    expect(names).toEqual(["admin_users", "careers", "case_studies", "clients", "enquiries", "home_case_studies", "home_insights", "home_page", "home_services", "home_team", "home_testimonials", "insight_case_studies", "insight_services", "insights", "lead_activity", "leads", "redirects", "service_case_studies", "services", "site_settings", "team_members", "testimonials"]);
+    // "client_accounts" is the client portal's login model (admins create them; clients verify their email and replace the temporary
+    // password). "client_dashboards" (the figures an admin publishes per client) has no database validator, so it is created by its first save. The per-client lists (projects, content, leads, invoices, tickets) each carry an index, so they exist from the start; "client_workspaces" has none and is created by its first save.
+    expect(names).toEqual(["admin_users", "careers", "case_studies", "client_accounts", "client_creatives", "client_daily_stats", "client_invoices", "client_leads", "client_projects", "client_tickets", "clients", "enquiries", "home_case_studies", "home_insights", "home_page", "home_services", "home_team", "home_testimonials", "insight_case_studies", "insight_services", "insights", "lead_activity", "leads", "redirects", "service_case_studies", "services", "site_settings", "team_members", "testimonials"]);
   });
 
   it("has unique slug indexes and query indexes on every public collection", async () => {

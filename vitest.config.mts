@@ -9,6 +9,7 @@ export default defineConfig({
       "@": r("./src"),
       // `server-only` throws outside the Next.js server bundle; tests run in plain Node.
       "server-only": r("./tests/server-only-stub.ts"),
+      "next/cache": r("./tests/next-cache-stub.ts"),
     },
   },
   // A throwaway mongod is started once (tests/global-setup.ts); each test builds a fresh database on it.

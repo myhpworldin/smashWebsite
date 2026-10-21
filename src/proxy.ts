@@ -17,6 +17,11 @@ const WRITE_ROUTES: Record<string, Set<string>> = { "/api/contact": new Set(["PO
  * segments this exact-pathname map can't express.
  */
 const ADMIN_PREFIX = "/api/admin/";
+/**
+ * Client portal API: every method is let through here too, for the same reason as the admin prefix. Each route authenticates itself
+ * (`clientSessionApi`, or the rate-limited login), so this coarse allowlist has nothing left to add.
+ */
+const CLIENT_PREFIX = "/api/client/";
 
 /**
  * 1. /api is read-only by default: any method outside READ_METHODS (or, for a
@@ -30,7 +35,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname === "/api" || pathname.startsWith("/api/")) {
-    if (pathname.startsWith(ADMIN_PREFIX)) return NextResponse.next();
+    if (pathname.startsWith(ADMIN_PREFIX) || pathname.startsWith(CLIENT_PREFIX)) return NextResponse.next();
     const extraAllowed = WRITE_ROUTES[pathname];
     if (READ_METHODS.has(request.method) || extraAllowed?.has(request.method)) return NextResponse.next();
     const allow = [...READ_METHODS, ...(extraAllowed ?? [])].join(", ");

@@ -24,11 +24,50 @@ Three tiers exist, distinguished by `APP_ENV` — see [ENVIRONMENT.md](ENVIRONME
 
 Run `db:migrate` against each environment's own database before first deploying to it, and again after any schema change (new field, new index) ships.
 
+## Server region
+
+Vercel runs the server functions in **Mumbai (`bom1`)**, set in the Vercel project settings (there is no `vercel.json`). The MongoDB Atlas cluster is in AWS Hyderabad (`ap-south-2`), so each database call is a short hop instead of the ~230 ms round trip it was from the default `iad1` (Washington, D.C.). Keep the two close: a page makes several database calls in sequence. If the cluster ever moves, move the function region with it, and if Atlas network access is ever narrowed to fixed IPs, Vercel's region must stay reachable.
+
+## Page caching
+
+The public marketing pages are cached and regenerated (ISR; `src/server/seo/public-cache.ts`), not rendered on every request. What that means day to day:
+
+- **The build reads the database.** `npm run build` prerenders Home, About, Services, every published service, offering and case study, FAQ, Contact, Careers, the legal pages and the sitemap, so `MONGODB_URI` (and `APP_ENV`, `NEXT_PUBLIC_SITE_URL`) must be available to the build, not only at runtime. A database outage during a build fails the build; the previous deployment keeps serving.
+- **Admin edits show on the next visit.** Every successful write through the admin content API clears the page cache.
+- **DB scripts and direct Atlas edits do not clear it.** Their changes appear within an hour, or straight away after `curl -X POST -H "Authorization: Bearer $ADMIN_API_TOKEN" https://smash.international/api/admin/revalidate`. Run that after any `npm run db:*` content script.
+- **An outage during regeneration** keeps the last good page served; regeneration is retried on a later visit.
+- **Not cached:** the Work and Insights listings (they read `?page=`), preview, admin, client portal and every `/api` route.
+- **Checking a page:** `curl -sI https://smash.international/about | grep -i x-vercel-cache` shows `HIT`, `STALE` (served from cache while it regenerates) or `MISS`.
+
 ## Canonical domain & HTTPS
 
 The application enforces its canonical domain through **configuration validation, not a runtime redirect**: `NEXT_PUBLIC_SITE_URL` must already be the single canonical origin in production (no `www.`, no `http://`, no trailing path), or the app refuses to boot. There is no code in `next.config.ts` or `src/proxy.ts` that redirects `www` → non-`www` or `http` → `https` at the application layer.
 
 **This means the hosting/DNS/CDN layer is responsible for physically redirecting any non-canonical hostname or scheme (`http://`, `www.`) to the one canonical origin** before a request ever reaches this application. Most hosting platforms (Vercel, Cloudflare, etc.) provide this as a dashboard-level domain configuration — set it up there, pointing every alternate hostname at the exact value configured in `NEXT_PUBLIC_SITE_URL`.
+
+**Decision (primary domain): `https://smash.international`, the apex, without `www`.** Every canonical, `og:url`, JSON-LD URL, sitemap `<loc>` and the `robots.txt` `Sitemap:` line is built from `NEXT_PUBLIC_SITE_URL` and so names the apex. The apex was chosen because the application's production validation already requires a bare, non-`www` origin and it is what the site already advertises. Changing to `www` would need changes to that validation and to `NEXT_PUBLIC_SITE_URL`.
+
+Required Vercel configuration (Project → Settings → Domains):
+
+| Host | Setting |
+|---|---|
+| `smash.international` | Serves the site directly. **No** redirect to `www`. |
+| `www.smash.international` | Redirect to `smash.international`, 308. |
+| `http://` for both | Redirected to `https://` (Vercel default). |
+
+Production environment: `APP_ENV=production` and `NEXT_PUBLIC_SITE_URL=https://smash.international`, set at build time and at runtime.
+
+If the Vercel domain redirect points the wrong way (apex → `www`), every canonical and sitemap URL points at a redirecting URL, even though the application is correct. Do not add a `www` → apex redirect to `src/proxy.ts` while the Vercel setting still redirects apex → `www`: the two would loop.
+
+**Verify after any domain, redirect or env change** (read-only; it exits 1 on any failure):
+
+```
+npm run seo:check-domain -- https://smash.international
+npm run seo:check-domain -- https://<preview-deployment>.vercel.app --expect=noindex
+npm run seo:check-domain -- http://localhost:3000 --primary=https://smash.international   # a local production-mode `next start`
+```
+
+It traces every redirect hop for `http`/`https` × apex/`www`, checks `robots.txt`, validates the sitemap XML and requests every sitemap URL, and compares `canonical`, `og:url` and the robots meta of representative pages from each route group with the sitemap. Preview and staging deployments must be `noindex` with `Disallow: /` and an empty sitemap.
 
 ## Security headers & SEO compatibility
 

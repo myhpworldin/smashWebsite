@@ -4,6 +4,8 @@ import { getServiceNavItems, getSiteSettings } from "@/server/seo/request-cache"
 import { logger } from "@/server/lib/logger";
 import { LIVE_STATIC_ROUTES, ROUTES } from "@/lib/routes";
 import { whatsAppLink } from "@/lib/whatsapp";
+import { CookieSettingsButton } from "@/components/analytics/CookieSettingsButton";
+import { LEGAL_NAME } from "@/lib/company";
 import { HOME_WRAP } from "@/components/home/home-ui";
 import { FooterMotion } from "@/components/layout/FooterMotion";
 
@@ -186,8 +188,9 @@ export async function Footer() {
                 <Link href={l.path} className={LINK}>{l.label}</Link>
               </li>
             ))}
+            <CookieSettingsButton className={`${LINK} cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-[length:inherit]`} />
           </ul>
-          <p className="text-center text-base text-white/80 opacity-[0.62]">&copy; {new Date().getFullYear()} {settings?.siteName ?? "SMASH Digital Media Private Limited"}. All rights reserved.</p>
+          <p className="text-center text-base text-white/80 opacity-[0.62]">&copy; {new Date().getFullYear()} {LEGAL_NAME}. All rights reserved.</p>
         </div>
       </div>
       <FooterMotion />

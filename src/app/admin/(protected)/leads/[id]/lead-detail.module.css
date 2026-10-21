@@ -1,148 +1,37 @@
-.back {
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  color: var(--admin-accent);
-  text-decoration: none;
-}
-.back:hover,
-.back:focus-visible {
-  text-decoration: underline;
-}
-.back:focus-visible {
-  outline: 2px solid var(--admin-focus-ring);
-  outline-offset: 2px;
-}
+.summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin-bottom: 18px; padding: 18px 22px; box-shadow: var(--admin-shadow-md); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 0.875rem; color: var(--admin-text); }
+.meta span { display: flex; flex-direction: column; gap: 2px; font-weight: 600; }
+.meta b { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--admin-text-subtle); }
 
-.summary {
-  margin-bottom: var(--space-5);
-}
-
-.badges {
-  display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  font-size: var(--font-size-small);
-  color: var(--admin-text-muted);
-  margin-bottom: var(--space-3);
-}
-
-/* Two-column workspace: a sticky "active CRM workflow" sidebar beside the long-form "what the
-   visitor told us" main column, on desktop only. Grid placement (not source order) puts the
-   sidebar on the right while keeping it first in the DOM — on mobile (single column) that DOM
-   order gives: header summary -> CRM Management/Notes -> Contact/Business/Context -> Timeline. */
-.layout {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.mainColumn,
-.sidebarColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  min-width: 0;
-}
+/* Two-column workspace: a sticky "active CRM workflow" sidebar beside the long-form "what the visitor told us" main column, on desktop
+   only. Grid placement (not source order) puts the sidebar on the right while keeping it first in the DOM — on mobile (single column)
+   that DOM order gives: summary -> CRM Management/Notes -> Contact/Business/Context -> Timeline. */
+.layout { display: flex; flex-direction: column; gap: 18px; }
+.mainColumn, .sidebarColumn { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 
 @media (min-width: 1024px) {
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr minmax(300px, 340px);
-    align-items: start;
-    gap: var(--space-5);
-  }
-  .mainColumn {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .sidebarColumn {
-    /* Explicit grid-row is required here: sidebarColumn (grid-column 2) comes before mainColumn
-       (grid-column 1) in DOM order, and CSS Grid's auto-placement advances to the next row
-       whenever a later item's column is lower than the previous item's — without this, mainColumn
-       silently drops to row 2 instead of sitting beside sidebarColumn in row 1. */
-    grid-column: 2;
-    grid-row: 1;
-    position: sticky;
-    top: calc(var(--space-5) + 64px);
-  }
+  .layout { display: grid; grid-template-columns: 1fr minmax(320px, 360px); align-items: start; }
+  .mainColumn { grid-column: 1; grid-row: 1; }
+  /* Explicit grid-row is required here: sidebarColumn (grid-column 2) comes before mainColumn (grid-column 1) in DOM order, and CSS
+     Grid's auto-placement advances to the next row whenever a later item's column is lower than the previous item's. */
+  .sidebarColumn { grid-column: 2; grid-row: 1; position: sticky; top: 24px; }
 }
 
-.pair {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-5);
-}
-@media (min-width: 640px) {
-  .pair {
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
-  }
-}
+.pair { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 640px) { .pair { grid-template-columns: 1fr 1fr; align-items: start; } }
 
-.section {
-  /* Spacing between sections now comes from the column's own `gap` (.mainColumn/.sidebarColumn),
-     not a per-card margin — avoids doubled spacing now that cards sit in an explicit flex column. */
-}
+.section { }
+.sectionHeading { margin: 0 0 16px; font-size: 1rem; font-weight: 700; color: var(--admin-text); }
 
-.sectionHeading {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-text);
-  margin: 0 0 var(--space-4);
-}
+.field { display: flex; flex-direction: column; gap: 3px; padding: 11px 0; border-bottom: 1px solid var(--admin-border); }
+.field:first-of-type { padding-top: 0; }
+.field:last-child { border-bottom: 0; padding-bottom: 0; }
+.fieldLabel { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--admin-text-subtle); }
+.fieldValue { font-size: 0.9375rem; font-weight: 500; color: var(--admin-text); word-break: break-word; }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--admin-border);
-}
-.field:last-child {
-  border-bottom: none;
-}
+.link { color: var(--admin-blue); font-weight: 600; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+.link:focus-visible { outline: 2px solid var(--admin-blue); outline-offset: 2px; border-radius: 4px; }
 
-.fieldLabel {
-  font-size: 0.75rem;
-  color: var(--admin-text-subtle);
-}
-
-.fieldValue {
-  font-size: var(--font-size-small);
-  color: var(--admin-text);
-  word-break: break-word;
-}
-
-.link {
-  color: var(--admin-accent);
-  text-decoration: none;
-}
-.link:hover,
-.link:focus-visible {
-  text-decoration: underline;
-}
-.link:focus-visible {
-  outline: 2px solid var(--admin-focus-ring);
-  outline-offset: 2px;
-}
-
-.context {
-  font-size: var(--font-size-small);
-  color: var(--admin-text);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  margin: 0;
-}
-
-.internalNote {
-  font-size: 0.75rem;
-  color: var(--admin-text-subtle);
-  margin: 0 0 var(--space-3);
-}
+.context { margin: 0; font-size: 0.9375rem; line-height: 1.7; color: var(--admin-text); white-space: pre-wrap; }
+.internalNote { margin: -8px 0 14px; font-size: 0.8125rem; color: var(--admin-text-subtle); }

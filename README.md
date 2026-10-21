@@ -44,4 +44,18 @@ See [API.md](API.md) for the public endpoint reference (response contract, pagin
 
 For security, environments and production operations, see [SECURITY.md](SECURITY.md), [ENVIRONMENT.md](ENVIRONMENT.md), [OPERATIONS.md](OPERATIONS.md), [BACKUP.md](BACKUP.md) and [MONITORING.md](MONITORING.md).
 
-Integrating the redesigned frontend against this backend? Start with [FRONTEND_BACKEND_HANDOVER.md](FRONTEND_BACKEND_HANDOVER.md).
+## Building UI on the content API
+
+The rules a page or component can rely on. Full shapes are in [API.md](API.md) and `src/server/api/serializers.ts` / `home.dto.ts`.
+
+- **Same origin.** The API lives on the site's own domain (`/api/...`) and sends no CORS headers, so it cannot be called from a separately hosted frontend.
+- **Summary vs detail.** List responses carry only what a card needs (title, slug, short description, image); detail responses carry the full content, published related items and `seo`. No response exposes database IDs, `status`, `createdAt` or internal foreign keys: related records arrive already resolved.
+- **Slugs are the only identifier.** URLs are `/{type}/{slug}`, stable once published; an explicit slug change creates a redirect from the old URL. A malformed slug returns `400`, an unknown or unpublished one `404`. There is no lookup by ID, and none will be added.
+- **SEO is server-side.** Titles, descriptions, canonicals, Open Graph/Twitter fallbacks, JSON-LD and indexability are all resolved by `src/server/seo` ([SEO_ARCHITECTURE.md](SEO_ARCHITECTURE.md)). A page only has to render content that matches them.
+- **Images** are always `{ url, alt, width, height }`, with a meaningful `alt` and `width`/`height` present together or not at all. Render them with `next/image` (see `src/components/ui/Media.tsx`); format conversion and responsive sizes are already handled.
+- **Only published content** is ever returned, listed in the sitemap or indexed, enforced in the database queries. Publishing has minimum-content gates, so sparse published content is real, not a bug. There is no scheduled publishing.
+- **Errors** all share `{ success: false, message, error: { code, fields } }`. Branch on `error.code` only (`message` is display text); respect `Retry-After` on a `429`; never show a `500`'s details to visitors.
+- **Empty is not an error.** An empty list is `data: []` with a zero total. Optional sections come back as `null` or `[]`, never a missing key, and every Home section can be `null` independently: hide what is empty instead of rendering a broken block.
+- **Pagination** is page-based with `limit` capped at 50; a larger value fails with `422` rather than being cut short.
+- **Public reads need no authentication**, so anything they return is public. Admin (`/api/admin/**`) and lead (`/api/leads`) endpoints are not for public pages, except the Contact form, which posts to `/api/leads`.
+- **Undocumented fields may disappear**; documented ones change only by a deliberate contract change. A new layout should never need a backend change; genuinely new data does.

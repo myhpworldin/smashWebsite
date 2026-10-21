@@ -12,9 +12,11 @@ import { WRAP } from "@/components/home/shared";
 import { CareersCta } from "@/components/careers/CareersParts";
 import { getSiteSettings } from "@/server/seo/request-cache";
 import { WorkMotion } from "@/components/work/WorkMotion";
+import { publishedSlugParams } from "@/server/seo/public-cache";
 
-// Resolves published content by slug only.
-export const dynamic = "force-dynamic";
+// Resolves published content by slug only. Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
+export const generateStaticParams = () => publishedSlugParams("career");
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   return careerMetadata((await params).slug);

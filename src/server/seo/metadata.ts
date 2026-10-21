@@ -51,7 +51,10 @@ export type ResolvedMetadata = {
 
 export const DESCRIPTION_MAX = 160;
 
-const clean = (v?: string | null) => v?.replace(/\s+/g, " ").trim() || undefined;
+/** The CMS marks copy that has not been written yet with "[SAMPLE]"; such text is never published as metadata. */
+export const isPlaceholder = (v?: string | null) => !!v && v.trimStart().startsWith("[SAMPLE]");
+
+const clean = (v?: string | null) => (isPlaceholder(v) ? undefined : v?.replace(/\s+/g, " ").trim() || undefined);
 
 /** Cut at a word boundary, adding an ellipsis only when something was removed. */
 export function truncateAtWord(text: string, max = DESCRIPTION_MAX): string {

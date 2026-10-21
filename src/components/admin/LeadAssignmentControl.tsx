@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { AdminButton } from "@/components/admin/AdminButton";
 import { isApiSuccess, patchLead, GENERIC_SAVE_ERROR } from "@/components/admin/lead-mutations";
 import styles from "./LeadCrmControls.module.css";
 
@@ -63,12 +63,12 @@ export function LeadAssignmentControl({ leadId, assignedTo, currentAdminEmail }:
           maxLength={200}
           onChange={(e) => setValue(e.target.value)}
         />
-        <Button type="button" variant="secondary" className={styles.smallButton} loading={saving} onClick={() => save(value.trim() || null)}>Save</Button>
+        <AdminButton type="button" variant="secondary" size="sm" loading={saving} onClick={() => save(value.trim() || null)}>Save</AdminButton>
         {!assignedTo || assignedTo !== currentAdminEmail ? (
-          <Button type="button" variant="ghost" className={styles.smallButton} disabled={saving} onClick={() => save(currentAdminEmail)}>Assign to me</Button>
+          <AdminButton type="button" variant="ghost" size="sm" disabled={saving} onClick={() => save(currentAdminEmail)}>Assign to me</AdminButton>
         ) : null}
         {assignedTo ? (
-          <Button type="button" variant="ghost" className={styles.smallButton} disabled={saving} onClick={() => save(null)}>Unassign</Button>
+          <AdminButton type="button" variant="ghost" size="sm" disabled={saving} onClick={() => save(null)}>Unassign</AdminButton>
         ) : null}
       </div>
       <span className={styles.feedback} data-tone={feedback?.tone} role="status">{feedback?.message}</span>

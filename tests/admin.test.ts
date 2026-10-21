@@ -27,6 +27,8 @@ import { GET as getCareer, PATCH as patchCareer } from "@/app/api/admin/careers/
 import { POST as createCaseStudyRoute } from "@/app/api/admin/work/route";
 import { GET as getSiteSettingsAdmin, PATCH as patchSiteSettingsAdmin } from "@/app/api/admin/site-settings/route";
 import { GET as getHomeAdmin, PATCH as patchHomeAdmin } from "@/app/api/admin/home/route";
+import { POST as revalidateRoute } from "@/app/api/admin/revalidate/route";
+import { revalidatedPaths } from "./next-cache-stub";
 import { GET as listEnquiries } from "@/app/api/admin/enquiries/route";
 import { GET as getEnquiry } from "@/app/api/admin/enquiries/[id]/route";
 import { POST as postContact } from "@/app/api/contact/route";
@@ -359,5 +361,37 @@ describe("admin Home SEO", () => {
     const ok = await call(patchHomeAdmin, "/api/admin/home", { method: "PATCH", body: { status: "published", seo: { metaTitle: "T", metaDescription: "D" } } });
     expect(ok.status).toBe(200);
     expect((await call(getHomeAdmin, "/api/admin/home")).body.data.seoReadiness.required).toEqual([]);
+  });
+});
+
+describe("public page cache (src/server/seo/public-cache.ts)", () => {
+  const ALL_PAGES = [{ path: "/", type: "layout" }, { path: "/sitemap.xml", type: undefined }];
+  beforeEach(() => {
+    revalidatedPaths.length = 0;
+  });
+
+  it("a successful content write clears every cached public page", async () => {
+    const created = await call(createServiceRoute, "/api/admin/services", { method: "POST", body: validService });
+    expect(revalidatedPaths).toEqual(ALL_PAGES);
+    revalidatedPaths.length = 0;
+    await call(patchService, "/api/admin/services/x", { id: created.body.data.id, method: "PATCH", body: { status: "published" } });
+    expect(revalidatedPaths).toEqual(ALL_PAGES);
+  });
+
+  it("a read, a rejected write or an unauthorised write leaves the cache alone", async () => {
+    await call(listServices, "/api/admin/services");
+    await call(createServiceRoute, "/api/admin/services", { method: "POST", body: { name: "", slug: "Bad Slug!" } });
+    await call(createServiceRoute, "/api/admin/services", { method: "POST", body: validService, token: "x".repeat(32) });
+    expect(revalidatedPaths).toEqual([]);
+  });
+
+  it("POST /api/admin/revalidate clears it on request, for an Administrator only", async () => {
+    const editor = await call(revalidateRoute, "/api/admin/revalidate", { method: "POST", token: EDITOR_TOKEN });
+    expect(editor.status).toBe(403);
+    expect(revalidatedPaths).toEqual([]);
+    const admin = await call(revalidateRoute, "/api/admin/revalidate", { method: "POST" });
+    expect(admin.status).toBe(200);
+    expect(admin.body.data).toEqual({ revalidated: true });
+    expect(revalidatedPaths).toEqual(ALL_PAGES);
   });
 });

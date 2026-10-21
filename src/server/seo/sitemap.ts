@@ -12,8 +12,7 @@ export type SitemapEntry = { url: string; lastModified?: Date };
 /** Protocol limit for a single sitemap file. */
 export const SITEMAP_MAX_URLS = 50_000;
 
-const TABLES: Record<ContentRouteType, typeof careers | typeof caseStudies | typeof insights | typeof services> = { service: services, caseStudy: caseStudies, insight: insights, career: careers };
-
+export const CONTENT_TABLES: Record<ContentRouteType, typeof careers | typeof caseStudies | typeof insights | typeof services> = { service: services, caseStudy: caseStudies, insight: insights, career: careers };
 /**
  * A page belongs in the sitemap exactly when it is published, indexable
  * (robots.index) and its canonical is itself. It uses the same resolveRobots and
@@ -45,8 +44,8 @@ export async function buildSitemap(db: Db, site: SiteSeoContext): Promise<Sitema
   // presence can never drift apart (the exact defect auditSitemap checks for below).
   for (const route of LIVE_STATIC_ROUTES) if (route !== ROUTES.HOME) add(route, staticPageSource(route)?.seo ?? null);
 
-  for (const type of Object.keys(TABLES) as ContentRouteType[]) {
-    const t = TABLES[type];
+  for (const type of Object.keys(CONTENT_TABLES) as ContentRouteType[]) {
+    const t = CONTENT_TABLES[type];
     const rows = (await findPicked(db, t, isPublished(), ["slug", "updatedAt", "seo"] as const, { sort: { slug: 1 } })) as { slug: string; updatedAt: Date; seo: Seo | null }[];
     for (const r of rows) add(CONTENT_ROUTES[type].build(r.slug), r.seo, r.updatedAt);
   }

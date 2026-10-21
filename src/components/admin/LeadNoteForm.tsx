@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { AdminButton } from "@/components/admin/AdminButton";
 import { isApiSuccess, postLeadNote, GENERIC_SAVE_ERROR } from "@/components/admin/lead-mutations";
 import styles from "./LeadNoteForm.module.css";
 
@@ -60,7 +60,7 @@ export function LeadNoteForm({ leadId }: { leadId: string }) {
       />
       <div className={styles.footer}>
         <span className={styles.feedback} data-tone={feedback?.tone} role="status">{feedback?.message}</span>
-        <Button type="submit" loading={submitting} disabled={!content.trim()}>Add Note</Button>
+        <AdminButton type="submit" size="sm" loading={submitting} disabled={!content.trim()}>Add note</AdminButton>
       </div>
     </form>
   );

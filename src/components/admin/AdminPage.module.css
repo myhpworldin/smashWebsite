@@ -1,0 +1,23 @@
+.hero { position: relative; isolation: isolate; overflow: hidden; color: #fff; background: radial-gradient(100% 140% at 85% -20%, var(--admin-navy-lift) 0%, var(--admin-navy) 50%, var(--admin-navy-deep) 100%); padding: 44px 0 108px; }
+.glow { position: absolute; z-index: -1; inset: auto -10% -60% auto; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 1, 1, 0.34), transparent 65%); filter: blur(30px); animation: drift 16s ease-in-out infinite; }
+.grid { position: absolute; z-index: -1; inset: 0; opacity: 0.4; background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(180deg, #000 0%, transparent 90%); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+.row { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+.copy { min-width: 0; max-width: 100%; }
+.eyebrow { margin: 0 0 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #ff9494; animation: rise 700ms var(--admin-ease) both; }
+.title { margin: 0; font-size: clamp(1.75rem, 3.4vw, 2.75rem); line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; overflow-wrap: anywhere; animation: rise 800ms 80ms var(--admin-ease) both; }
+.description { margin: 12px 0 0; max-width: 62ch; font-size: 0.9375rem; line-height: 1.6; color: rgba(255, 255, 255, 0.74); animation: rise 800ms 160ms var(--admin-ease) both; }
+.meta { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.74); animation: rise 800ms 220ms var(--admin-ease) both; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; flex: none; animation: rise 800ms 260ms var(--admin-ease) both; }
+
+.body { position: relative; z-index: 1; margin-top: -72px; padding-bottom: 24px; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes drift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(-40px, -20px, 0) scale(1.1); } }
+
+@media (max-width: 720px) {
+  .wrap { padding: 0 16px; }
+  .hero { padding: 32px 0 96px; }
+  .actions { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .glow, .eyebrow, .title, .description, .meta, .actions { animation: none; } }

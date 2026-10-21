@@ -5,7 +5,8 @@ import { staticPageMetadata } from "@/server/seo/next-metadata";
 import { ROUTES } from "@/lib/routes";
 import { ServicesCatalogue } from "@/components/services/ServicesCatalogue";
 
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.SERVICES);

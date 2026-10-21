@@ -1,0 +1,9 @@
+.block { display: block; border-radius: 10px; background: linear-gradient(100deg, var(--admin-gray-100) 30%, #fff 50%, var(--admin-gray-100) 70%); background-size: 220% 100%; animation: shimmer 1.6s linear infinite; }
+.round { border-radius: 999px; }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.tile { display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: var(--admin-radius); background: var(--admin-surface); border: 1px solid var(--admin-border); box-shadow: var(--admin-shadow-md); }
+.rows { display: flex; flex-direction: column; gap: 14px; }
+@keyframes shimmer { to { background-position: -220% 0; } }
+@media (max-width: 1020px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .block { animation: none; } }

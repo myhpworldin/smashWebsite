@@ -15,6 +15,12 @@ export const RATE_LIMITS = {
   admin: { limit: 30, windowMs: 60_000 },
   /** CRM admin login (CRM Phase 2): its own bucket, not `publicWrite` — a burst of login attempts from one visitor must not also lock them out of the contact form (and vice versa), and a login brute force deserves tighter scrutiny than an ordinary public write. */
   adminAuth: { limit: 10, windowMs: 60_000 },
+  /** Client portal login: same budget as the admin login, in its own bucket. */
+  clientAuth: { limit: 10, windowMs: 60_000 },
+  /** Asking for a verification email or typing the code: tight, since each one can send mail or guess a code. */
+  clientCode: { limit: 8, windowMs: 60_000 },
+  /** The signed-in portal's own calls. */
+  clientSession: { limit: 60, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitConfig>;
 export const RATE_LIMIT = RATE_LIMITS.publicRead;
 

@@ -1,0 +1,10 @@
+.empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 24px; text-align: center; border-radius: var(--admin-radius); background: var(--admin-surface); border: 1px dashed var(--admin-border-strong); animation: rise 700ms var(--admin-ease) both; }
+.bare { padding: 32px 16px; border: 0; background: none; border-radius: 0; animation: none; }
+.icon { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 20px; color: var(--admin-blue); background: var(--admin-blue-wash); animation: bob 3s ease-in-out infinite; }
+.bare .icon { width: 52px; height: 52px; border-radius: 16px; }
+.title { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--admin-text); }
+.message { margin: 0; max-width: 44ch; color: var(--admin-text-muted); font-size: 0.9375rem; line-height: 1.6; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .empty, .icon { animation: none; } }

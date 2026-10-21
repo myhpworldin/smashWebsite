@@ -1,0 +1,124 @@
+/* Shared by the CRM and the client portal; both token layers define the same navy/blue/red, so each falls back to the other's name. */
+.shell {
+  --f-navy: var(--admin-navy, var(--client-navy));
+  --f-navy-deep: var(--admin-navy-deep, var(--client-navy-deep));
+  --f-blue: var(--admin-blue, var(--client-blue));
+  --f-red: var(--admin-accent, var(--client-red));
+  --f-ease: var(--admin-ease, var(--client-ease));
+  --rail: 268px;
+  /* Exactly one screen: the sidebar fills it and the page scrolls inside .column, so the document itself never scrolls. */
+  height: 100vh; height: 100dvh; display: flex; overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+.rail {
+  position: relative; z-index: 40; flex: none; width: var(--rail); height: 100%; display: flex; flex-direction: column; padding: 22px 14px 14px; overflow: hidden; isolation: isolate; color: #fff;
+  background: linear-gradient(180deg, #06206e 0%, var(--f-navy) 28%, var(--f-navy-deep) 100%); box-shadow: 1px 0 0 rgba(255, 255, 255, 0.05), 12px 0 32px -18px rgba(1, 18, 74, 0.6);
+  transition: width 320ms var(--f-ease); animation: slideRail 600ms var(--f-ease) both;
+}
+.rail[data-collapsed="true"] { --rail: 78px; }
+.glow { position: absolute; z-index: -1; left: -90px; bottom: -110px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 1, 1, 0.3), transparent 65%); filter: blur(26px); animation: drift 16s ease-in-out infinite; pointer-events: none; }
+
+.head { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; height: 40px; }
+.brand { display: block; line-height: 0; border-radius: 8px; }
+.brand:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.logo { width: 104px; height: auto; }
+.mark { display: none; width: 40px; height: 40px; place-items: center; border-radius: 12px; font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; background: linear-gradient(135deg, var(--f-red), #ff5a5a); box-shadow: 0 8px 18px -8px rgba(233, 1, 1, 0.8); }
+.close { display: none; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: #fff; cursor: pointer; }
+.close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.tag { margin: 22px 0 8px; padding: 0 14px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); white-space: nowrap; overflow: hidden; }
+
+.nav { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.link {
+  position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-radius: 12px; font-size: 0.9375rem; font-weight: 600; color: rgba(255, 255, 255, 0.72); text-decoration: none; white-space: nowrap;
+  transition: color 200ms, background 200ms, transform 240ms var(--f-ease); animation: slideIn 600ms calc(150ms + var(--i, 0) * 70ms) var(--f-ease) both;
+}
+.link:hover { color: #fff; background: rgba(255, 255, 255, 0.08); transform: translateX(3px); }
+.link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.link[aria-current="page"] { color: #fff; background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)); transform: none; }
+.link[aria-current="page"]::before { content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 4px; border-radius: 0 4px 4px 0; background: var(--f-red); transform-origin: center; animation: grow 400ms var(--f-ease) both; }
+.icon { flex: none; display: grid; place-items: center; width: 20px; height: 20px; transition: transform 300ms var(--f-ease); }
+.link:hover .icon { transform: scale(1.12) rotate(-6deg); }
+.link[aria-current="page"] .icon { color: #ff9494; }
+.label { overflow: hidden; text-overflow: ellipsis; transition: opacity 200ms; }
+
+.foot { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.account { display: flex; align-items: center; gap: 11px; padding: 6px 8px; min-width: 0; }
+.avatar, .mobileAvatar { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; color: #fff; background: linear-gradient(135deg, var(--f-blue), #3b82f6); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+.who { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.name { font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub { font-size: 0.75rem; color: rgba(255, 255, 255, 0.55); text-transform: capitalize; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Sign-out buttons are rendered by each area (they call different endpoints) and use this class. */
+.logout { display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: transparent; font: inherit; font-size: 0.8125rem; font-weight: 700; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; transition: background 200ms, border-color 200ms, transform 220ms var(--f-ease); }
+.logout:hover:not(:disabled) { background: rgba(233, 1, 1, 0.22); border-color: rgba(255, 138, 138, 0.7); transform: translateY(-1px); }
+.logout:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.logout:disabled { opacity: 0.6; cursor: wait; }
+.collapse { display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; font: inherit; font-size: 0.8125rem; font-weight: 600; color: rgba(255, 255, 255, 0.55); cursor: pointer; white-space: nowrap; transition: color 200ms, background 200ms; }
+.collapse:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.collapse:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Collapsed rail: icons only, with a tooltip on hover/focus. */
+.rail[data-collapsed="true"] .label, .rail[data-collapsed="true"] .who, .rail[data-collapsed="true"] .tag { opacity: 0; width: 0; pointer-events: none; position: absolute; }
+.rail[data-collapsed="true"] .tag { display: none; }
+.rail[data-collapsed="true"] .head { justify-content: center; padding: 0; }
+.rail[data-collapsed="true"] .logo { display: none; }
+.rail[data-collapsed="true"] .mark { display: grid; }
+.rail[data-collapsed="true"] .link, .rail[data-collapsed="true"] .collapse { justify-content: center; padding: 0; }
+.rail[data-collapsed="true"] .account { justify-content: center; padding: 6px 0; }
+.rail[data-collapsed="true"] .logout { font-size: 0; gap: 0; padding: 0; }
+.rail[data-collapsed="true"] .link:hover { transform: none; }
+.rail[data-collapsed="true"] .link::after, .rail[data-collapsed="true"] .collapse::after {
+  content: attr(data-tip); position: absolute; left: calc(100% + 18px); top: 50%; z-index: 60; padding: 6px 10px; border-radius: 8px; background: #fff; color: var(--f-navy); font-size: 0.75rem; font-weight: 700; white-space: nowrap; box-shadow: 0 10px 24px -6px rgba(1, 18, 74, 0.5);
+  opacity: 0; transform: translate(-4px, -50%); pointer-events: none; transition: opacity 160ms, transform 200ms var(--f-ease);
+}
+.rail[data-collapsed="true"] .collapse { position: relative; }
+.rail[data-collapsed="true"] .link:hover::after, .rail[data-collapsed="true"] .link:focus-visible::after, .rail[data-collapsed="true"] .collapse:hover::after, .rail[data-collapsed="true"] .collapse:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+/* The rail clips overflow, so the tooltip must not be clipped: allow it while collapsed. */
+.rail[data-collapsed="true"], .rail[data-collapsed="true"] .nav { overflow: visible; }
+.rail[data-collapsed="true"] .glow { display: none; }
+
+/* ---- Page ---- */
+.column { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; overscroll-behavior-x: auto; scrollbar-gutter: auto; background: var(--admin-bg, var(--client-bg)); }
+.content { flex: 1; min-width: 0; }
+.pageFoot { padding: 28px 24px 36px; text-align: center; font-size: 0.8125rem; color: var(--admin-text-subtle, var(--client-subtle)); }
+
+/* ---- Small screens: a slim bar, and the sidebar slides in over the page ---- */
+.mobileBar, .scrim { display: none; }
+@media (max-width: 1023px) {
+  .shell { flex-direction: column; }
+  .mobileBar { flex: none; position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding: 0 14px; color: #fff; background: linear-gradient(135deg, var(--f-navy-deep) 0%, var(--f-navy) 60%, #06206e 100%); box-shadow: 0 8px 24px -12px rgba(1, 18, 74, 0.6); }
+  .menuButton { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: transparent; color: #fff; cursor: pointer; transition: background 200ms; }
+  .menuButton:hover { background: rgba(255, 255, 255, 0.1); }
+  .menuButton:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .mobileBrand { display: block; line-height: 0; margin-right: auto; }
+  .mobileBrand .logo { width: 92px; }
+  .mobileAvatar { width: 34px; height: 34px; border-radius: 10px; }
+  .rail, .rail[data-collapsed="true"] { --rail: min(300px, 86vw); position: fixed; inset: 0 auto 0 0; z-index: 60; overflow: hidden; transform: translateX(-102%); transition: transform 360ms var(--f-ease); animation: none; box-shadow: none; }
+  .rail[data-open="true"] { transform: none; box-shadow: 24px 0 60px -10px rgba(0, 0, 0, 0.5); }
+  .close { display: grid; }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(1, 10, 40, 0.45); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 300ms; }
+  .scrim[data-open="true"] { opacity: 1; pointer-events: auto; }
+  /* The drawer is always the full sidebar, whatever the desktop collapse preference. */
+  .rail[data-collapsed="true"] .label, .rail[data-collapsed="true"] .who { opacity: 1; width: auto; position: static; pointer-events: auto; }
+  .rail[data-collapsed="true"] .tag { display: block; opacity: 1; width: auto; position: static; }
+  .rail[data-collapsed="true"] .head { justify-content: space-between; padding: 0 8px; }
+  .rail[data-collapsed="true"] .logo { display: block; }
+  .rail[data-collapsed="true"] .mark { display: none; }
+  .rail[data-collapsed="true"] .link, .rail[data-collapsed="true"] .collapse { justify-content: flex-start; padding: 0 14px; }
+  .rail[data-collapsed="true"] .account { justify-content: flex-start; padding: 6px 8px; }
+  .rail[data-collapsed="true"] .logout { font-size: 0.8125rem; gap: 8px; padding: 0 14px; }
+  .rail[data-collapsed="true"] .link::after, .rail[data-collapsed="true"] .collapse::after { display: none; }
+  .rail[data-collapsed="true"] .nav { overflow-y: auto; }
+  .collapse { display: none; }
+}
+
+@keyframes slideRail { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slideIn { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes drift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(30px, -24px, 0) scale(1.1); } }
+@media (prefers-reduced-motion: reduce) {
+  .rail, .link, .glow, .link[aria-current="page"]::before { animation: none; }
+  .rail, .link, .icon, .logout, .scrim, .label { transition: none; }
+}

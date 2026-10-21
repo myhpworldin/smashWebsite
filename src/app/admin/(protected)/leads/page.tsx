@@ -7,21 +7,20 @@ import { listLeadsQuerySchema, type ListLeadsQuery } from "@/server/modules/lead
 import { getLeadStatusSummary, listLeads } from "@/server/modules/leads/leads.service";
 import { listPublishedServices } from "@/server/modules/services/services.service";
 import { DEFAULT_LEAD_PAGE_SIZE } from "@/lib/lead-options";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminErrorState } from "@/components/admin/AdminErrorState";
 import { AdminCard } from "@/components/admin/AdminCard";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { Stack } from "@/components/ui/Stack";
+import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { LeadStatusTabs } from "@/components/admin/LeadStatusTabs";
 import { LeadsFilterForm } from "@/components/admin/LeadsFilterForm";
 import { LeadsPageSizeControl } from "@/components/admin/LeadsPageSizeControl";
 import { LeadsTable, type LeadTableRow } from "@/components/admin/LeadsTable";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Pagination } from "@/components/ui/Pagination";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import styles from "./leads.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Leads — SMASH CRM", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Website enquiries — SMASH CRM", robots: { index: false, follow: false } };
 
 type SearchParams = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -78,10 +77,8 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: P
   if (query.limit !== DEFAULT_LEAD_PAGE_SIZE) filterQueryString.limit = String(query.limit);
 
   return (
-    <>
-      <AdminPageHeader title={summary ? `Leads (${summary.total} total)` : "Leads"} description="Manage and track incoming business enquiries." />
-
-      <AdminCard className={styles.toolbar}>
+    <AdminPage eyebrow="SMASH website" title="Website enquiries" description="Enquiries sent through SMASH's own Contact form. A client's leads are managed inside that client's workspace." meta={summary ? <span className={styles.heroChip}>{summary.total} total</span> : undefined}>
+      <AdminCard className={styles.toolbar} reveal>
         {summary ? (
           <div className={styles.tabsRow}>
             <LeadStatusTabs summary={summary} activeStatus={query.status ?? ""} basePath="/admin/leads" baseQuery={filterQueryString} />
@@ -99,16 +96,16 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: P
       <Suspense fallback={<LeadsResultsSkeleton />}>
         <LeadsResults query={query} filterQueryString={filterQueryString} globalTotal={summary?.total ?? null} />
       </Suspense>
-    </>
+    </AdminPage>
   );
 }
 
 function LeadsResultsSkeleton() {
   return (
     <AdminCard>
-      <Stack gap={4}>
-        {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} height="3.5rem" />)}
-      </Stack>
+      <div className={styles.skeletonRows}>
+        {Array.from({ length: 6 }, (_, i) => <AdminSkeleton key={i} height="3.5rem" />)}
+      </div>
     </AdminCard>
   );
 }
@@ -155,15 +152,15 @@ async function LeadsResults({ query, filterQueryString, globalTotal }: { query: 
   const paginationQueryString = query.status ? { ...filterQueryString, status: query.status } : filterQueryString;
 
   if (!rows.length) {
-    if (globalTotal === 0) return <EmptyState icon={Inbox} message="No leads yet. When visitors submit the contact form, new enquiries will appear here." />;
-    if (query.search) return <EmptyState icon={SearchX} message="No leads found. Try changing your search or filters." />;
-    return <EmptyState icon={SearchX} message="No leads match these filters. Clear the filters to see all leads." />;
+    if (globalTotal === 0) return <AdminEmptyState icon={Inbox} title="No leads yet" message="When visitors submit the contact form, new enquiries will appear here." />;
+    if (query.search) return <AdminEmptyState icon={SearchX} title="No leads found" message="Try changing your search or filters." />;
+    return <AdminEmptyState icon={SearchX} title="Nothing matches" message="No leads match these filters. Clear the filters to see all leads." />;
   }
 
   return (
     <>
       <LeadsTable leads={rows} currentAdminEmail={admin.email} />
-      <Pagination
+      <AdminPagination
         page={query.page}
         totalPages={totalPages}
         basePath="/admin/leads"

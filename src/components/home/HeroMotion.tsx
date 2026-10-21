@@ -53,14 +53,8 @@ export function HeroMotion() {
 
       // Chevron ripple on the scroll cue — only while the cue is on screen (it is gone after the first few percent).
       const ripple = gsap.fromTo(q("[data-hero-chevron]"), { opacity: 0.25 }, { opacity: 1, duration: 0.9, ease: "sine.inOut", repeat: -1, yoyo: true, stagger: 0.25 });
-      const gate = ScrollTrigger.create({ trigger: runway, start: "top top", end: () => `+=${0.06 * (runway.offsetHeight - 2 * window.innerHeight)}`, invalidateOnRefresh: true, onToggle: ({ isActive }) => (isActive ? ripple.resume() : ripple.pause()) });
-      // Hand-over: once the dive is done About slides up over the pinned stage, which darkens as it is
-      // covered (scrubbed, so scrolling back reverses it) — the same cover as the inner pages' hero under their first sheet.
-      const cover = gsap
-        .timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: runway, start: () => `top+=${runway.offsetHeight - 2 * window.innerHeight} top`, end: "bottom bottom", scrub: 0.4, invalidateOnRefresh: true } })
-        .to(q("[data-hero-dim]"), { opacity: 0.7 }, 0);
+      const gate = ScrollTrigger.create({ trigger: runway, start: "top top", end: () => `+=${0.06 * (runway.offsetHeight - window.innerHeight)}`, invalidateOnRefresh: true, onToggle: ({ isActive }) => (isActive ? ripple.resume() : ripple.pause()) });
       return () => {
-        cover.kill();
         gate.kill();
         ripple.kill();
       };

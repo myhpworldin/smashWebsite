@@ -1,21 +1,26 @@
 import { LEAD_PRIORITY_LABEL, LEAD_STATUS_LABEL, type LeadPriority, type LeadStatus } from "@/lib/lead-options";
 import styles from "./AdminBadge.module.css";
 
-type Tone = "neutral" | "accent" | "warning" | "success";
+type Tone = "neutral" | "accent" | "warning" | "success" | "danger";
 
 /** The one badge primitive every CRM status/priority chip renders through (Phase 4 brief, Step 13/14). */
-export function AdminBadge({ label, tone = "neutral" }: { label: string; tone?: Tone }) {
-  return <span className={`${styles.badge} ${styles[tone]}`}>{label}</span>;
+export function AdminBadge({ label, tone = "neutral", live }: { label: string; tone?: Tone; live?: boolean }) {
+  return (
+    <span className={`${styles.badge} ${styles[tone]}${live ? ` ${styles.live}` : ""}`}>
+      <span className={styles.dot} aria-hidden="true" />
+      {label}
+    </span>
+  );
 }
 
 /** Reused across the pipeline: "actively being worked" reads as one tone regardless of exact stage — the label text is what tells them apart, not the color (Step 14: never color alone). */
 const STATUS_TONE: Record<LeadStatus, Tone> = {
-  NEW: "neutral",
+  NEW: "accent",
   CONTACTED: "accent",
   QUALIFIED: "accent",
   PROPOSAL: "warning",
   CONVERTED: "success",
-  LOST: "neutral",
+  LOST: "danger",
 };
 
 /** A lead's status, using the exact Phase 1 enum and labels (`lead-options.ts`) — never a re-derived or invented label. */

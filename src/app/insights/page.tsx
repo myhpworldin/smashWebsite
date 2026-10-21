@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { InsightCard } from "@/components/content/InsightCard";
 import type { InsightSummary } from "@/server/api/serializers";
 
+// Rendered per request, unlike the other public pages (src/server/seo/public-cache.ts): `?page=` selects what it shows.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {

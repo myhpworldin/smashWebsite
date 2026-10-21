@@ -60,9 +60,10 @@ export function SectionHead({ heading, description, headingId, center, dark, cla
           <Words text={heading} />
         </h2>
       ) : null}
-      {description ? (
-        <p data-sv-up className={`mt-6 text-[17px] leading-[1.7] lg:text-[19px] ${center ? "max-w-[760px]" : "max-w-[600px]"} ${dark ? "text-white/70" : "text-black/60"}`}>{description}</p>
-      ) : null}
+      {/* A blank line in the copy starts a new paragraph. */}
+      {description?.split(/\n\s*\n/).map((para, i) => (
+        <p key={i} data-sv-up className={`${i ? "mt-4" : "mt-6"} text-[17px] leading-[1.7] lg:text-[19px] ${center ? "max-w-[760px]" : "max-w-[600px]"} ${dark ? "text-white/70" : "text-black/60"}`}>{para.trim()}</p>
+      ))}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { WorkCaseCard } from "@/components/work/WorkCaseCard";
 import { WorkMotion } from "@/components/work/WorkMotion";
 import type { CaseStudySummary } from "@/server/api/serializers";
 
+// Rendered per request, unlike the other public pages (src/server/seo/public-cache.ts): `?page=` selects what it shows.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {

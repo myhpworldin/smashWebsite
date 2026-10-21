@@ -1,4 +1,7 @@
 import type { CareerWorkMode } from "@/lib/career-options";
+import type {
+  CampaignStatus, ClientCurrency, ClientLeadStatus, ClientService, CreativeStatus, FollowUpStatus, InvoiceStatus, NotificationLevel, PortalSection, ProjectStatus, StoredFile, TicketKind, TicketPriority, TicketStatus,
+} from "@/lib/client-options";
 import { LEAD_PRIORITIES, LEAD_SOURCES, LEAD_STATUSES, type LeadPriority, type LeadSource, type LeadStatus } from "@/lib/lead-options";
 import type {
   Cta,
@@ -50,6 +53,20 @@ export const leads = "leads" as const;
 export const leadActivity = "lead_activity" as const;
 /** CRM administrator accounts (CRM Phase 2). Distinct from `admin-auth.ts`'s two shared bearer tokens (the pre-existing CMS content API's "administrator"/"editor" roles): those have no per-user identity at all, so they cannot represent "who is logged into the CRM" and were not extended. */
 export const adminUsers = "admin_users" as const;
+/** Client-portal logins (distinct from `clients`, which is the public "who we have worked with" content). Created by an administrator only; there is no sign-up. */
+export const clientAccounts = "client_accounts" as const;
+/** What an administrator publishes to one client's dashboard. One document per account (`_id` is the account's id). */
+export const clientDashboards = "client_dashboards" as const;
+/** One document per account (`_id` is the account's id): the small, singular parts of a client's workspace (account manager, profile, platforms, team, billing plan, meetings, notifications, terms, enabled sections). */
+export const clientWorkspaces = "client_workspaces" as const;
+/** The per-client lists an administrator keeps. Each row belongs to one account (`accountId`), and every read and write filters on it. */
+export const clientProjects = "client_projects" as const;
+export const clientCreatives = "client_creatives" as const;
+export const clientLeads = "client_leads" as const;
+export const clientInvoices = "client_invoices" as const;
+export const clientTickets = "client_tickets" as const;
+/** One row per account, campaign and day (`_id` is `accountId:campaignId:date`, so a day can only be saved once): what the administrator records every day. */
+export const clientDailyStats = "client_daily_stats" as const;
 export const homePage = "home_page" as const;
 export const redirects = "redirects" as const;
 export const serviceCaseStudies = "service_case_studies" as const;
@@ -71,6 +88,15 @@ export type AdminUserRole = "administrator";
 type Timestamps = { createdAt: Date; updatedAt: Date };
 type Workflow = { status: ContentStatus };
 type Publishable = Workflow & { publishedAt: Date | null };
+
+/** The richer metrics (reach … startDate) were added after the first dashboards were saved, so on an older document they are simply absent: read them with `?? 0`. */
+export type ClientCampaign = {
+  id: string; name: string; platform: string; status: CampaignStatus; budget: number; spent: number; leads: number; calls: number;
+  reach?: number; impressions?: number; clicks?: number; engagement?: number; conversions?: number; revenue?: number; startDate?: string | null;
+};
+export type ClientMonthlyPoint = { label: string; leads: number; calls: number; spend: number; revenue?: number };
+/** A message on a creative or a ticket: `by` says which side wrote it. */
+export type ClientThreadMessage = { id: string; by: "client" | "admin"; name: string; message: string; at: string };
 
 export type EnquirySubmission = { message: string | null; serviceOfInterest: string | null; monthlyBudget: string | null; primaryGoal: string | null; submittedAt: Date };
 
@@ -121,6 +147,67 @@ export interface Rows {
   lead_activity: { id: string; leadId: string; type: string; message: string | null; previousValue: unknown; newValue: unknown; actor: string | null; createdAt: Date };
   /** `passwordHash` is `<salt-hex>:<hash-hex>` (`server/lib/password.ts`) — never a plaintext password, and every service function that returns this row to a caller outside this module strips it (`toPublic` in `admin-users.service.ts`). */
   admin_users: { id: string; email: string; passwordHash: string; role: AdminUserRole; isActive: boolean; createdAt: Date; updatedAt: Date };
+  /**
+   * A client's portal login. `passwordHash` and the `verification*` fields never leave `client-accounts.service.ts` (`toPublicClientAccount`).
+   * A new account starts with a temporary password, an unverified email and `mustResetPassword`: the portal lets the client in only
+   * after the email is verified (a 6-digit code, stored only as a hash) and the password is replaced. `sessionVersion` is bumped
+   * on every password change so older session cookies stop working.
+   */
+  client_accounts: {
+    id: string; email: string; companyName: string; contactName: string; phone: string | null; services: ClientService[]; passwordHash: string; isActive: boolean;
+    emailVerified: boolean; emailVerifiedAt: Date | null; mustResetPassword: boolean; passwordChangedAt: Date | null; sessionVersion: number;
+    verificationCodeHash: string | null; verificationExpiresAt: Date | null; verificationAttempts: number; verificationSentAt: Date | null;
+    /** The "forgot password" code is never stored: it is worked out from `resetNonce` and a server secret, so a resend inside the ten minutes can send the same code. Separate from the verification code, so asking for it never disturbs a first-login verification in progress. Absent on older rows. */
+    resetNonce?: string | null; resetExpiresAt?: Date | null; resetAttempts?: number; resetSentAt?: Date | null;
+    lastLoginAt: Date | null; lastViewedAt: Date | null; createdBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  /** `dataUpdatedAt` moves only when an administrator saves figures, not when the account itself is edited: it is the "last updated" the client sees. `null` = nothing published yet. */
+  client_dashboards: {
+    id: string; currency: ClientCurrency; periodLabel: string | null; note: string | null;
+    leads: number; calls: number; adsRunning: number; totalBudget: number; amountSpent: number; impressions: number; clicks: number;
+    campaigns: ClientCampaign[]; monthly: ClientMonthlyPoint[]; dataUpdatedAt: Date | null; updatedBy: string | null; createdAt: Date; updatedAt: Date;
+    /** Every change to `totalBudget` (newest last, the last 20 kept): who changed it, when, and from what to what. Absent on older rows. */
+    budgetLog?: { at: Date; by: string | null; from: number; to: number }[];
+  };
+  client_workspaces: {
+    id: string;
+    accountManager: { name: string; email: string | null; phone: string | null; whatsapp: string | null } | null;
+    profile: { website: string | null; businessType: string | null; address: string | null } | null;
+    connectedPlatforms: { platform: string; handle: string | null }[];
+    teamMembers: { id: string; name: string; email: string | null; phone: string | null; role: string | null; access: string }[];
+    billingPlan: { packageName: string; monthlyFee: number; adSpendBudget: number; currency: ClientCurrency; cycle: string; nextDueDate: string | null } | null;
+    meetings: { id: string; title: string; startsAt: string; link: string | null; notes: string | null }[];
+    notifications: { id: string; title: string; body: string | null; level: NotificationLevel; at: string }[];
+    terms: { version: number; text: string; updatedAt: string; acceptedAt: string | null; acceptedBy: string | null; acceptedVersion: number | null } | null;
+    enabledSections: PortalSection[] | null;
+    sectionUpdatedAt: Record<string, string>;
+    updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_projects: {
+    id: string; accountId: string; name: string; serviceType: string | null; startDate: string | null; team: string[]; status: ProjectStatus; expectedCompletion: string | null; notes: string | null;
+    updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_creatives: {
+    id: string; accountId: string; title: string; type: string; platform: string | null; scheduledFor: string | null; caption: string | null; file: StoredFile | null; status: CreativeStatus; version: number;
+    thread: ClientThreadMessage[]; submittedAt: string | null; decidedAt: string | null; updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_leads: {
+    id: string; accountId: string; name: string; phone: string | null; email: string | null; source: string; campaignName: string | null; status: ClientLeadStatus; receivedAt: string; value: number | null;
+    followUpStatus: FollowUpStatus; followUpAt: string | null; notes: string | null; updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_invoices: {
+    id: string; accountId: string; number: string; period: string | null; issueDate: string; dueDate: string; agencyFee: number; adSpend: number; total: number; amountPaid: number; status: InvoiceStatus;
+    paidAt: string | null; file: StoredFile | null; notes: string | null; updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_tickets: {
+    id: string; accountId: string; subject: string; kind: TicketKind; priority: TicketPriority; status: TicketStatus; createdBy: "client" | "admin"; thread: ClientThreadMessage[];
+    lastMessageBy: "client" | "admin"; lastMessageAt: string; updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
+  client_daily_stats: {
+    id: string; accountId: string; campaignId: string; date: string;
+    spend: number; leads: number; calls: number; reach: number; impressions: number; clicks: number; engagement: number; conversions: number; revenue: number;
+    updatedBy: string | null; createdAt: Date; updatedAt: Date;
+  };
   home_page: {
     id: string; hero: HeroContent | null; businessProof: HomeMetricSection | null; story: HomeStory | null; servicesSection: HomeSectionIntro | null; growthEngine: HomeGrowthEngine | null;
     selectedWorkSection: HomeSectionIntro | null; results: HomeMetricSection | null; whySmash: HomeWhySmash | null; testimonialsSection: HomeSectionIntro | null;
@@ -166,6 +253,30 @@ export const SPEC: Record<CollectionName, { defaults: () => Record<string, unkno
   },
   lead_activity: { defaults: () => ({ createdAt: new Date() }), nullable: ["message", "previousValue", "newValue", "actor"] },
   admin_users: { defaults: () => ({ role: "administrator" as AdminUserRole, isActive: true, ...stamps() }), nullable: [] },
+  client_accounts: {
+    defaults: () => ({ isActive: true, emailVerified: false, mustResetPassword: true, sessionVersion: 1, verificationAttempts: 0, services: [], ...stamps() }),
+    nullable: ["phone", "emailVerifiedAt", "passwordChangedAt", "verificationCodeHash", "verificationExpiresAt", "verificationSentAt", "resetNonce", "resetExpiresAt", "resetSentAt", "lastLoginAt", "lastViewedAt", "createdBy"],
+  },
+  client_dashboards: {
+    defaults: () => ({ currency: "INR" as ClientCurrency, leads: 0, calls: 0, adsRunning: 0, totalBudget: 0, amountSpent: 0, impressions: 0, clicks: 0, campaigns: [], monthly: [], ...stamps() }),
+    nullable: ["periodLabel", "note", "dataUpdatedAt", "updatedBy"],
+  },
+  client_workspaces: {
+    defaults: () => ({ connectedPlatforms: [], teamMembers: [], meetings: [], notifications: [], sectionUpdatedAt: {}, ...stamps() }),
+    nullable: ["accountManager", "profile", "billingPlan", "terms", "enabledSections", "updatedBy"],
+  },
+  client_projects: { defaults: () => ({ team: [], status: "PLANNING" as ProjectStatus, ...stamps() }), nullable: ["serviceType", "startDate", "expectedCompletion", "notes", "updatedBy"] },
+  client_creatives: {
+    defaults: () => ({ type: "Post", status: "DRAFT" as CreativeStatus, version: 1, thread: [], ...stamps() }),
+    nullable: ["platform", "scheduledFor", "caption", "file", "submittedAt", "decidedAt", "updatedBy"],
+  },
+  client_leads: { defaults: () => ({ status: "NEW" as ClientLeadStatus, followUpStatus: "NONE" as FollowUpStatus, ...stamps() }), nullable: ["phone", "email", "campaignName", "value", "followUpAt", "notes", "updatedBy"] },
+  client_invoices: { defaults: () => ({ status: "PENDING" as InvoiceStatus, agencyFee: 0, adSpend: 0, amountPaid: 0, ...stamps() }), nullable: ["period", "paidAt", "file", "notes", "updatedBy"] },
+  client_tickets: { defaults: () => ({ thread: [], status: "OPEN" as TicketStatus, ...stamps() }), nullable: ["updatedBy"] },
+  client_daily_stats: {
+    defaults: () => ({ spend: 0, leads: 0, calls: 0, reach: 0, impressions: 0, clicks: 0, engagement: 0, conversions: 0, revenue: 0, ...stamps() }),
+    nullable: ["updatedBy"],
+  },
   home_page: {
     defaults: () => ({ status: "draft", ...stamps() }),
     nullable: [
@@ -211,6 +322,17 @@ export const INDEXES: IndexSpec[] = [
   { collection: leadActivity, keys: { leadId: 1, createdAt: 1 }, name: "lead_activity_timeline_idx" },
   /** There must not be two active admin identities with the same email (CRM Phase 2 brief, Step 21). */
   { collection: adminUsers, keys: { email: 1 }, unique: true, name: "admin_users_email_uidx" },
+  /** One portal login per email address. */
+  { collection: clientAccounts, keys: { email: 1 }, unique: true, name: "client_accounts_email_uidx" },
+  { collection: clientAccounts, keys: { createdAt: -1 }, name: "client_accounts_created_at_idx" },
+  { collection: clientProjects, keys: { accountId: 1, createdAt: -1 }, name: "client_projects_account_idx" },
+  { collection: clientCreatives, keys: { accountId: 1, createdAt: -1 }, name: "client_creatives_account_idx" },
+  { collection: clientCreatives, keys: { accountId: 1, status: 1 }, name: "client_creatives_account_status_idx" },
+  { collection: clientLeads, keys: { accountId: 1, receivedAt: -1 }, name: "client_leads_account_idx" },
+  { collection: clientInvoices, keys: { accountId: 1, issueDate: -1 }, name: "client_invoices_account_idx" },
+  { collection: clientDailyStats, keys: { accountId: 1, date: -1 }, name: "client_daily_stats_account_date_idx" },
+  { collection: clientTickets, keys: { accountId: 1, lastMessageAt: -1 }, name: "client_tickets_account_idx" },
+  { collection: clientTickets, keys: { status: 1, lastMessageBy: 1 }, name: "client_tickets_attention_idx" },
   { collection: redirects, keys: { fromPath: 1 }, unique: true, name: "redirects_from_path_uidx" },
   { collection: redirects, keys: { toPath: 1 }, name: "redirects_to_path_idx" },
   { collection: serviceCaseStudies, keys: { serviceId: 1, caseStudyId: 1 }, unique: true, name: "service_case_studies_pk" },
@@ -252,6 +374,7 @@ export const VALIDATORS: Record<string, Record<string, unknown>> = {
   [insights]: { $and: [slugFormat, publishedNeedsDate] },
   [leads]: leadEnums,
   [adminUsers]: { $jsonSchema: { properties: { role: { enum: ["administrator"] }, isActive: { bsonType: "bool" }, passwordHash: { bsonType: "string" } } } },
+  [clientAccounts]: { $jsonSchema: { properties: { isActive: { bsonType: "bool" }, emailVerified: { bsonType: "bool" }, mustResetPassword: { bsonType: "bool" }, passwordHash: { bsonType: "string" } } } },
   [siteSettings]: { _id: SINGLETON_ID },
   [homePage]: { $and: [{ _id: SINGLETON_ID }, publishedNeedsDate] },
   [redirects]: { $and: [{ statusCode: { $in: [301, 308] } }, { $expr: { $ne: ["$fromPath", "$toPath"] } }] },

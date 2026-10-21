@@ -5,7 +5,8 @@ import { cookieDoc } from "@/lib/legal-content";
 import { LegalDocument } from "@/components/legal/LegalDocument";
 
 // generateMetadata and the company details in the copy both read SiteSettings, same as every other page.
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.COOKIE_POLICY);

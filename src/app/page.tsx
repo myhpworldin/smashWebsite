@@ -14,8 +14,8 @@ import { GrowthEngine } from "@/components/home/GrowthEngine";
 import { OurStory } from "@/components/home/OurStory";
 import { Team } from "@/components/home/Team";
 
-// Content is edited in the CMS and must show immediately, so nothing here is prerendered.
-export const dynamic = "force-dynamic";
+// Cached and regenerated (src/server/seo/public-cache.ts): a CMS edit clears the cache, so it still shows on the next visit.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return homeMetadata();

@@ -21,6 +21,7 @@ src/server/seo/
 ├── site-context.ts       loadSiteSeoContext() — SiteSettings + env → SiteSeoContext
 ├── env-context.ts       indexingFromEnv()/toleratesOutages() — the only place NEXT_PUBLIC_SITE_URL and tier are read
 ├── request-cache.ts     per-request memoization of the above lookups
+├── public-cache.ts      page caching (ISR): published slugs to prerender, and the cache clear after a content write
 ├── home-readiness.ts    editor-facing "what's missing before Home can publish" report (admin API only)
 └── links-audit.ts       validates editor-entered CTA/metric link targets resolve to real, live pages
 ```
@@ -63,13 +64,13 @@ Only four schema.org types exist, each emitted only when the page's own real dat
 
 | Type | Source | Emitted on |
 |---|---|---|
-| `Organization` | Site Settings (name, URL, logo if set, `https://` social links only, contact point if email/phone exist) | Home only |
+| `Organization` | Site Settings (brand name, registered `legalName`, URL, logo if set, `https://` social links only, contact point if email/phone exist, the business-confirmed office address as a `PostalAddress` — PIN code and country split out, nothing geocoded) | Home only |
 | `Service` | The service's own name/description/URL | Service detail pages (fails safe — returns nothing without a name) |
 | `Article` | The insight's own headline/description/image/author/dates | Insight detail pages (fails safe without headline/publishedAt) |
 | `BreadcrumbList` | `buildBreadcrumbs()`, from canonical routes/slugs | Service, service-offering, case-study, insight, career detail pages |
 | `FAQPage` | The service's own `faqs[]` | Service detail pages only, only when `faqs` is non-empty |
 
-No `LocalBusiness`, no ratings/reviews/prices/employee-counts/awards schema exists anywhere, and none should be added without a real, approved data source for it (never fabricated to "add more schema").
+No `LocalBusiness` (it needs opening hours, which have not been provided), no coordinates, no ratings/reviews/prices/employee-counts/awards schema exists anywhere, and none should be added without a real, approved data source for it (never fabricated to "add more schema").
 
 ## Breadcrumbs
 

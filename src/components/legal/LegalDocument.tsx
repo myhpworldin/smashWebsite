@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSiteSettings } from "@/server/seo/request-cache";
 import { LEGAL_LINKS, type LegalBlock, type LegalContext, type LegalDoc } from "@/lib/legal-content";
 import { ROUTES } from "@/lib/routes";
+import { LEGAL_NAME } from "@/lib/company";
 import { SheetHero, SHEET } from "@/components/layout/SheetHero";
 import { SheetMotion } from "@/components/layout/SheetMotion";
 import { WRAP } from "@/components/home/shared";
@@ -13,11 +14,11 @@ import styles from "./legal.module.css";
 
 const LINK = "text-bright-blue underline decoration-bright-blue/35 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-bright-blue focus-visible:decoration-bright-blue";
 
-/** Site Settings values the copy quotes (company name, contact details). A settings failure falls back to the plain site name. */
+/** The values the copy quotes: the registered company name, and the contact details from Site Settings. */
 async function legalContext(): Promise<LegalContext> {
   const settings = await getSiteSettings().catch(() => null);
   return {
-    company: settings?.siteName?.trim() || "SMASH Digital Media Private Limited",
+    company: LEGAL_NAME,
     email: settings?.contact?.email ?? null,
     phone: settings?.contact?.phone ?? null,
     address: settings?.contact?.address ?? null,

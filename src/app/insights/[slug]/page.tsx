@@ -20,9 +20,11 @@ import { InsightHeader } from "@/components/sections/InsightHeader";
 import { MarkdownContent } from "@/components/content/MarkdownContent";
 import { RelatedContentSection } from "@/components/sections/RelatedContentSection";
 import { InsightViewTracker } from "@/components/analytics/InsightViewTracker";
+import { publishedSlugParams } from "@/server/seo/public-cache";
 
-// Resolves published content by slug only.
-export const dynamic = "force-dynamic";
+// Resolves published content by slug only. Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
+export const generateStaticParams = () => publishedSlugParams("insight");
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   return insightMetadata((await params).slug);

@@ -2,9 +2,8 @@
 
 import { useId, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { apiFetch, isApiSuccess } from "@/lib/api-client";
-import { Button } from "@/components/ui/Button";
 import styles from "./AdminLoginForm.module.css";
 
 const GENERIC_ERROR = "Invalid email or password.";
@@ -78,12 +77,14 @@ export function AdminLoginForm() {
       <div className={styles.field}>
         <label htmlFor={emailId} className={styles.label}>Email</label>
         <div className={styles.inputRow}>
+          <Mail size={18} strokeWidth={1.75} className={styles.icon} aria-hidden="true" />
           <input
             id={emailId}
             className={styles.input}
             type="email"
             name="email"
             autoComplete="username"
+            placeholder="you@smash.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -94,6 +95,7 @@ export function AdminLoginForm() {
       <div className={styles.field}>
         <label htmlFor={passwordId} className={styles.label}>Password</label>
         <div className={styles.inputRow}>
+          <Lock size={18} strokeWidth={1.75} className={styles.icon} aria-hidden="true" />
           <input
             id={passwordId}
             className={styles.input}
@@ -101,6 +103,7 @@ export function AdminLoginForm() {
             type={showPassword ? "text" : "password"}
             name="password"
             autoComplete="current-password"
+            placeholder="Your password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -118,9 +121,11 @@ export function AdminLoginForm() {
         </div>
       </div>
       {errorMessage ? <p role="alert" className={styles.formError}>{errorMessage}</p> : null}
-      <Button type="submit" loading={status === "submitting"} className={styles.submit}>
-        {status === "submitting" ? "Signing in..." : "Sign in"}
-      </Button>
+      <button type="submit" className={styles.submit} disabled={status === "submitting"}>
+        {status === "submitting" ? <span className={styles.spinner} aria-hidden="true" /> : null}
+        {status === "submitting" ? "Signing in…" : "Sign in"}
+        {status === "submitting" ? null : <ArrowRight size={18} strokeWidth={2} className={styles.arrow} aria-hidden="true" />}
+      </button>
     </form>
   );
 }

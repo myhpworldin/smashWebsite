@@ -13,9 +13,11 @@ import { listPublishedServiceCatalogue } from "@/server/modules/services/service
 import { ROUTES } from "@/lib/routes";
 import { ServiceCategoryView } from "@/components/service/ServiceCategoryView";
 import { ServiceEngagementTracker } from "@/components/analytics/ServiceEngagementTracker";
+import { publishedSlugParams } from "@/server/seo/public-cache";
 
-// Resolves published content by slug only.
-export const dynamic = "force-dynamic";
+// Resolves published content by slug only. Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
+export const generateStaticParams = () => publishedSlugParams("service");
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   return serviceMetadata((await params).slug);

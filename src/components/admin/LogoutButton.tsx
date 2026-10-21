@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
-import { Button } from "@/components/ui/Button";
+import styles from "@/components/layout/AppFrame.module.css";
 
+/** The CRM's sign-out control, styled by the shared sidebar frame (it sits at the foot of the navy sidebar). */
 export function LogoutButton() {
   const [loading, setLoading] = useState(false);
 
@@ -24,9 +25,9 @@ export function LogoutButton() {
   }
 
   return (
-    <Button type="button" variant="ghost" loading={loading} onClick={handleLogout}>
-      <LogOut size={16} strokeWidth={1.75} aria-hidden="true" style={{ marginRight: 6, verticalAlign: -3 }} />
-      Log out
-    </Button>
+    <button type="button" className={styles.logout} disabled={loading} onClick={handleLogout}>
+      <LogOut size={16} strokeWidth={1.9} aria-hidden="true" />
+      {loading ? "Signing out…" : "Log out"}
+    </button>
   );
 }

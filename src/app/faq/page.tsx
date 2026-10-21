@@ -10,7 +10,8 @@ import { SheetMotion } from "@/components/layout/SheetMotion";
 import { FaqExplorer } from "@/components/faq/FaqExplorer";
 
 // generateMetadata, the structured data and the contact details all read SiteSettings, same as every other page.
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.FAQ);

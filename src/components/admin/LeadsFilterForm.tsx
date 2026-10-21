@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { LEAD_SOURCE_LABEL, LEAD_SOURCES } from "@/lib/lead-options";
-import { Button } from "@/components/ui/Button";
+import { AdminButton } from "@/components/admin/AdminButton";
 import styles from "./LeadsFilterForm.module.css";
 
 type ServiceOption = { name: string; slug: string };
@@ -72,10 +72,10 @@ export function LeadsFilterForm({ services, status, defaults, hasActiveFilters }
             className={styles.search}
           />
         </div>
-        <Button type="submit" variant="primary" className={styles.submit}>
+        <AdminButton type="submit" className={styles.submit}>
           <Search size={16} strokeWidth={2} aria-hidden="true" />
           Search
-        </Button>
+        </AdminButton>
       </div>
 
       <div className={styles.filtersRow}>
@@ -119,10 +119,10 @@ export function LeadsFilterForm({ services, status, defaults, hasActiveFilters }
         </div>
 
         {hasActiveFilters ? (
-          <Button href="/admin/leads" variant="ghost" className={styles.clear}>
-            <X size={14} strokeWidth={1.75} aria-hidden="true" style={{ marginRight: 4, verticalAlign: -2 }} />
-            Clear Filters
-          </Button>
+          <AdminButton href="/admin/leads" variant="ghost" size="sm" className={styles.clear}>
+            <X size={14} strokeWidth={2} aria-hidden="true" />
+            Clear filters
+          </AdminButton>
         ) : null}
       </div>
     </form>

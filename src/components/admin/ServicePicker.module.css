@@ -1,0 +1,22 @@
+.picker { display: flex; flex-direction: column; gap: 14px; }
+.group { margin: 0; padding: 16px 18px; border: 1px solid var(--admin-border); border-radius: 14px; background: var(--admin-surface-soft); }
+.legendRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; margin-bottom: 12px; }
+.legend { padding: 0; font-size: 0.875rem; font-weight: 700; color: var(--admin-text); float: left; }
+.toggleAll { margin-left: auto; padding: 3px 6px; border: 0; background: none; font: inherit; font-size: 0.8125rem; font-weight: 600; color: var(--admin-blue); cursor: pointer; border-radius: 6px; }
+.toggleAll:hover { text-decoration: underline; }
+.toggleAll:focus-visible { outline: 2px solid var(--admin-blue); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; clear: both; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.chip span {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1.5px solid var(--admin-border); border-radius: 999px;
+  background: var(--admin-surface); color: var(--admin-text-muted); font-size: 0.8125rem; font-weight: 600; transition: background 200ms, border-color 200ms, color 200ms, transform 220ms var(--admin-ease);
+}
+.chip:hover span { border-color: var(--admin-border-strong); transform: translateY(-1px); }
+.chip input:checked + span { background: var(--admin-blue-wash); border-color: var(--admin-blue); color: var(--admin-blue); }
+.chip input:focus-visible + span { outline: 2px solid var(--admin-blue); outline-offset: 2px; }
+.tick { width: 0; height: 14px; margin-right: -6px; opacity: 0; transform: scale(0.4) rotate(-30deg); transition: width 250ms var(--admin-ease), margin 250ms var(--admin-ease), opacity 200ms, transform 300ms var(--admin-ease); }
+.chip input:checked + span .tick { width: 14px; margin-right: 0; opacity: 1; transform: none; }
+.summary { margin: 0; font-size: 0.8125rem; color: var(--admin-text-muted); }
+.retired { font-style: italic; }
+@media (prefers-reduced-motion: reduce) { .chip span, .tick { transition: none; } }

@@ -97,7 +97,7 @@ describe("robots", () => {
     // are the deliberate exceptions: both always need real authentication to render anything, so
     // there is no reason to invite a crawler. /admin has no trailing slash so the bare protected
     // entry route (/admin itself, not just /admin/something) is covered by the prefix match.
-    expect(r).toEqual({ rules: [{ userAgent: "*", allow: "/", disallow: ["/preview/", "/admin"] }], sitemap: `${ORIGIN}${SITEMAP_PATH}` });
+    expect(r).toEqual({ rules: [{ userAgent: "*", allow: "/", disallow: ["/preview/", "/admin", "/client"] }], sitemap: `${ORIGIN}${SITEMAP_PATH}` });
     expect(JSON.stringify(r)).not.toMatch(/disallow":\s*"\/"/);
     expect(r.sitemap).toBe("https://smash.international/sitemap.xml");
   });
@@ -296,7 +296,9 @@ describe("route integrity", () => {
     const dirsExceptAdminApi = (d: string): string[] =>
       readdirSync(d).flatMap((n) => {
         const full = join(d, n);
-        if (full === join(appDir, "api", "admin") || full === join(appDir, "admin")) return [];
+        // /api/client/** is the signed-in client portal's own JSON API (the same kind of non-crawlable, session-gated surface): it
+        // addresses a client's own content items, tickets and invoices by id, always scoped to the account in the session.
+        if (full === join(appDir, "api", "admin") || full === join(appDir, "admin") || full === join(appDir, "api", "client")) return [];
         return statSync(full).isDirectory() ? [n, ...dirsExceptAdminApi(full)] : [];
       });
     expect(dirsExceptAdminApi(appDir).filter((n) => /^\[\.{0,3}(id|.*Id)\]$/.test(n))).toEqual([]);
@@ -365,7 +367,7 @@ describe("structured data", () => {
   });
   it("Organization contains only stored data, and no LocalBusiness or invented claims exist", () => {
     const [org] = homeJsonLd(withMedia);
-    expect(Object.keys(org).sort()).toEqual(["@context", "@type", "logo", "name", "url"]);
+    expect(Object.keys(org).sort()).toEqual(["@context", "@type", "legalName", "logo", "name", "url"]);
     expect(JSON.stringify(org)).not.toMatch(/LocalBusiness|address|telephone|aggregateRating|award|employee/i);
   });
   it("service pages are built from the record, not a shared object", async () => {

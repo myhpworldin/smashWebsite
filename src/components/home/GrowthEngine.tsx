@@ -165,10 +165,11 @@ export function GrowthEngine({ data }: { data: HomeSection<"growthEngine"> }) {
 
         <div data-ge-window aria-hidden="true" className="w-full max-w-[508px] lg:justify-self-end xl:justify-self-auto">
           <div data-ge-strip className="flex flex-col gap-4 lg:gap-[30px]">
-            {PHOTOS.slice(0, count).map((src, i) => (
+            {PHOTOS.slice(0, count).map((src) => (
               <div key={src} data-ge-slide className="relative aspect-[508/353] w-full shrink-0 overflow-hidden">
                 <div data-ge-photo className="absolute inset-0">
-                  <Image src={src} alt="" fill sizes="(min-width: 1024px) 508px, 100vw" priority={i === 0} className="object-cover" />
+                  {/* Lazy, not `priority`: the section is far below the fold, and a preload would compete with the hero's own requests. */}
+                  <Image src={src} alt="" fill sizes="(min-width: 1024px) 508px, 100vw" className="object-cover" />
                 </div>
               </div>
             ))}

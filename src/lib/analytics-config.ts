@@ -23,3 +23,9 @@ export const analyticsConfig = {
   googleAdsContactConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONTACT_CONVERSION_LABEL || undefined,
   googleSiteVerification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
 };
+
+/**
+ * Whether any tag that needs consent is configured. When none is, there is nothing to ask permission for, so the
+ * cookie banner and the footer's "Cookie settings" link stay hidden (a banner with nothing behind it would be noise).
+ */
+export const isAnalyticsConfigured = !!(analyticsConfig.gtmContainerId || analyticsConfig.ga4MeasurementId || analyticsConfig.metaPixelId || analyticsConfig.googleAdsId);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { getDb } from "@/server/db/client";
 import { getRowById } from "@/server/db/helpers";
 import { leads } from "@/server/db/schema";
@@ -9,7 +9,8 @@ import { getPublishedServiceBySlug } from "@/server/modules/services/services.se
 import { listLeadActivity } from "@/server/modules/leads/lead-activity.service";
 import { requireCurrentAdmin } from "@/server/api/admin-session";
 import { LEAD_PRIORITIES, LEAD_PRIORITY_LABEL, LEAD_STATUSES, LEAD_STATUS_LABEL } from "@/lib/lead-options";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPage } from "@/components/admin/AdminPage";
+import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { LeadPriorityBadge, LeadStatusBadge } from "@/components/admin/AdminBadge";
 import { LeadActionsBar } from "@/components/admin/LeadActionsBar";
@@ -21,7 +22,7 @@ import { LeadActivityTimeline } from "@/components/admin/LeadActivityTimeline";
 import styles from "./lead-detail.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Lead — SMASH CRM", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Enquiry — SMASH CRM", robots: { index: false, follow: false } };
 
 const formatDate = (value: Date) => value.toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -56,39 +57,35 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
   ]);
 
   return (
-    <>
-      <AdminPageHeader
-        title={lead.fullName}
-        description={lead.companyName ?? undefined}
-        actions={<Link href="/admin/leads" className={styles.back}>&larr; Back to Leads</Link>}
-      />
-
-      <div className={styles.summary}>
-        <div className={styles.badges}>
-          <LeadStatusBadge status={lead.status} />
-          <LeadPriorityBadge priority={lead.priority} />
-        </div>
+    <AdminPage
+      eyebrow="Website enquiry"
+      title={lead.fullName}
+      description={lead.companyName ?? undefined}
+      meta={<><LeadStatusBadge status={lead.status} /><LeadPriorityBadge priority={lead.priority} /></>}
+      actions={<AdminButton href="/admin/leads" variant="onDark"><ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />Back to enquiries</AdminButton>}
+    >
+      <AdminCard reveal className={styles.summary}>
         <div className={styles.meta}>
-          <span>Assigned to {lead.assignedTo ?? "—"}</span>
-          <span>Created {formatDate(lead.createdAt)}</span>
-          <span>Updated {formatDate(lead.updatedAt)}</span>
+          <span><b>Assigned to</b>{lead.assignedTo ?? "—"}</span>
+          <span><b>Created</b>{formatDate(lead.createdAt)}</span>
+          <span><b>Updated</b>{formatDate(lead.updatedAt)}</span>
         </div>
         <LeadActionsBar email={lead.email} phone={lead.phone} websiteOrInstagram={lead.websiteOrInstagram} />
-      </div>
+      </AdminCard>
 
       <div className={styles.layout}>
         {/* Sidebar column: active CRM workflow — what an admin does right now. Rendered first in
             source order so it appears before the long-form content on mobile (single column),
             and is pinned to the right as a sticky column on desktop via the CSS grid below. */}
         <div className={styles.sidebarColumn}>
-          <AdminCard className={styles.section}>
+          <AdminCard reveal delay={1} className={styles.section}>
             <h2 className={styles.sectionHeading}>CRM Management</h2>
             <LeadEnumControl leadId={lead.id} field="status" label="Status" value={lead.status} options={LEAD_STATUSES} labels={LEAD_STATUS_LABEL} />
             <LeadEnumControl leadId={lead.id} field="priority" label="Priority" value={lead.priority} options={LEAD_PRIORITIES} labels={LEAD_PRIORITY_LABEL} />
             <LeadAssignmentControl leadId={lead.id} assignedTo={lead.assignedTo} currentAdminEmail={admin.email} />
           </AdminCard>
 
-          <AdminCard className={styles.section}>
+          <AdminCard reveal delay={2} className={styles.section}>
             <h2 className={styles.sectionHeading}>Internal Notes</h2>
             <p className={styles.internalNote}>Internal only — never shown on the public website.</p>
             <LeadNoteForm leadId={lead.id} />
@@ -99,7 +96,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
         {/* Main column: read-only reference material — what the visitor told us. */}
         <div className={styles.mainColumn}>
           <div className={styles.pair}>
-            <AdminCard>
+            <AdminCard reveal delay={2}>
               <h2 className={styles.sectionHeading}>Contact Information</h2>
               <Field label="Full name" value={lead.fullName} />
               <Field label="Company" value={lead.companyName ?? "Not provided"} />
@@ -109,7 +106,7 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
               <Field label="Location" value={lead.location} />
             </AdminCard>
 
-            <AdminCard>
+            <AdminCard reveal delay={3}>
               <h2 className={styles.sectionHeading}>Business Requirements</h2>
               <Field label="Primary service" value={service?.name ?? lead.primaryService ?? "Not provided"} />
               <Field label="Monthly marketing budget" value={lead.monthlyMarketingBudget ?? "Not provided"} />
@@ -117,17 +114,17 @@ export default async function AdminLeadDetailPage({ params }: { params: Promise<
             </AdminCard>
           </div>
 
-          <AdminCard className={styles.section}>
+          <AdminCard reveal delay={3} className={styles.section}>
             <h2 className={styles.sectionHeading}>Business Context</h2>
             <p className={styles.context}>{lead.additionalContext ?? "No additional context submitted."}</p>
           </AdminCard>
 
-          <AdminCard className={styles.section}>
+          <AdminCard reveal delay={4} className={styles.section}>
             <h2 className={styles.sectionHeading}>Activity Timeline</h2>
             <LeadActivityTimeline entries={activity} />
           </AdminCard>
         </div>
       </div>
-    </>
+    </AdminPage>
   );
 }

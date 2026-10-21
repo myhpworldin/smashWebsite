@@ -1,48 +1,9 @@
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--admin-border);
-  background: var(--admin-surface);
-  color: var(--admin-text);
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color var(--motion-duration-fast) var(--motion-easing), border-color var(--motion-duration-fast) var(--motion-easing), color var(--motion-duration-fast) var(--motion-easing);
-}
-.tab:hover {
-  background: var(--admin-gray-100);
-}
-.tab:focus-visible {
-  outline: 2px solid var(--admin-focus-ring);
-  outline-offset: 2px;
-}
-
-.tab[aria-current="page"] {
-  background: var(--admin-accent);
-  border-color: var(--admin-accent);
-  color: var(--admin-accent-foreground);
-}
-
-.count {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: var(--radius-full);
-  background: var(--admin-gray-100);
-  color: var(--admin-text-muted);
-}
-
-.tab[aria-current="page"] .count {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; background: var(--admin-surface-soft); border: 1px solid var(--admin-border); width: fit-content; max-width: 100%; }
+.tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; font-size: 0.875rem; font-weight: 600; color: var(--admin-text-muted); text-decoration: none; white-space: nowrap; transition: color 200ms, background 200ms, box-shadow 200ms; }
+.tab:hover { color: var(--admin-text); background: #fff; }
+.tab:focus-visible { outline: 2px solid var(--admin-blue); outline-offset: 1px; }
+.tab[aria-current="page"] { color: #fff; background: var(--admin-navy); box-shadow: 0 6px 14px -6px rgba(1, 18, 74, 0.6); }
+.count { min-width: 20px; padding: 1px 6px; border-radius: 999px; font-size: 0.6875rem; font-weight: 700; text-align: center; background: rgba(11, 18, 48, 0.08); font-variant-numeric: tabular-nums; }
+.tab[aria-current="page"] .count { background: rgba(255, 255, 255, 0.2); }
+@media (max-width: 720px) { .tabs { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: none; } .tabs::-webkit-scrollbar { display: none; } .tab { flex: none; } }
+@media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

@@ -21,11 +21,12 @@ export type RobotsConfig = {
  *    `/admin` has no trailing slash (unlike `/preview/`): robots.txt disallow is a plain
  *    string-prefix match, and the protected entry route is the bare path `/admin` itself
  *    (CRM Phase 2's `/admin/(protected)/page.tsx`) — a trailing-slash prefix would miss it.
+ *    `/client` (the client portal, `src/app/client/**`) is disallowed the same way and for the same reason.
  *  Any other tier: crawling is disallowed and no sitemap is advertised, so a staging
  *    or development host can never promote its URLs. Pages there also carry noindex
  *    (meta and X-Robots-Tag) as a second layer.
  */
 export function buildRobots(site: SiteSeoContext): RobotsConfig {
   if (!site.allowIndexing) return { rules: [{ userAgent: "*", disallow: "/" }] };
-  return { rules: [{ userAgent: "*", allow: "/", disallow: ["/preview/", "/admin"] }], sitemap: canonicalUrl(SITEMAP_PATH, site.siteUrl) };
+  return { rules: [{ userAgent: "*", allow: "/", disallow: ["/preview/", "/admin", "/client"] }], sitemap: canonicalUrl(SITEMAP_PATH, site.siteUrl) };
 }

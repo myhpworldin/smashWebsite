@@ -475,7 +475,7 @@ export async function createGlobe({ container, runway, reducedMotion, signal }: 
 
   // Scroll: one scrubbed timeline across the runway's pinned stretch (the stage is stuck for runway height − viewport
   // height of scrolling): the globe rises, turns to India and dives to Kerala, the pin lands, and a short hold keeps
-  // Kerala on screen until the stage lets go and About slides over it. Scrolling back reverses it exactly.
+  // Kerala on screen until the stage lets go. Scrolling back reverses it exactly.
   const view = { rot: 0, zoom: 0, center: 0, pin: 0, kerala: 0 };
   if (!reducedMotion) {
     gsap.registerPlugin(ScrollTrigger);

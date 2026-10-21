@@ -12,7 +12,7 @@ Every public route, its data source, and its current SEO status. "Verified" mean
 | Case Study | `/work/[slug]` | One case study | Verified | Verified — `caseStudyMetadata(slug)` | Verified | Service(s) referenced via BreadcrumbList; no dedicated CaseStudy/Article @type (see Pending) | Verified — published only | Published + indexable |
 | Insights (hub) | `/insights` | Article catalogue | n/a | Verified — `staticPageMetadata`, pagination-aware (same as Work) | Verified — self per page number | None (hub page) | Verified — static entry (page 1 only) | Page 1 always; page 2+ follow-only |
 | Article | `/insights/[slug]` | One article | Verified | Verified — `insightMetadata(slug)` | Verified | Article, BreadcrumbList | Verified — published only | Published + indexable |
-| About | `/about` | Company page | n/a | Verified — `staticPageMetadata`, falls back to site-wide description (no invented copy) | Verified — self | None yet (no Organization schema emitted outside Home) | Verified — static entry | Always indexable |
+| About | `/about` | Company page | n/a | Verified — `staticPageMetadata`, own title and description (`static-pages.ts`) | Verified — self | None yet (no Organization schema emitted outside Home) | Verified — static entry | Always indexable |
 | Careers (hub) | `/careers` | Job listing catalogue | n/a | Verified — `staticPageMetadata` | Verified — self | None (hub page) | Verified — static entry | Always indexable |
 | Career | `/careers/[slug]` | One job listing | Verified | Verified — `careerMetadata(slug)` | Verified | BreadcrumbList only — no JobPosting (honest omission: `datePosted`/`validThrough` don't exist on the Career model) | Verified — published only | Published + indexable |
 | Contact | `/contact` | Contact page | n/a | Verified — `staticPageMetadata` | Verified — self | None | Verified — static entry | Always indexable |
@@ -20,6 +20,13 @@ Every public route, its data source, and its current SEO status. "Verified" mean
 | Privacy / Terms / Cookie Policy | `/privacy-policy`, `/terms`, `/cookie-policy` | Legal pages | n/a | Verified — title only | Verified — self | None | Excluded from sitemap | Deliberately `noindex` until approved legal copy lands (Stage 4, Phase 7) |
 | Preview pages | `/preview/**` | Editor preview of a single draft | n/a | Hand-rolled, always `noindex,nofollow` | n/a | None | Never included | Never indexable, regardless of content status |
 | Admin | `/admin/**` | CMS editor UI | n/a | n/a | n/a | n/a | Never included | Never indexable; also blocked in robots.txt |
+
+## Metadata copy (Phase 2)
+
+- Every live page has its own title and description; `npm run seo:audit` (which now includes the static pages and the offering pages) reports duplicates, over-long titles and any `[SAMPLE]` placeholder as an error.
+- Copy that lives in the database (service categories and their introductions, offering pages, Home, case studies, Site Settings brand name and default social image) is written from `src/server/db/service-seo-copy.ts` by `npm run db:update-service-seo-copy`; the DB-less pages' copy is in `src/server/seo/static-pages.ts`.
+- `resolveMetadata` never publishes text beginning `[SAMPLE]`; it falls back to the next source instead.
+- Site Settings `siteName` is the public brand ("SMASH Digital Media"), used in titles, `og:site_name` and the Organization `name`. The registered name ("SMASH Digital Media Private Limited", `src/lib/company.ts`) is used for the footer copyright, the Legal pages, the enquiry emails and the Organization `legalName`.
 
 ## Notes on "Verified"
 

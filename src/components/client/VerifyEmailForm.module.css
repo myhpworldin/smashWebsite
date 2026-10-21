@@ -1,0 +1,20 @@
+.codeRow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.cell {
+  width: 100%; height: 60px; text-align: center; font: inherit; font-size: 1.5rem; font-weight: 700; color: var(--client-navy); caret-color: var(--client-blue);
+  border: 1.5px solid var(--client-border); border-radius: 14px; background: var(--client-surface-soft);
+  transition: border-color 200ms var(--client-ease), box-shadow 200ms var(--client-ease), transform 200ms var(--client-ease), background 200ms;
+  animation: pop 500ms calc(var(--i) * 50ms) var(--client-ease) both;
+}
+.cell:focus-visible { outline: none; border-color: var(--client-blue); background: #fff; box-shadow: 0 0 0 4px rgba(0, 88, 200, 0.14); transform: translateY(-2px); }
+.cell[data-filled="true"] { border-color: var(--client-navy); background: #fff; }
+.cell[aria-invalid="true"] { border-color: var(--client-red); background: #fffafa; }
+.codeRow[data-error="true"] { animation: shake 420ms var(--client-ease); }
+.sentTo { margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 0.875rem; line-height: 1.5; color: var(--client-muted); background: var(--client-surface-soft); border: 1px dashed var(--client-border-strong); }
+.sentTo strong { color: var(--client-ink); word-break: break-all; }
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.875rem; color: var(--client-muted); }
+.done { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 12px 0; text-align: center; color: var(--client-green); font-weight: 700; animation: pop 500ms var(--client-ease) both; }
+.doneIcon { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: var(--client-green-wash); }
+@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(3px); } 30%, 50%, 70% { transform: translateX(-5px); } 40%, 60% { transform: translateX(5px); } }
+@media (max-width: 420px) { .codeRow { gap: 6px; } .cell { height: 52px; font-size: 1.25rem; border-radius: 12px; } }
+@media (prefers-reduced-motion: reduce) { .cell, .codeRow[data-error="true"], .done { animation: none; } .cell { transition: none; } }

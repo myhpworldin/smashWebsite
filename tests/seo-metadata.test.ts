@@ -6,6 +6,7 @@ import { seoSchema } from "@/server/validation/common";
 import { homeSource, insightSource, serviceSource } from "@/server/seo/adapters";
 import { formatTitle, resolveMetadata, truncateAtWord, type SeoSource, type SiteSeoContext } from "@/server/seo/metadata";
 import { buildBreadcrumbs } from "@/server/seo/breadcrumbs";
+import { LIVE_STATIC_ROUTES } from "@/lib/routes";
 import { staticPageSource } from "@/server/seo/static-pages";
 import { articleJsonLd, breadcrumbJsonLd, faqJsonLd, homeJsonLd, insightPageJsonLd, organizationJsonLd, serializeJsonLd, servicePageJsonLd, serviceJsonLd } from "@/server/seo/schema";
 import { auditPublishedSeo, validateSeo } from "@/server/seo/validate";
@@ -46,6 +47,11 @@ describe("meta description", () => {
     expect(resolveMetadata({ ...site, siteDescription: "Site copy" }, base()).description).toBe("Site copy");
     expect(resolveMetadata({ ...site, defaultSeo: { metaDescription: "Default" }, siteDescription: "x" }, base()).description).toBe("Default");
     expect(resolveMetadata(site, base()).description).toBeUndefined();
+  });
+  it("never publishes \"[SAMPLE]\" placeholder copy as a title or description", () => {
+    const m = resolveMetadata({ ...site, siteDescription: "Site copy" }, base({ title: "Growth", summary: "[SAMPLE] Growth short description.", seo: { metaTitle: "[SAMPLE] Title", ogDescription: " [SAMPLE] x" } }));
+    expect(m).toMatchObject({ title: "Growth | SMASH", description: "Site copy", openGraph: { title: "Growth | SMASH", description: "Site copy" } });
+    expect(validateSeo(site, base({ summary: "[SAMPLE] Growth short description." })).find((i) => i.field === "summary")?.level).toBe("error");
   });
   it("truncates long summaries at a word boundary", () => {
     const long = "word ".repeat(80).trim();
@@ -132,9 +138,14 @@ describe("Open Graph and Twitter", () => {
 
 describe("static pages and breadcrumbs", () => {
   it("has an SEO source for static routes and none for content routes", () => {
-    expect(resolveMetadata(site, staticPageSource("/about")!).title).toBe("About | SMASH");
+    expect(resolveMetadata(site, staticPageSource("/about")!).title).toBe("About Our Growth Marketing Agency | SMASH");
     expect(staticPageSource("/services/x")).toBeNull();
-    expect(resolveMetadata(site, staticPageSource("/about")!).description).toBeUndefined(); // no invented copy
+  });
+  it("gives every live static page its own title and description, not the shared site default", () => {
+    const metas = LIVE_STATIC_ROUTES.filter((r) => r !== "/").map((r) => resolveMetadata({ ...site, siteDescription: "Site copy" }, staticPageSource(r)!));
+    for (const m of metas) expect(m.description, m.path).not.toBe("Site copy");
+    expect(new Set(metas.map((m) => m.title)).size).toBe(metas.length);
+    expect(new Set(metas.map((m) => m.description)).size).toBe(metas.length);
   });
   it("marks the Legal pages noindex until their copy is approved (Stage 4, Phase 7), unlike every other static page", () => {
     for (const path of ["/privacy-policy", "/terms", "/cookie-policy"]) {
@@ -148,7 +159,7 @@ describe("static pages and breadcrumbs", () => {
     expect(page1.canonical).toBe("https://smash.international/work");
     expect(page1.robots).toEqual({ index: true, follow: true });
     expect(page3.canonical).toBe("https://smash.international/work?page=3");
-    expect(page3.title).toBe("Our Work – Page 3 | SMASH");
+    expect(page3.title).toBe("Our Work: Marketing Case Studies – Page 3 | SMASH");
     expect(page3.robots).toEqual({ index: false, follow: true }); // thin/duplicate relative to page 1, but still crawlable
     // page 1 explicitly requested is identical to the default (no page param)
     expect(resolveMetadata(site, { ...staticPageSource("/work")!, page: 1 })).toEqual(page1);
@@ -170,13 +181,25 @@ describe("structured data", () => {
       "@context": "https://schema.org",
       "@type": "Organization",
       name: "SMASH",
+      legalName: "SMASH Digital Media Private Limited",
       url: "https://smash.international/",
       logo: "https://smash.international/img/a.png",
       sameAs: ["https://x.com/smash"],
       contactPoint: { "@type": "ContactPoint", email: "hello@smash.international" },
     });
-    expect(organizationJsonLd(site)).toEqual({ "@context": "https://schema.org", "@type": "Organization", name: "SMASH", url: "https://smash.international/" });
+    expect(organizationJsonLd(site)).toEqual({ "@context": "https://schema.org", "@type": "Organization", name: "SMASH", legalName: "SMASH Digital Media Private Limited", url: "https://smash.international/" });
     expect(homeJsonLd(site)).toHaveLength(1);
+  });
+  it("Organization carries the stored office address, with only the PIN code and country split out", () => {
+    const address = "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020";
+    expect(organizationJsonLd({ ...site, contact: { address } }).address).toEqual({
+      "@type": "PostalAddress",
+      streetAddress: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam",
+      postalCode: "682020",
+      addressCountry: "IN",
+    });
+    expect(organizationJsonLd({ ...site, contact: { address: "Somewhere without a PIN" } }).address).toEqual({ "@type": "PostalAddress", streetAddress: "Somewhere without a PIN", addressCountry: "IN" });
+    expect(organizationJsonLd(site).address).toBeUndefined();
   });
   it("Service has no price, rating or area fields", () => {
     const s = serviceJsonLd(site, { name: "Performance Marketing", description: "d", path: "/services/performance-marketing" })!;

@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { apiFetch, isApiSuccess } from "@/lib/api-client";
-import { trackEvent, trackGoogleAdsConversion } from "@/lib/analytics";
+import { trackEvent, trackEventOnce, trackGoogleAdsConversion } from "@/lib/analytics";
 import { analyticsConfig } from "@/lib/analytics-config";
 import { FormField } from "@/components/content/FormField";
 import { Button } from "@/components/ui/Button";
@@ -76,6 +76,8 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
 
     inFlight.current = true;
     setStatus("submitting");
+    // One id per attempt: it de-duplicates the lead event (and Meta / Google Ads with it), never identifies the person.
+    const submissionId = `lead-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`; // randomUUID needs a secure context
 
     const body: Record<string, string> = { name: values.name, phone: values.phone, location: values.location };
     for (const key of OPTIONAL) if (values[key].trim()) body[key] = values[key];
@@ -101,10 +103,11 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
       setSubmitted({ name: values.name, phone: values.phone });
       setConfirmed(true);
       setValues(EMPTY);
-      // No submitted content (name/email/message) is ever sent as an event parameter — phase brief §15.
-      trackEvent("contact_form_submit", { form_name: "contact", had_service_of_interest: !!values.serviceOfInterest });
+      // Only after the server confirmed the lead was saved, and keyed by this submission so it is counted exactly once.
+      // No submitted content (name/email/phone/message) is ever sent as an event parameter — phase brief §15.
+      trackEventOnce(submissionId, "generate_lead", { form_name: "contact", had_service_of_interest: !!values.serviceOfInterest });
       if (analyticsConfig.googleAdsId && analyticsConfig.googleAdsContactConversionLabel) {
-        trackGoogleAdsConversion(analyticsConfig.googleAdsId, analyticsConfig.googleAdsContactConversionLabel);
+        trackGoogleAdsConversion(analyticsConfig.googleAdsId, analyticsConfig.googleAdsContactConversionLabel, {}, submissionId);
       }
     } else {
       setStatus("error");

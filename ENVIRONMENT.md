@@ -19,7 +19,7 @@ Three deployment tiers, distinguished by `APP_ENV` (not `NODE_ENV`): `developmen
 | `RESEND_API_KEY` | server-only, **secret** | optional | Resend API key (`src/server/email/send.ts`). Unset = no email is sent; enquiries are still saved |
 | `EMAIL_FROM` | server-only | optional (needed with the key) | From address, `a@b.com` or `Name <a@b.com>`; its domain must be verified in Resend |
 | `ENQUIRY_NOTIFY_EMAIL` | server-only | optional | Comma-separated team recipients of each new enquiry; unset = the contact email in Site Settings |
-| 6 analytics `NEXT_PUBLIC_*` vars (GA4, GTM, Meta Pixel, Google Ads ID + conversion label, Site Verification) | **public** | optional | Read in `src/lib/analytics-config.ts`; none are secrets by nature (they're client-side tracking IDs, meant to be public) |
+| 6 analytics `NEXT_PUBLIC_*` vars (GA4, GTM, Meta Pixel, Google Ads ID + conversion label, Site Verification) | **public** | optional | Read in `src/lib/analytics-config.ts`; none are secrets by nature (they're client-side tracking IDs, meant to be public). Set them as **Config**, not Secret, in Vercel, and for Production only so previews are not measured. Nothing loads before cookie consent; with a GTM id, GTM is the only loader. See [ANALYTICS_EVENTS.md](ANALYTICS_EVENTS.md) |
 
 No server secret uses the `NEXT_PUBLIC_` prefix — verified both by manual review and by an automated test (`tests/security.test.ts`) that enforces only the reviewed `NEXT_PUBLIC_*` variables above appear anywhere in source, and that `process.env` is read only from a fixed, reviewed list of files (`env.ts`, `site-url.ts`, `media-config.ts`, `analytics-config.ts`, `next.config.ts`, `scripts/lib/mongod.ts`).
 
@@ -27,7 +27,7 @@ No server secret uses the `NEXT_PUBLIC_` prefix — verified both by manual revi
 
 - **Development**: `MONGODB_URI` optional (code can run against nothing configured, e.g. for scripts that don't touch the DB); `NEXT_PUBLIC_SITE_URL` defaults to localhost; indexing is always off.
 - **Staging**: `MONGODB_URI` required; `NEXT_PUBLIC_SITE_URL` must be a real https origin (but may use a staging hostname); SEO code (`robots.ts`, `sitemap.ts`, `metadata.ts`) treats staging as non-indexable, same as development.
-- **Production**: `MONGODB_URI` required; `NEXT_PUBLIC_SITE_URL` must be the exact canonical bare origin — no `www`/`staging`/`dev`/`preview` prefix, no path. This is enforced by `envSchema`'s `superRefine`, so a misconfigured production deploy fails to boot rather than silently serving the wrong canonical domain.
+- **Production**: `MONGODB_URI` required; `NEXT_PUBLIC_SITE_URL` must be the exact canonical bare origin — no `www`/`staging`/`dev`/`preview` prefix, no path. This is enforced by `envSchema`'s `superRefine`, so a misconfigured production deploy fails to boot rather than silently serving the wrong canonical domain. The matching Vercel domain settings (apex serves the site, `www` redirects to it) and the verification command are in [OPERATIONS.md](OPERATIONS.md#canonical-domain--https).
 
 Each tier is expected to be given **its own `MONGODB_URI`** (its own database/cluster) — nothing in the codebase prevents pointing two tiers at the same database, so this must be enforced operationally when provisioning each environment's secrets, not by the application.
 
@@ -42,3 +42,7 @@ cp .env.example .env.local   # .env.local is git-ignored; fill in your own local
 ## Secret rotation
 
 If any of `ADMIN_API_TOKEN`, `CMS_EDITOR_API_TOKEN`, `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD`, or `MONGODB_URI` is ever suspected of exposure, rotate it by setting a new value in the hosting platform's environment configuration and redeploying — there is no in-app rotation mechanism, by design (these are deployment-time secrets, not runtime-managed ones).
+
+## Cloudinary uploads (client workspace)
+
+`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` are used to sign direct browser uploads of invoice PDFs and content (`POST /api/admin/uploads/sign`) and to build short-lived private download links for invoices. The API key must have **upload (create) permission**: a read-only key signs correctly but Cloudinary answers 403 "missing permissions (actions=["create"])" and the admin upload shows an explanatory error. The secret never reaches the browser.

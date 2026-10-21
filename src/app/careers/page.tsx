@@ -15,7 +15,8 @@ import { HomeButton } from "@/components/home/home-ui";
 import { NoOpenRoles, OpenRoles } from "@/components/careers/CareersParts";
 import { WorkMotion } from "@/components/work/WorkMotion";
 
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.CAREERS);

@@ -1,0 +1,36 @@
+.btn {
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 18px;
+  border: 1px solid transparent; border-radius: 12px; font: inherit; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1; white-space: nowrap;
+  text-decoration: none; cursor: pointer;
+  transition: transform 220ms var(--admin-ease), box-shadow 220ms var(--admin-ease), background 200ms, border-color 200ms, color 200ms, opacity 200ms;
+}
+.btn:focus-visible { outline: 3px solid rgba(0, 88, 200, 0.4); outline-offset: 2px; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+.small { min-height: 34px; padding: 0 13px; border-radius: 10px; font-size: 0.8125rem; }
+
+.primary { color: #fff; background: linear-gradient(135deg, var(--admin-navy) 0%, var(--admin-navy-lift) 100%); box-shadow: 0 10px 22px -10px rgba(1, 18, 74, 0.7); }
+.primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 700ms var(--admin-ease); pointer-events: none; }
+.primary:hover:not(:disabled):not([aria-disabled="true"]) { transform: translateY(-2px); box-shadow: 0 16px 28px -10px rgba(1, 18, 74, 0.75); }
+.primary:hover:not(:disabled):not([aria-disabled="true"])::after { transform: translateX(120%); }
+.primary:active:not(:disabled) { transform: translateY(0); }
+
+.secondary { color: var(--admin-text); background: var(--admin-surface); border-color: var(--admin-border-strong); }
+.secondary:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--admin-blue); color: var(--admin-blue); background: var(--admin-blue-wash); transform: translateY(-1px); }
+
+.ghost { color: var(--admin-text-muted); background: transparent; }
+.ghost:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--admin-text); background: var(--admin-gray-100); }
+
+.danger { color: var(--admin-error); background: var(--admin-surface); border-color: #f1c6c3; }
+.danger:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--admin-error-bg); border-color: var(--admin-error); }
+
+.onDark { color: #fff; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.28); backdrop-filter: blur(8px); }
+.onDark:hover:not(:disabled):not([aria-disabled="true"]) { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.5); transform: translateY(-1px); }
+.onDark:focus-visible { outline-color: #fff; }
+
+.spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; opacity: 0.8; animation: spin 700ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .primary::after { transition: none; }
+  .spinner { animation-duration: 1.6s; }
+}

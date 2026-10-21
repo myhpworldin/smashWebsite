@@ -1,31 +1,14 @@
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-small);
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-}
+.badge { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; line-height: 1.4; white-space: nowrap; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
 
-/* Tinted background + solid text, derived from the admin token layer. The text label is what
-   actually distinguishes a status (never color alone), so two tones can be deliberately reused
-   across different labels. */
-.neutral {
-  background: var(--admin-gray-100);
-  color: var(--admin-text-muted);
-}
-.accent {
-  background: var(--admin-info-bg);
-  color: var(--admin-info);
-}
-.warning {
-  background: var(--admin-warning-bg);
-  color: var(--admin-warning);
-}
-.success {
-  background: var(--admin-success-bg);
-  color: var(--admin-success);
-}
+/* Tinted background + solid text. The text label is what actually distinguishes a status (never color alone), so two tones can be
+   deliberately reused across different labels. */
+.neutral { background: #eceff5; color: var(--admin-text-muted); }
+.accent { background: var(--admin-blue-wash); color: var(--admin-blue); }
+.warning { background: var(--admin-warning-bg); color: var(--admin-warning); }
+.success { background: var(--admin-success-bg); color: #0b6b43; }
+.danger { background: var(--admin-accent-wash); color: #b30c0c; }
+.live .dot { animation: blink 1.8s ease-in-out infinite; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .live .dot { animation: none; } }

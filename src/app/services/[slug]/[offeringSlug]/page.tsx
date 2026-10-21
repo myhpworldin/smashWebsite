@@ -14,6 +14,7 @@ import { ServiceHeroField } from "@/components/service/ServiceHeroField";
 import { ServiceMotion } from "@/components/service/ServiceMotion";
 import { ServiceIntro, ServiceCapabilities, ServiceProcess, ServiceOutcome, ServiceRelated, ServiceCases } from "@/components/service/ServiceSections";
 import { ServiceFaq } from "@/components/service/ServiceFaq";
+import { publishedOfferingParams } from "@/server/seo/public-cache";
 
 /**
  * An individual service (`/services/[slug]/[offeringSlug]`, e.g. `/services/growth/meta-ads`), in the Home page's
@@ -28,7 +29,9 @@ import { ServiceFaq } from "@/components/service/ServiceFaq";
  * `getPublishedServiceOffering` already throws NOT_FOUND for an unpublished category or an offering with no slug.
  * There is no visible breadcrumb trail (the design is nav + title only); the BreadcrumbList structured data is unaffected.
  */
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
+export const generateStaticParams = () => publishedOfferingParams();
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; offeringSlug: string }> }): Promise<Metadata> {
   const { slug, offeringSlug } = await params;

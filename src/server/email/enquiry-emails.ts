@@ -3,23 +3,21 @@ import type { Db } from "@/server/db/helpers";
 import { getEnv } from "@/server/config/env";
 import { getSiteSettings } from "@/server/modules/site-settings/site-settings.service";
 import { logger } from "@/server/lib/logger";
+import { LEGAL_NAME } from "@/lib/company";
 import { sendEmail } from "./send";
 import { CHECK_CID, CHECK_PNG_BASE64, LOGO_CID, LOGO_PNG_BASE64 } from "./logo";
 import { confirmationEmail, teamNotificationEmail, type CompanyInfo, type EnquiryDetails } from "./templates";
 
 /** Images the emails refer to as `cid:...` (templates.ts): every email has the logo, the visitor's also has the welcome check. */
-const LOGO_IMAGE = { cid: LOGO_CID, filename: "smash-logo.png", contentBase64: LOGO_PNG_BASE64, contentType: "image/png" };
+export const LOGO_IMAGE = { cid: LOGO_CID, filename: "smash-logo.png", contentBase64: LOGO_PNG_BASE64, contentType: "image/png" };
 const CHECK_IMAGE = { cid: CHECK_CID, filename: "smash-check.png", contentBase64: CHECK_PNG_BASE64, contentType: "image/png" };
 
-/** The legal name, used only until Site Settings has one (the same fallback the Legal pages use). */
-const FALLBACK_COMPANY = "SMASH Digital Media Private Limited";
-
-/** The company block of every email, read from Site Settings so an editor's change shows in the next email. */
-async function loadCompany(db: Db): Promise<CompanyInfo> {
+/** The company block of every email: the registered name, and the details from Site Settings so an editor's change shows in the next email. */
+export async function loadCompany(db: Db): Promise<CompanyInfo> {
   const settings = await getSiteSettings(db).catch(() => null);
   const origin = new URL(getEnv().NEXT_PUBLIC_SITE_URL).origin;
   return {
-    name: settings?.siteName?.trim() || FALLBACK_COMPANY,
+    name: LEGAL_NAME,
     siteUrl: origin,
     email: settings?.contact?.email ?? null,
     phone: settings?.contact?.phone ?? null,

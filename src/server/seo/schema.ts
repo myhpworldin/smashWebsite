@@ -1,10 +1,12 @@
 import { canonicalUrl, ROUTES } from "@/lib/routes";
 import { absoluteUrl, type SiteSeoContext } from "@/server/seo/metadata";
 import { buildBreadcrumbs, type Crumb } from "@/server/seo/breadcrumbs";
+import { LEGAL_NAME } from "@/lib/company";
 
 /**
  * schema.org JSON-LD builders. Each emits only fields backed by stored content;
- * nothing is invented (no ratings, prices, addresses, awards, areas served).
+ * nothing is invented (no ratings, prices, opening hours, coordinates, awards, areas served). The office address is
+ * emitted only as stored in Site Settings, which the business has confirmed.
  * They return plain objects; render with serializeJsonLd().
  */
 export type JsonLd = Record<string, unknown>;
@@ -25,18 +27,32 @@ function compact<T>(value: T): T {
 }
 
 const siteRoot = (site: SiteSeoContext) => canonicalUrl(ROUTES.HOME, site.siteUrl);
+/**
+ * The stored office address as a PostalAddress. Site Settings keeps it as one line, so only the parts that can be read
+ * from it without guessing are split out: the 6-digit PIN code, and the country (every SMASH address is in India).
+ */
+function postalAddress(address: string | undefined) {
+  const text = address?.replace(/\s+/g, " ").trim();
+  if (!text) return undefined;
+  const pin = text.match(/\b\d{6}\b(?=\D*$)/)?.[0];
+  const street = pin ? text.replace(new RegExp(`[,\\s]*${pin}\\s*$`), "") : text;
+  return { "@type": "PostalAddress", streetAddress: street, postalCode: pin, addressCountry: "IN" };
+}
+
 const orgRef = (site: SiteSeoContext) => ({ "@type": "Organization", name: site.siteName, url: siteRoot(site) });
 
 export function organizationJsonLd(site: SiteSeoContext): JsonLd {
-  const { email, phone } = site.contact ?? {};
+  const { email, phone, address } = site.contact ?? {};
   return compact({
     "@context": CONTEXT,
     "@type": "Organization",
     name: site.siteName,
+    legalName: LEGAL_NAME,
     url: siteRoot(site),
     logo: site.logo ? absoluteUrl(site.logo.url, site.siteUrl) : undefined,
     sameAs: site.socialLinks?.map((l) => l.url).filter((u) => /^https?:\/\//.test(u)),
     contactPoint: email || phone ? { "@type": "ContactPoint", email, telephone: phone } : undefined,
+    address: postalAddress(address ?? undefined),
   });
 }
 

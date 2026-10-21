@@ -1,6 +1,7 @@
 import type { LeadActivityRow } from "@/server/modules/leads/lead-activity.service";
 import { LEAD_PRIORITY_LABEL, LEAD_STATUS_LABEL } from "@/lib/lead-options";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { History } from "lucide-react";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import styles from "./LeadActivityTimeline.module.css";
 
 const formatDateTime = (value: Date) => value.toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
@@ -39,7 +40,7 @@ function describe(entry: LeadActivityRow): { title: string; detail?: string } {
 }
 
 export function LeadActivityTimeline({ entries }: { entries: LeadActivityRow[] }) {
-  if (!entries.length) return <EmptyState message="No activity yet." />;
+  if (!entries.length) return <AdminEmptyState bare icon={History} message="No activity yet." />;
   return (
     <ol className={styles.list}>
       {entries.map((entry) => {

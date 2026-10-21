@@ -13,11 +13,15 @@ import { Asset, WRAP } from "@/components/home/shared";
 import { whatsAppLink } from "@/lib/whatsapp";
 import { ContactMotion } from "./ContactMotion";
 
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts. The form posts to /api/leads, which is never cached.
+export const revalidate = 3600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata(ROUTES.CONTACT);
 }
+
+/** Google Maps searching for the stored, business-confirmed address: no coordinates are kept, so none are guessed. */
+const mapsLink = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
 /** One method of the "Direct Contacts" list (Figma "Direct Details Stack"): a bordered 16px-radius row, a grey 44px icon tile and, beside it, a small grey label over the value. */
 const ROW = "group relative flex items-center gap-4 rounded-2xl border border-black/10 bg-white p-5 no-underline transition-[border-color,transform,box-shadow] duration-300";
@@ -101,7 +105,7 @@ export default async function ContactPage() {
                     {contact?.email ? <Method icon="mail" label="Email Our Team" value={contact.email} href={`mailto:${contact.email}`} /> : null}
                     {contact?.phone ? <Method icon="call" label="Call Us Directly" value={contact.phone} href={`tel:${contact.phone}`} /> : null}
                     {contact?.whatsapp ? <Method icon="whatsapp" label="Message Directly" value={contact.whatsapp} href={whatsAppLink(contact.whatsapp)} external /> : null}
-                    {contact?.address ? <Method icon="location" label="Location" value={contact.address} /> : null}
+                    {contact?.address ? <Method icon="location" label="Location" value={contact.address} href={mapsLink(contact.address)} external /> : null}
                   </address>
                 </aside>
               ) : null}

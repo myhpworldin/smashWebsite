@@ -13,7 +13,7 @@ import styles from "@/components/layout/sheet.module.css";
  * The hero is a scroll runway: the section is several screens tall and its stage is `sticky`, so it stays on screen
  * while the page scrolls past it. That scroll is what drives the globe's dive to Kerala (createGlobe) and the
  * hero's own choreography (HeroMotion), and the whole effect ends inside the hero — About follows as an ordinary
- * section that slides up over the finished stage. Reduced motion has no runway: the hero is one screen with the
+ * section that follows the finished stage. Reduced motion has no runway: the hero is one screen with the
  * globe at rest. Layering inside the stage: mist (-z-10) < globe (z-1) < content (z-2); the global header floats over it as a glass pill
  * (HeaderFrame). Words and CTAs come from the CMS hero. The heading and intro load in like the inner pages' heroes (SheetHero):
  * each word rises out of its own mask, one after another, then the intro fades up — pure CSS (sheet.module.css), so it runs
@@ -27,7 +27,7 @@ export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
   // The intro follows the last word's rise: the words start 90ms apart (sheet.module.css), so it waits for the last one.
   const introDelay = 250 + 90 * lastIndex + 150;
   return (
-    <section aria-labelledby="hero-heading" data-home-section="hero" data-hero-runway className="relative h-[460svh] bg-black text-white motion-reduce:h-auto">
+    <section aria-labelledby="hero-heading" data-home-section="hero" data-hero-runway className="relative h-[360svh] bg-black text-white motion-reduce:h-auto">
       <HeroMotion />
       <div className="sticky top-0 isolate flex h-svh min-h-[560px] flex-col items-center overflow-hidden">
         <HeroAtmosphere />
@@ -66,9 +66,6 @@ export function HeroSection({ hero }: { hero: HomeSection<"hero"> }) {
             </span>
           ))}
         </div>
-
-        {/* Darkens as About slides over the stage (HeroMotion's hand-over). Above the content (z-2), below nothing the visitor can still read by then. */}
-        <div aria-hidden="true" data-hero-dim className="pointer-events-none absolute inset-0 z-[3] bg-black opacity-0 motion-reduce:hidden" />
 
         {/* Dive progress: a hairline rail down the right edge that fills as the globe closes in on Kerala. */}
         <div aria-hidden="true" className="absolute right-4 top-1/2 z-[2] h-24 w-px -translate-y-1/2 bg-white/15 motion-reduce:hidden md:right-8">

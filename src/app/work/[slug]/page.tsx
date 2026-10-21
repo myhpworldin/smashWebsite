@@ -22,9 +22,11 @@ import { WorkCaseCard } from "@/components/work/WorkCaseCard";
 import { WorkMotion } from "@/components/work/WorkMotion";
 import { Chips, ResultValue } from "@/components/work/WorkParts";
 import sheet from "@/components/layout/sheet.module.css";
+import { publishedSlugParams } from "@/server/seo/public-cache";
 
-// Resolves published content by slug only.
-export const dynamic = "force-dynamic";
+// Resolves published content by slug only. Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
+export const generateStaticParams = () => publishedSlugParams("caseStudy");
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   return caseStudyMetadata((await params).slug);

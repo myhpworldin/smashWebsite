@@ -1,0 +1,101 @@
+/* Shared by every client-portal form: sign in, verify, new password. */
+.form { display: flex; flex-direction: column; gap: 18px; }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 0.8125rem; font-weight: 600; color: var(--client-ink); letter-spacing: 0.01em; }
+.hint { margin: 0; font-size: 0.8125rem; color: var(--client-subtle); }
+
+.inputRow { position: relative; display: flex; align-items: center; }
+.icon { position: absolute; left: 16px; color: var(--client-subtle); pointer-events: none; transition: color 200ms var(--client-ease); }
+.input {
+  font: inherit; font-size: 0.9375rem; width: 100%; height: 52px; padding: 0 16px 0 46px;
+  border: 1.5px solid var(--client-border); border-radius: 14px; background: var(--client-surface-soft); color: var(--client-ink);
+  transition: border-color 200ms var(--client-ease), box-shadow 200ms var(--client-ease), background 200ms var(--client-ease);
+}
+.input[data-with-toggle="true"] { padding-right: 52px; }
+.input::placeholder { color: var(--client-subtle); }
+.input:hover { border-color: var(--client-border-strong); }
+.input:focus-visible { outline: none; border-color: var(--client-blue); background: #fff; box-shadow: 0 0 0 4px rgba(0, 88, 200, 0.14); }
+.inputRow:focus-within .icon { color: var(--client-blue); }
+.input[aria-invalid="true"] { border-color: var(--client-red); background: #fffafa; }
+.input[aria-invalid="true"]:focus-visible { box-shadow: 0 0 0 4px rgba(233, 1, 1, 0.12); }
+
+.toggle {
+  position: absolute; right: 6px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; color: var(--client-subtle); cursor: pointer; transition: color 150ms, background 150ms;
+}
+.toggle:hover { color: var(--client-ink); background: rgba(11, 18, 48, 0.05); }
+.toggle:focus-visible { outline: 2px solid var(--client-blue); outline-offset: 1px; }
+
+.fieldError { margin: 0; font-size: 0.8125rem; color: var(--client-red); animation: slideIn 260ms var(--client-ease); }
+.alert {
+  display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 0.875rem; line-height: 1.5;
+  background: var(--client-red-wash); color: #a30c0c; animation: shake 420ms var(--client-ease), slideIn 260ms var(--client-ease);
+}
+.notice {
+  display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 0.875rem; line-height: 1.5;
+  background: var(--client-blue-wash); color: #0a3f8f; animation: slideIn 260ms var(--client-ease);
+}
+.success { background: var(--client-green-wash); color: #0b6b43; }
+
+.submit {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 54px; width: 100%; margin-top: 4px;
+  border: 0; border-radius: 14px; font: inherit; font-size: 1rem; font-weight: 700; letter-spacing: 0.01em; color: #fff; cursor: pointer; overflow: hidden;
+  background: linear-gradient(135deg, var(--client-navy) 0%, var(--client-navy-lift) 100%);
+  box-shadow: 0 10px 24px -10px rgba(1, 18, 74, 0.7);
+  transition: transform 220ms var(--client-ease), box-shadow 220ms var(--client-ease), opacity 200ms;
+}
+.submit::after {
+  content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform 700ms var(--client-ease);
+}
+.submit:hover:not(:disabled)::after { transform: translateX(120%); }
+.submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 30px -10px rgba(1, 18, 74, 0.75); }
+.submit:active:not(:disabled) { transform: translateY(0); }
+.submit:focus-visible { outline: 3px solid rgba(0, 88, 200, 0.4); outline-offset: 3px; }
+.submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.arrow { transition: transform 220ms var(--client-ease); }
+.submit:hover:not(:disabled) .arrow { transform: translateX(4px); }
+
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; animation: spin 700ms linear infinite; }
+
+.linkButton {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 4px; border: 0; background: none; font: inherit; font-size: 0.875rem; font-weight: 600;
+  color: var(--client-blue); cursor: pointer; border-radius: 8px;
+}
+.linkButton:hover:not(:disabled) { text-decoration: underline; }
+.linkButton:disabled { color: var(--client-subtle); cursor: default; }
+.linkButton:focus-visible { outline: 2px solid var(--client-blue); outline-offset: 2px; }
+
+/* Password rules: each ticks green as it is met. */
+.rules { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.rule { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8125rem; color: var(--client-subtle); transition: color 250ms var(--client-ease); }
+.rule[data-ok="true"] { color: var(--client-green); }
+.tick {
+  width: 16px; height: 16px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--client-border-strong); color: transparent;
+  transition: background 250ms var(--client-ease), border-color 250ms var(--client-ease), color 250ms, transform 300ms var(--client-ease);
+}
+.rule[data-ok="true"] .tick { background: var(--client-green); border-color: var(--client-green); color: #fff; transform: scale(1.1); }
+.meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 2px; }
+.meter span { height: 4px; border-radius: 4px; background: var(--client-border); transition: background 300ms var(--client-ease); }
+.meter[data-level="1"] span:nth-child(-n + 1) { background: var(--client-red); }
+.meter[data-level="2"] span:nth-child(-n + 2) { background: var(--client-amber); }
+.meter[data-level="3"] span:nth-child(-n + 3) { background: #4fb06f; }
+.meter[data-level="4"] span { background: var(--client-green); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(3px); } 30%, 50%, 70% { transform: translateX(-5px); } 40%, 60% { transform: translateX(5px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .submit, .submit::after, .arrow, .input, .tick, .meter span { transition: none; }
+  .alert, .notice, .fieldError { animation: none; }
+  .spinner { animation-duration: 1.6s; }
+}
+
+/* "Forgot password?" sits right under the password field, aligned to its right edge. */
+.forgotRow { display: flex; justify-content: flex-end; margin-top: -10px; }
+.backRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.codeIntro { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--client-subtle); overflow-wrap: anywhere; }
+.codeIntro strong { font-weight: 700; color: var(--client-ink); }
+.verifiedLine { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.875rem; font-weight: 600; color: var(--client-green); }

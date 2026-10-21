@@ -7,7 +7,8 @@ import { auditPublishedSeo } from "@/server/seo/validate";
 
 async function main() {
   const site = await loadSiteSeoContext(getDb(), indexingFromEnv());
-  const { entries, conflicts } = await auditPublishedSeo(getDb(), site);
+  // Static pages too, so a title or description shared between, say, Contact and a service page is reported.
+  const { entries, conflicts } = await auditPublishedSeo(getDb(), site, { staticPages: true });
   for (const e of entries) {
     console.log(`${e.indexable ? "index  " : "noindex"} ${e.path}`);
     for (const i of e.issues) console.log(`  ${i.level.toUpperCase()} [${i.field}] ${i.message}`);
@@ -18,9 +19,10 @@ async function main() {
   for (const i of linkIssues) console.log(`LINK ${i.source} -> ${i.target}: ${i.problem}`);
   const sitemap = await auditSitemap(getDb(), site);
   for (const i of sitemap.issues) console.log(`SITEMAP ${i.url}: ${i.problem}`);
-  console.log(`${entries.length} published pages, ${conflicts.length} conflicts, ${sitemap.entries.length} sitemap URLs, ${sitemap.issues.length} sitemap issues, ${linkIssues.length} link issues`);
+  const errors = entries.flatMap((e) => e.issues).filter((i) => i.level === "error").length;
+  console.log(`${entries.length} published pages, ${errors} SEO errors, ${conflicts.length} conflicts, ${sitemap.entries.length} sitemap URLs, ${sitemap.issues.length} sitemap issues, ${linkIssues.length} link issues`);
   if (!site.allowIndexing) console.log("(this tier is not indexable, so the sitemap is intentionally empty)");
-  if (sitemap.issues.length) process.exitCode = 1;
+  if (sitemap.issues.length || errors || conflicts.length) process.exitCode = 1;
 }
 
 main().then(() => process.exit(process.exitCode ?? 0), (err) => {

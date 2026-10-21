@@ -26,18 +26,21 @@ function cloudinaryShowcase() {
 }
 
 /**
- * Showcase band: the clip held fixed while the page scrolls — no zoom, no fade, nothing animated but the page itself. The
- * section is a scroll runway (260svh) whose stage is `sticky`, so the clip stays put, in either scroll direction, while the
- * Services band (which overlaps the runway's last screen — see ServicesSection) slides up over it. On large screens the clip
- * fills the stage; below lg it is the full width of the screen at 16:9. Without JS or with reduced motion the CSS below IS the
- * finished state: a normal-height band with the clip full width, nothing pinned.
+ * Showcase band: the clip held fixed behind the page while it scrolls — no zoom, no fade, nothing animated but the page
+ * itself. The section is a scroll runway (360svh) whose stage is `sticky`, and it starts a screen early (-100svh): its first
+ * screen sits behind About, and its last screen behind Services (which overlaps it — see ServicesSection). So in either scroll
+ * direction the clip stays put while About and Services slide over it and away. About leaves during the first screen of
+ * scrolling and Services arrives during the last, so the 60svh between them shows the whole clip with nothing over it. On
+ * large screens the clip is the full width of the stage at 16:9, so no side of the frame is cropped (a window taller than
+ * 16:9 shows navy above and below it); below lg it is the full width of the screen at 16:9. Without JS or with reduced motion
+ * the CSS below IS the finished state: a normal-height band with the clip full width, nothing pinned or overlapped.
  * The clip is muted, looped and ambient — it carries no audio and says nothing the page doesn't say in text.
  */
 export function ShowcaseSection() {
   const media = cloudinaryShowcase();
 
   return (
-    <section aria-label="Campaign showcase" data-home-section="showcase" className="relative h-[260svh] bg-white motion-reduce:h-auto">
+    <section aria-label="Campaign showcase" data-home-section="showcase" className="relative -mt-[100svh] h-[360svh] bg-white motion-reduce:mt-0 motion-reduce:h-auto">
       <link rel="preconnect" href="https://res.cloudinary.com" />
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden motion-reduce:static motion-reduce:h-auto motion-reduce:py-16">
         <div className="relative aspect-video w-full overflow-hidden bg-[#0b1230] lg:aspect-auto lg:h-svh motion-reduce:lg:aspect-video motion-reduce:lg:h-auto">

@@ -1,5 +1,6 @@
 import type { LeadActivityRow } from "@/server/modules/leads/lead-activity.service";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { StickyNote } from "lucide-react";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import styles from "./LeadNotesList.module.css";
 
 const formatDateTime = (value: Date) => value.toLocaleString("en-US", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
@@ -13,7 +14,7 @@ const formatDateTime = (value: Date) => value.toLocaleString("en-US", { day: "nu
  */
 export function LeadNotesList({ entries }: { entries: LeadActivityRow[] }) {
   const notes = entries.filter((entry) => entry.type === "NOTE_ADDED").slice().reverse();
-  if (!notes.length) return <EmptyState message="No notes yet." />;
+  if (!notes.length) return <AdminEmptyState bare icon={StickyNote} message="No notes yet." />;
   return (
     <div className={styles.list}>
       {notes.map((note) => (

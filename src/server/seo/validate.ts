@@ -1,14 +1,16 @@
 import { careers, caseStudies, homePage, insights, services, SINGLETON_ID } from "@/server/db/schema";
 import { findOneRow, findRows, isPublished, type Db } from "@/server/db/helpers";
 import { AppError } from "@/server/lib/errors";
-import { canonicalUrl } from "@/lib/routes";
-import { careerSource, caseStudySource, homeSource, insightSource, serviceSource } from "@/server/seo/adapters";
+import { canonicalUrl, LIVE_STATIC_ROUTES } from "@/lib/routes";
+import { careerSource, caseStudySource, homeSource, insightSource, serviceOfferingSource, serviceSource } from "@/server/seo/adapters";
 import { indexingFromEnv } from "@/server/seo/env-context";
 import { loadSiteSeoContext } from "@/server/seo/site-context";
-import { ownCanonicalOverride, resolveCanonical, resolveMetadata, type ResolvedMetadata, type SeoSource, type SiteSeoContext } from "@/server/seo/metadata";
+import { isPlaceholder, ownCanonicalOverride, resolveCanonical, resolveMetadata, type ResolvedMetadata, type SeoSource, type SiteSeoContext } from "@/server/seo/metadata";
 import type { Media, Seo } from "@/server/validation/common";
 import { altProblem } from "@/server/validation/media";
 import { slugStyleWarnings } from "@/server/seo/slug";
+import { staticPageSource } from "@/server/seo/static-pages";
+import type { ServiceDeliverable } from "@/server/modules/services/services.schema";
 
 /**
  * Structural problems are hard errors; editorial guidance is a warning.
@@ -33,6 +35,9 @@ export function validateSeo(site: SiteSeoContext, source: SeoSource, meta: Resol
   const add = (level: SeoIssue["level"], field: string, message: string) => issues.push({ level, field, message });
 
   if (!source.isHome && !source.title.trim() && !seo.metaTitle) add("error", "metaTitle", "Page has no title and no explicit meta title");
+  // resolveMetadata never publishes "[SAMPLE]" text, so the page silently falls back to a weaker title/description instead.
+  const placeholders = Object.entries({ title: source.title, summary: source.summary, ...seo }).filter(([, v]) => typeof v === "string" && isPlaceholder(v));
+  for (const [field] of placeholders) add("error", field, `${field} is still "[SAMPLE]" placeholder text; it is ignored, so this page falls back to a site default`);
   if (meta.title.length > TITLE_MAX) add("warning", "metaTitle", `Meta title is ${meta.title.length} characters; may be truncated in results (guideline ${TITLE_MAX})`);
 
   if (!meta.description) add("warning", "metaDescription", "No meta description and no site default to fall back to");
@@ -83,9 +88,19 @@ export type SeoAuditEntry = { path: string; meta: ResolvedMetadata; indexable: b
 /** Every currently published page's SEO source, across every content type + Home — shared by the audit below and the real-time check that follows it. */
 async function publishedSources(db: Db): Promise<SeoSource[]> {
   const home = await findOneRow(db, homePage, { _id: SINGLETON_ID as never });
+  const categories = await findRows(db, services, isPublished());
+  // An offering page lives inside its published category's deliverables; one without its own slug has no page.
+  const offerings = categories.flatMap((c) =>
+    ((c.deliverables ?? []) as ServiceDeliverable[]).flatMap((d) =>
+      d.offering?.slug
+        ? [serviceOfferingSource({ title: d.shortTitle ?? d.title, slug: d.offering.slug, categorySlug: c.slug, headline: d.offering.headline ?? d.title, shortDescription: d.description ?? null, visual: d.offering.introduction?.visual, seo: d.offering.seo, updatedAt: c.updatedAt })]
+        : [],
+    ),
+  );
   return [
     ...(home && home.status === "published" ? [homeSource(home)] : []),
-    ...(await findRows(db, services, isPublished())).map(serviceSource),
+    ...categories.map(serviceSource),
+    ...offerings,
     ...(await findRows(db, caseStudies, isPublished())).map(caseStudySource),
     ...(await findRows(db, insights, isPublished())).map(insightSource),
     ...(await findRows(db, careers, isPublished())).map(careerSource),
@@ -94,10 +109,13 @@ async function publishedSources(db: Db): Promise<SeoSource[]> {
 
 /**
  * Audit every published page's resolved SEO. Drafts are excluded. `indexable`
- * (published and robots.index) is what a sitemap should consume.
+ * (published and robots.index) is what a sitemap should consume. `staticPages`
+ * also audits the DB-less pages (About, Contact, …), so a title or description
+ * duplicated between one of them and a content page is reported too.
  */
-export async function auditPublishedSeo(db: Db, site: SiteSeoContext): Promise<{ entries: SeoAuditEntry[]; conflicts: SeoConflict[] }> {
-  const sources = await publishedSources(db);
+export async function auditPublishedSeo(db: Db, site: SiteSeoContext, { staticPages = false }: { staticPages?: boolean } = {}): Promise<{ entries: SeoAuditEntry[]; conflicts: SeoConflict[] }> {
+  const statics = staticPages ? LIVE_STATIC_ROUTES.flatMap((r) => staticPageSource(r) ?? []) : [];
+  const sources = [...(await publishedSources(db)), ...statics];
 
   const entries = sources.map((source) => {
     const meta = resolveMetadata(site, source);

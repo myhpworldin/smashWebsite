@@ -45,18 +45,18 @@ export type RenderedEmail = { subject: string; html: string; text: string };
 /** How soon the team replies: the same promise the contact form makes under its button. */
 export const RESPONSE_PROMISE = "within 12 business hours";
 
-const BLUE = "#01124A";
-const BRIGHT = "#0058C8";
-const RED = "#E90101";
-const INK = "#0B0F19";
-const MUTED = "#5B6275";
-const LINE = "#E6E9F0";
-const SOFT = "#F4F6FB";
-const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+export const BLUE = "#01124A";
+export const BRIGHT = "#0058C8";
+export const RED = "#E90101";
+export const INK = "#0B0F19";
+export const MUTED = "#5B6275";
+export const LINE = "#E6E9F0";
+export const SOFT = "#F4F6FB";
+export const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 
 export const esc = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 /** One line, bounded: safe as a subject. */
-const oneLine = (value: string, max = 150) => value.replace(/[\r\n\u2028\u2029]+/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+export const oneLine = (value: string, max = 150) => value.replace(/[\r\n\u2028\u2029]+/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
 const waHref = (number: string) => `https://wa.me/${number.replace(/\D/g, "")}`;
 /** The website a visitor typed (`dailybugle.com`, `instagram.com/x`) as a clickable https link, or null when it is not a web address. */
@@ -66,16 +66,16 @@ const webHref = (raw: string): string | null => {
   const { protocol } = new URL(candidate);
   return protocol === "https:" || protocol === "http:" ? candidate : null;
 };
-const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
+export const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
 
-const link = (href: string, label: string, color = BRIGHT) => `<a href="${esc(href)}" style="color:${color};text-decoration:none;font-weight:600;">${esc(label)}</a>`;
+export const link = (href: string, label: string, color = BRIGHT) => `<a href="${esc(href)}" style="color:${color};text-decoration:none;font-weight:600;">${esc(label)}</a>`;
 
 /** A pill button, drawn as an outline in its own colour so its text is dark-on-light like everything else. */
-const button = (href: string, label: string, color: string) =>
+export const button = (href: string, label: string, color: string) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-table;margin:0 10px 12px 0;"><tr><td bgcolor="#ffffff" style="border:2px solid ${color};border-radius:999px;background:#ffffff;"><a href="${esc(href)}" style="display:inline-block;padding:12px 26px;font:700 15px ${FONT};color:${color};text-decoration:none;border-radius:999px;">${esc(label)}</a></td></tr></table>`;
 
 /** One edge-to-edge band: it fills the width with `bg`, and its content sits in a centred 600px column. */
-const band = (bg: string, inner: string, pad: string, align = "left") =>
+export const band = (bg: string, inner: string, pad: string, align = "left") =>
   `<tr><td bgcolor="${bg}" align="center" style="background-color:${bg};padding:${pad};"><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;margin:0 auto;"><tr><td align="${align}" style="font-family:${FONT};">${inner}</td></tr></table></td></tr>`;
 
 const image = (cid: string, width: number, height: number, alt: string, extra = "") =>
@@ -119,7 +119,7 @@ const detailText = (rows: Row[]) => rows.map((r) => `${r.label}: ${r.text}`).joi
  * The shared page, top to bottom: the logo band, a red rule, the hero and body, an optional contact band, then the
  * company footer. The head's media query steps the headline down on a phone.
  */
-function layout(company: CompanyInfo, o: { preheader: string; title: string; hero: string; body: string; contact?: string; footerNote: string }): string {
+export function layout(company: CompanyInfo, o: { preheader: string; title: string; hero: string; body: string; contact?: string; footerNote: string }): string {
   const socials = company.socials.length ? `<p style="margin:12px 0 0;font:400 14px ${FONT};">${company.socials.map((s) => link(s.url, s.label)).join(" &nbsp;·&nbsp; ")}</p>` : "";
   const footer = `
 <p style="margin:0;font:700 16px ${FONT};color:${BLUE};">${esc(company.name)}</p>
@@ -143,7 +143,7 @@ ${band("#ffffff", footer, "36px 24px 40px")}
 </table></body></html>`;
 }
 
-const companyText = (c: CompanyInfo) =>
+export const companyText = (c: CompanyInfo) =>
   [c.name, c.address, [c.phone, c.email].filter(Boolean).join(" | "), c.siteUrl, ...c.socials.map((s) => `${s.label}: ${s.url}`)].filter(Boolean).join("\n");
 
 /** What the visitor gets: a warm welcome, the promise, a copy of what they sent, and the company's details. */

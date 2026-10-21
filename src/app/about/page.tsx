@@ -17,7 +17,8 @@ import { GrowthApproach } from "@/components/about/GrowthApproach";
 import { Culture } from "@/components/about/Culture";
 import type { TeamMember } from "@/server/api/serializers";
 
-export const dynamic = "force-dynamic";
+// Cached and regenerated; see src/server/seo/public-cache.ts.
+export const revalidate = 3600;
 
 /**
  * "Our Team" is switched off for now (no published members to show yet). Set this to `true` to bring it back: the section, its

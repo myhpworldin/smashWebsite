@@ -225,7 +225,7 @@ export function privacyDoc(c: LegalContext): LegalDoc {
           ul(
             "your IP address, which our servers use to protect the Site (for example, to limit repeated form submissions) and which is not stored with your enquiry;",
             "basic request and error information, such as the page requested, response status and a request reference, recorded in our server logs for security and troubleshooting. These logs do not include the contents of forms you submit;",
-            `if analytics and advertising tags are enabled on the Site: the pages you view, links you click (for example, phone, email, WhatsApp and call-to-action buttons), whether you start or submit a form (never what you typed into it), approximate location, device, browser and operating system, referring website, and online identifiers set by cookies. See the [Cookie Policy](${ROUTES.COOKIE_POLICY}).`,
+            `if analytics and advertising tags are enabled on the Site and you have agreed to them in our cookie choices: the pages you view, links you click (for example, phone, email, WhatsApp and call-to-action buttons), whether you start or submit a form (never what you typed into it), approximate location, device, browser and operating system, referring website, and online identifiers set by cookies. See the [Cookie Policy](${ROUTES.COOKIE_POLICY}).`,
           ),
           h3("Information from other sources"),
           p("If you reach us through an advertisement, a social media platform or a business referral, we may receive limited information from that source, such as the campaign that brought you here."),
@@ -368,7 +368,7 @@ export function cookieDoc(c: LegalContext): LegalDoc {
         title: "How we use cookies",
         blocks: [
           p("We keep our use of cookies to a minimum. The public pages of this website do not require you to sign in, do not take payments and do not set cookies for preferences or personalisation, and we do not load third-party fonts or social-media widgets that track you."),
-          p("The cookies that may be present fall into the groups below. Strictly necessary cookies are always used where needed. Analytics and advertising cookies are set only when we have switched on the relevant Google or Meta tools, so at any given time some of those listed below may not be active on the Site."),
+          p("The cookies that may be present fall into the groups below. Strictly necessary cookies are always used where needed. Analytics and advertising cookies are set only when we have switched on the relevant Google or Meta tools **and** you have agreed to that category when the Site asks for your cookie choices. Until you choose, and whenever you decline, none of them are set and those tools are not loaded at all."),
         ],
       },
       {
@@ -380,9 +380,9 @@ export function cookieDoc(c: LegalContext): LegalDoc {
             caption: "Categories of cookies and similar technologies",
             head: ["Category", "What it does", "Used on this Site"],
             rows: [
-              ["Strictly necessary", "Needed for the Site or a requested feature to work and for security. It cannot be switched off in our systems.", "A signed login cookie for our staff-only admin area. It is not set for ordinary visitors."],
-              ["Analytics and performance", "Helps us understand how visitors use the Site (which pages are viewed, which buttons are clicked) so we can improve it. Information is aggregated.", "Google Analytics 4 and Google Tag Manager, when enabled."],
-              ["Advertising and measurement", "Measures how our ads and campaigns perform, such as whether a visit led to an enquiry, and helps show relevant ads on other sites.", "Google Ads conversion tracking and the Meta Pixel, when enabled."],
+              ["Strictly necessary", "Needed for the Site or a requested feature to work and for security. It cannot be switched off in our systems.", "Your cookie choices, kept in your browser's local storage for up to six months so we do not ask on every page. A signed login cookie for our staff-only admin area, which is not set for ordinary visitors."],
+              ["Analytics and performance", "Helps us understand how visitors use the Site (which pages are viewed, which buttons are clicked) so we can improve it. Information is aggregated.", "Google Analytics 4 and Google Tag Manager, when enabled and only if you agree."],
+              ["Advertising and measurement", "Measures how our ads and campaigns perform, such as whether a visit led to an enquiry, and helps show relevant ads on other sites.", "Google Ads conversion tracking and the Meta Pixel, when enabled and only if you agree."],
             ],
           },
         ],
@@ -421,6 +421,7 @@ export function cookieDoc(c: LegalContext): LegalDoc {
         blocks: [
           p("You can accept, block or delete cookies in several ways:"),
           ul(
+            "**Our cookie choices:** the Site asks before setting any analytics or advertising cookie, and accepting is optional. You can change or withdraw your choice at any time with “Cookie settings” at the foot of every page. Withdrawing stops those tools and deletes the cookies they set on this Site;",
             "**Browser settings:** every major browser lets you view, block or delete cookies, and block third-party cookies. The steps differ by browser, so check its help pages. Blocking all cookies may stop some parts of a website working;",
             "**Google Analytics:** install the [Google Analytics opt-out browser add-on](https://tools.google.com/dlpage/gaoptout) and review [Google's ad settings](https://adssettings.google.com);",
             "**Meta:** adjust ad preferences in your [Meta account settings](https://www.facebook.com/adpreferences);",
@@ -433,7 +434,7 @@ export function cookieDoc(c: LegalContext): LegalDoc {
       {
         id: "similar-technologies",
         title: "Local storage and similar technologies",
-        blocks: [p("The public pages of this Site do not use browser local storage or session storage to track you. Some of the measurement tools above rely on small scripts and pixels that report page views and events (such as clicks on phone, email and WhatsApp links or a form being submitted) without storing anything extra on your device. The staff-only admin area stores a display preference (whether the sidebar is collapsed) in local storage. It is never read from or sent about the public site.")],
+        blocks: [p("The public pages of this Site do not use browser local storage or session storage to track you. They store one item, your cookie choices and the date you made them, so the Site can respect them; it stays in your browser and is never sent to us or anyone else. Some of the measurement tools above rely on small scripts and pixels that report page views and events (such as clicks on phone, email and WhatsApp links or a form being submitted) without storing anything extra on your device. The staff-only admin area stores a display preference (whether the sidebar is collapsed) in local storage. It is never read from or sent about the public site.")],
       },
       {
         id: "changes",
