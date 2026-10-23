@@ -18,6 +18,7 @@ export async function serviceSchemas(slug: string): Promise<JsonLd[]> {
  * infrastructure every other content type also relies on. No `Service`/`CreativeWork` schema is emitted for the
  * offering itself — schema.org has no type that genuinely fits "one deliverable within a service category" without
  * inventing one (phase brief rule set §12/§16), matching how case studies already emit breadcrumbs only.
+ * The page's FAQ section is marked up as FAQPage, with exactly the questions it renders (ServiceFaq shows `faqs`).
  */
 export async function serviceOfferingSchemas(categorySlug: string, slug: string): Promise<JsonLd[]> {
   const [offering, site] = await Promise.all([getServiceOffering(categorySlug, slug), getSiteContext()]);
@@ -26,8 +27,7 @@ export async function serviceOfferingSchemas(categorySlug: string, slug: string)
     { name: offering.category.name, path: ROUTES.SERVICE(offering.category.slug) },
     { name: offering.title, path: ROUTES.SERVICE_OFFERING(offering.category.slug, offering.slug) },
   ];
-  const ld = breadcrumbJsonLd(site, crumbs);
-  return ld ? [ld] : [];
+  return [breadcrumbJsonLd(site, crumbs), faqJsonLd(offering.offering.faqs ?? [])].filter((x): x is JsonLd => x !== null);
 }
 
 export async function caseStudySchemas(slug: string): Promise<JsonLd[]> {
@@ -64,4 +64,11 @@ export async function faqPageSchemas(faqs: { question: string; answer: string }[
     { name: STATIC_PAGES[ROUTES.FAQ].title, path: ROUTES.FAQ },
   ];
   return [faqJsonLd(faqs), breadcrumbJsonLd(site, crumbs)].filter((x): x is JsonLd => x !== null);
+}
+
+/** A static listing page's Home → page breadcrumbs (Services, Our Work), named as the page's own title. */
+export async function listingPageSchemas(path: string): Promise<JsonLd[]> {
+  const site = await getSiteContext();
+  const ld = breadcrumbJsonLd(site, [{ name: HOME_LABEL, path: ROUTES.HOME }, { name: STATIC_PAGES[path].title, path }]);
+  return ld ? [ld] : [];
 }

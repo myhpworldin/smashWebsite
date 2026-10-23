@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { JsonLd } from "@/components/JsonLd";
 import { orNotFound, requirePublishedRoute } from "@/server/seo/page-resolver";
 import { caseStudyMetadata } from "@/server/seo/next-metadata";
@@ -20,7 +21,7 @@ import { HomeAsset, HomeButton } from "@/components/home/home-ui";
 import { CaseStudyViewTracker } from "@/components/analytics/CaseStudyViewTracker";
 import { WorkCaseCard } from "@/components/work/WorkCaseCard";
 import { WorkMotion } from "@/components/work/WorkMotion";
-import { Chips, ResultValue } from "@/components/work/WorkParts";
+import { CaseFacts, FlyArrow, ResultValue } from "@/components/work/WorkParts";
 import sheet from "@/components/layout/sheet.module.css";
 import { publishedSlugParams } from "@/server/seo/public-cache";
 
@@ -34,11 +35,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const paragraphs = (text: string | null | undefined) => (text ?? "").split(/\n+/).map((p) => p.trim()).filter(Boolean);
 
-const PILL = "inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 font-inter text-sm leading-[normal] text-white/90 backdrop-blur-[2px]";
-
 /**
  * A case study, told the way the Our Work page promises: when they approached us → what we did → what it achieved. The
- * SheetHero (mist, title rising out of masks, the industry and the headline result as pills) with a white sheet over it; the
+ * SheetHero in the other inner pages' language (the case study's headline as the title, the line naming the client and campaign
+ * under it, then a strip of key facts) with a white sheet over it; the
  * story with the project photo pinned beside it (it opens as it scrolls in) and each step lighting as it passes the middle;
  * the results on a deep-blue sheet, each figure counting up; then the next project.
  * Every word is the case study's own (a step with no copy is simply left out), and nothing private is shown: the client's
@@ -60,8 +60,21 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const at = others.findIndex((o) => o.slug === slug);
   const next = others.length > 1 ? others[(at + 1) % others.length] : null;
 
-  const lead = paragraphs(cs.summary)[0] ?? cs.summary;
+  // The summary's first line is the case study's headline ("Turning offers into 425 customer enquiries."), the rest names the
+  // client and the campaign; together they read like the other inner pages' title + intro. A one-line summary keeps the
+  // project's name as the title instead.
+  const summaryLines = paragraphs(cs.summary);
+  const lead = summaryLines[0] ?? cs.summary;
+  const heroTitle = summaryLines.length > 1 ? lead.replace(/[.\s]+$/, "") : cs.title;
+  const heroIntro = summaryLines.length > 1 ? summaryLines.slice(1).join(" ") : lead;
   const headline = cs.results[0] ?? null;
+  const facts = [
+    { label: "Client", value: cs.title },
+    { label: "Industry", value: cs.industry ?? "" },
+    { label: cs.relatedServices.length > 1 ? "Services" : "Service", value: cs.relatedServices.map((s) => s.name).join(" · ") },
+    // The result only when the headline does not already say it.
+    { label: "Result", value: headline && !heroTitle.includes(headline.value) ? `${headline.value} ${headline.label}` : "" },
+  ].filter((f) => f.value);
   const challenge = paragraphs(cs.challenge);
   const strategy = paragraphs(cs.strategy);
   const execution = paragraphs(cs.execution);
@@ -79,18 +92,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <CaseStudyViewTracker slug={slug} title={cs.title} industry={cs.industry} />
 
       <div data-sheet-top data-mist-host className="relative">
-        <SheetHero id="case-heading" title={cs.title} description={lead} descriptionWidth="max-w-[760px]">
-          {cs.industry || headline ? (
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              {cs.industry ? <span className={PILL}>{cs.industry}</span> : null}
-              {headline ? (
-                <span className={PILL}>
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-smash-red" />
-                  {headline.value} {headline.label}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
+        <SheetHero id="case-heading" title={heroTitle} description={heroIntro} descriptionWidth="max-w-[760px]">
+          {facts.length ? <CaseFacts facts={facts} /> : null}
         </SheetHero>
 
         <section aria-labelledby="case-story-heading" className={`relative z-10 bg-white pb-12 pt-20 lg:pb-[80px] lg:pt-[130px] ${SHEET}`}>
@@ -140,7 +143,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               {cs.relatedServices.length ? (
                 <div data-reveal="fade-up" className="flex flex-col gap-3">
                   <p className="font-inter text-sm font-semibold uppercase leading-[normal] text-black/55">SMASH services involved</p>
-                  <Chips tone="light" items={cs.relatedServices.map((s) => s.name)} />
+                  <ul className="flex flex-wrap gap-x-10 gap-y-3">
+                    {cs.relatedServices.map((s) => (
+                      <li key={s.slug}>
+                        <Link href={s.path} className="no-underline"><FlyArrow tone="dark" className="text-xl">{s.name}</FlyArrow></Link>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ) : null}
             </div>

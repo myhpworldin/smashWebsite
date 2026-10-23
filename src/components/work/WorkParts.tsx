@@ -33,19 +33,46 @@ export function ResultValue({ value, className = "" }: { value: string; classNam
   );
 }
 
-/** "Know more" link text with the site's hover: an underline draws in from the left, the arrow flies out as a fresh one slides in. */
-export function FlyArrow({ children }: { children: string }) {
+/**
+ * "Know more" link text with the site's hover: an underline draws in from the left, the arrow flies out as a fresh one slides in.
+ * `dark` is the same link on a white sheet (the white arrow asset is inverted to black).
+ */
+export function FlyArrow({ children, tone = "light", className = "text-lg" }: { children: string; tone?: "light" | "dark"; className?: string }) {
+  const dark = tone === "dark";
+  const arrow = `absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none ${dark ? "invert" : ""}`;
   return (
-    <span className="group/more inline-flex items-center gap-4 text-lg leading-none text-white">
+    <span className={`group/more inline-flex items-center gap-4 leading-none ${dark ? "text-ink" : "text-white"} ${className}`}>
       <span className="relative pb-1.5">
         {children}
-        <span className="absolute inset-x-0 bottom-0 h-px origin-right scale-x-0 bg-white transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:origin-left group-hover:scale-x-100 group-focus-visible:origin-left group-focus-visible:scale-x-100 motion-reduce:transition-none" />
+        <span className={`absolute inset-x-0 bottom-0 h-px origin-right scale-x-0 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:origin-left group-hover:scale-x-100 group-focus-visible:origin-left group-focus-visible:scale-x-100 motion-reduce:transition-none ${dark ? "bg-ink" : "bg-white"}`} />
       </span>
       <span className="relative size-4 shrink-0 overflow-hidden">
-        <HomeAsset name="arrow-up-right.svg" width={16} height={16} className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:-translate-y-full group-hover:translate-x-full group-focus-visible:-translate-y-full group-focus-visible:translate-x-full motion-reduce:transition-none" />
-        <HomeAsset name="arrow-up-right.svg" width={16} height={16} className="absolute inset-0 -translate-x-full translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:translate-x-0 group-hover:translate-y-0 group-focus-visible:translate-x-0 group-focus-visible:translate-y-0 motion-reduce:transition-none" />
+        <HomeAsset name="arrow-up-right.svg" width={16} height={16} className={`${arrow} group-hover:-translate-y-full group-hover:translate-x-full group-focus-visible:-translate-y-full group-focus-visible:translate-x-full`} />
+        <HomeAsset name="arrow-up-right.svg" width={16} height={16} className={`${arrow} -translate-x-full translate-y-full group-hover:translate-x-0 group-hover:translate-y-0 group-focus-visible:translate-x-0 group-focus-visible:translate-y-0`} />
       </span>
     </span>
+  );
+}
+
+/**
+ * A case study's key facts under its hero intro (client, industry, service …): small uppercase labels over plain values,
+ * split by hairlines — one row from `sm` up, a two-column grid on phones. Replaces the glass pills, so the hero reads like
+ * the other inner pages: headline, one line, then quiet detail. Facts with no value are left out by the caller.
+ */
+export function CaseFacts({ facts }: { facts: { label: string; value: string }[] }) {
+  if (!facts.length) return null;
+  return (
+    <dl className="grid w-full max-w-[880px] grid-cols-2 border-t border-white/20 sm:flex sm:w-auto sm:justify-center">
+      {facts.map((f, i) => (
+        <div
+          key={f.label}
+          className={`flex flex-col gap-1.5 border-white/20 px-4 py-5 text-center odd:last:col-span-2 sm:px-8 sm:pb-0 sm:pt-6 ${i % 2 === 1 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} sm:border-l sm:first:border-l-0`}
+        >
+          <dt className="font-inter text-xs font-semibold uppercase leading-[normal] tracking-[0.08em] text-white/55">{f.label}</dt>
+          <dd className="font-inter text-base leading-[1.4] text-white lg:text-lg">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

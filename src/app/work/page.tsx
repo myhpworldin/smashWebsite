@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
 import { getDb } from "@/server/db/client";
 import { listPublishedCaseStudies } from "@/server/modules/work/work.service";
 import { caseStudySummaryDto } from "@/server/api/serializers";
 import { publicizeMedia } from "@/server/media/public";
 import { pageQuerySchema, pageMeta } from "@/server/api/query";
 import { staticPageMetadata } from "@/server/seo/next-metadata";
+import { listingPageSchemas } from "@/server/seo/page-jsonld";
 import { ROUTES } from "@/lib/routes";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -43,6 +45,7 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
+      <JsonLd data={await listingPageSchemas(ROUTES.WORK)} />
       <div data-sheet-top data-mist-host className="relative">
         <SheetHero
           id="work-heading"

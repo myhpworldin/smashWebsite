@@ -3,7 +3,7 @@ import { findPicked, isPublished, type Db } from "@/server/db/helpers";
 import { CONTENT_ROUTES, LIVE_STATIC_ROUTES, ROUTES, canonicalUrl, normalizePathname, type ContentRouteType } from "@/lib/routes";
 import { resolveCanonical, resolveRobots, type SiteSeoContext } from "@/server/seo/metadata";
 import { resolvePublicRoute } from "@/server/seo/resolve";
-import { staticPageSource } from "@/server/seo/static-pages";
+import { insightsHubSeo, staticPageSource } from "@/server/seo/static-pages";
 import { auditPublishedSeo } from "@/server/seo/validate";
 import type { Seo } from "@/server/validation/common";
 
@@ -42,7 +42,12 @@ export async function buildSitemap(db: Db, site: SiteSeoContext): Promise<Sitema
   // Each static route's own seo (e.g. the Legal pages' noindex, static-pages.ts) governs
   // sitemap eligibility here too, so a page's <meta name="robots"> and its sitemap
   // presence can never drift apart (the exact defect auditSitemap checks for below).
-  for (const route of LIVE_STATIC_ROUTES) if (route !== ROUTES.HOME) add(route, staticPageSource(route)?.seo ?? null);
+  const publishedInsights = (await findPicked(db, insights, isPublished(), ["slug"] as const)).length;
+  for (const route of LIVE_STATIC_ROUTES) {
+    if (route === ROUTES.HOME) continue;
+    const seo = staticPageSource(route)?.seo ?? null;
+    add(route, route === ROUTES.INSIGHTS ? { ...seo, ...insightsHubSeo(publishedInsights) } : seo);
+  }
 
   for (const type of Object.keys(CONTENT_TABLES) as ContentRouteType[]) {
     const t = CONTENT_TABLES[type];

@@ -15,13 +15,14 @@ import { getSiteSettings } from "@/server/seo/request-cache";
  */
 /**
  * The tab icon comes from Site Settings (`favicon`). Until one is saved there is no icon file to serve, so the page
- * declares an empty one instead of letting the browser request a `/favicon.ico` that would 404 on every page.
+ * declares an empty one. `public/favicon.ico` answers the browsers and crawlers that request `/favicon.ico` directly,
+ * and `public/apple-touch-icon.png` (180×180, opaque) is the home-screen icon on iPhone and iPad.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings().catch(() => null);
   return {
     ...(analyticsConfig.googleSiteVerification ? { verification: { google: analyticsConfig.googleSiteVerification } } : {}),
-    icons: { icon: settings?.favicon?.url ?? "data:," },
+    icons: { icon: settings?.favicon?.url ?? "data:,", apple: "/apple-touch-icon.png" },
   };
 }
 

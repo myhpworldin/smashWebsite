@@ -145,12 +145,16 @@ export const OFFERING_SEO: Record<string, PageSeo> = {
   },
 };
 
-/** The site-wide social preview image (Site Settings `defaultOgImage`), also Home's own, since Home's hero image is decorative and has no alt text. */
+/**
+ * The site-wide social preview image (Site Settings `defaultOgImage`), also Home's own, since Home's hero image is
+ * decorative and has no alt text. Final audit (2026-10-23): a 1200×630, ~21 KB JPEG of the brand backdrop with the SMASH
+ * logo, replacing the 2880×1768, 1 MB main-banner.png (scripts/update-default-og-image.ts writes it to the database).
+ */
 export const DEFAULT_OG_IMAGE = {
-  url: "/media/main-banner.png",
-  alt: "Abstract deep-blue light wave, the SMASH Digital Media brand backdrop",
-  width: 2880,
-  height: 1768,
+  url: "/media/og-default.jpg",
+  alt: "The SMASH logo on the brand's deep-blue light wave",
+  width: 1200,
+  height: 630,
 };
 
 /** Home's title is used as written (Home is never suffixed with the site name). */

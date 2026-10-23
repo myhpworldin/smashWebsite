@@ -8,6 +8,7 @@ import { toNextMetadata } from "@/server/seo/to-next-metadata";
 import { toleratesOutages } from "@/server/seo/env-context";
 import { getCareer, getCaseStudy, getHome, getInsight, getService, getServiceOffering, getSiteContext } from "@/server/seo/request-cache";
 import { staticPageSource } from "@/server/seo/static-pages";
+import type { Seo } from "@/server/validation/common";
 
 async function build(load: () => Promise<SeoSource>, onMissing: Metadata): Promise<Metadata> {
   try {
@@ -39,10 +40,11 @@ export const careerMetadata = (slug: string) => build(async () => careerSource(a
  * SEO_ARCHITECTURE.md. `page` (2+) is the listing's current page number, for a paginated hub like `/work`
  * or `/insights`; omit for page 1 and for hubs with no pagination.
  */
-export async function staticPageMetadata(path: string, page?: number): Promise<Metadata> {
+/** `seo` overrides the static page's own settings (e.g. the empty Insights hub's noindex, `insightsHubSeo`). */
+export async function staticPageMetadata(path: string, page?: number, seo?: Partial<Seo>): Promise<Metadata> {
   const source = staticPageSource(path);
   if (!source) return {};
-  return toNextMetadata(resolveMetadata(await getSiteContext(), { ...source, page }));
+  return toNextMetadata(resolveMetadata(await getSiteContext(), { ...source, seo: { ...source.seo, ...seo }, page }));
 }
 
 /**

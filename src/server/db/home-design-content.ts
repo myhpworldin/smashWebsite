@@ -134,8 +134,10 @@ export async function importHomeDesignContent(db: Db) {
 
   // Summaries are the Figma homepage cards' hover copy (headline line, then the campaign line).
   // TODO (client): the design gives no further case-study text; replace the challenge, strategy and results with approved copy.
+  // Both campaigns were Facebook & Instagram lead generation, so they belong to Growth (see service-page-copy.ts).
+  const growth = services.find((s) => s.slug === "growth");
   const caseStudy = (title: string, slug: string, summary: string, image: ReturnType<typeof img>) =>
-    createCaseStudy(db, { title, slug, summary, challenge: "[SAMPLE] To be written.", heroImage: image, status: "published" });
+    createCaseStudy(db, { title, slug, summary, challenge: "[SAMPLE] To be written.", heroImage: image, status: "published", ...(growth ? { relatedServiceIds: [growth.id] } : {}) });
   const cases = [
     await caseStudy("CORE", "core", "Turning offers into 425 customer enquiries.\nA Facebook & Instagram lead generation campaign for CORE, bringing refurbished laptop offers and targeted ads together.", img("/media/case-showroom-deep-blue.png", "Laptops on display tables in a retail showroom", 640, 448)),
     await caseStudy("Mobile Garage", "mobile-garage", "Turning service offers into 282 enquiries.\nA Facebook & Instagram lead generation campaign for Mobile Garage, combining 50% off service offers, targeted ads and reels.", img("/media/case-mobile-garage-warm-red.png", "A technician repairing a phone with a screwdriver", 640, 448)),

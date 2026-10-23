@@ -16,6 +16,7 @@ import { auditPublishedSeo } from "@/server/seo/validate";
 import { serviceSource } from "@/server/seo/adapters";
 import { serializeJsonLd, articleJsonLd, servicePageJsonLd, caseStudyPageJsonLd, insightPageJsonLd, homeJsonLd } from "@/server/seo/schema";
 import { resolvePublicRoute } from "@/server/seo/resolve";
+import { insightsHubSeo } from "@/server/seo/static-pages";
 import { createService, updateService, getPublishedServiceBySlug } from "@/server/modules/services/services.service";
 import { services } from "@/server/db/schema";
 import { createCaseStudy } from "@/server/modules/work/work.service";
@@ -157,17 +158,18 @@ describe("sitemap", () => {
   it("includes no unbuilt or noindex static pages, and no invented URLs", async () => {
     await saveHomePage(db, { status: "published", seo: HOME_SEO, hero: { heading: "H" } });
     const listed = urls(await buildSitemap(db, prod));
-    // /work, /insights, /about, /careers, /contact and /services have page files and are correctly listed.
+    // /work, /about, /careers, /contact and /services have page files and are correctly listed. /insights is listed only
+    // once an article is published (an empty hub is noindex; see insightsHubSeo and the test below).
     // /privacy-policy, /terms and /cookie-policy (Stage 4, Phase 7) have real page files too, but stay out
     // of the sitemap because static-pages.ts marks them noindex until their legal copy is approved.
     for (const route of STATIC_ROUTES.filter((r) => r !== "/" && r !== "/work" && r !== "/insights" && r !== "/about" && r !== "/careers" && r !== "/contact" && r !== "/faq" && r !== "/services")) {
       expect(listed).not.toContain(canonicalUrl(route, ORIGIN));
     }
-    expect(listed).toEqual([`${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`]);
+    expect(listed).toEqual([`${ORIGIN}/`, `${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/services`, `${ORIGIN}/work`]);
   });
 
   it("omits Home until it is published or if it opts out", async () => {
-    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
+    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/services`, `${ORIGIN}/work`];
     // /work, /insights, /about, /careers and /contact are live static routes independent of Home's publish state; only Home's own presence is under test here.
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
     await saveHomePage(db, { hero: { heading: "H" } });
@@ -177,16 +179,24 @@ describe("sitemap", () => {
   });
 
   it("updates itself as content is published, unpublished and renamed", async () => {
-    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/work`];
+    const staticOnly = [`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/services`, `${ORIGIN}/work`];
     const s = await createService(db, svc("new-service"));
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
     await updateService(db, s.id, { status: "published" });
-    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/new-service`, `${ORIGIN}/work`]);
+    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/services`, `${ORIGIN}/services/new-service`, `${ORIGIN}/work`]);
     await updateService(db, s.id, { slug: "renamed-service" });
-    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/insights`, `${ORIGIN}/services`, `${ORIGIN}/services/renamed-service`, `${ORIGIN}/work`]); // old slug gone; it 301s
+    expect(urls(await buildSitemap(db, prod))).toEqual([`${ORIGIN}/about`, `${ORIGIN}/careers`, `${ORIGIN}/contact`, `${ORIGIN}/faq`, `${ORIGIN}/services`, `${ORIGIN}/services/renamed-service`, `${ORIGIN}/work`]); // old slug gone; it 301s
     expect(await resolvePublicRoute(db, "/services/new-service")).toMatchObject({ kind: "redirect", to: "/services/renamed-service" });
     await updateService(db, s.id, { status: "draft" });
     expect(urls(await buildSitemap(db, prod))).toEqual(staticOnly);
+  });
+
+  it("lists the Insights hub only once an article is published", async () => {
+    expect(urls(await buildSitemap(db, prod))).not.toContain(`${ORIGIN}/insights`);
+    expect(insightsHubSeo(0)).toEqual({ robotsIndex: false });
+    expect(insightsHubSeo(1)).toEqual({});
+    await createInsight(db, ins("first-article", { status: "published" }));
+    expect(urls(await buildSitemap(db, prod))).toContain(`${ORIGIN}/insights`);
   });
 
   it("is empty on non-indexable tiers, so staging never advertises its URLs", async () => {
@@ -365,10 +375,12 @@ describe("structured data", () => {
     const a = articleJsonLd(prod, { headline: "H", path: "/insights/h", authorName: "Ann", imageUrl: "/media/a.jpg", publishedAt: new Date("2026-01-01"), updatedAt: new Date("2026-02-01") })!;
     expect(a).toMatchObject({ author: { name: "Ann" }, image: `${ORIGIN}/media/a.jpg`, mainEntityOfPage: { "@id": `${ORIGIN}/insights/h` }, datePublished: "2026-01-01T00:00:00.000Z", dateModified: "2026-02-01T00:00:00.000Z" });
   });
-  it("Organization contains only stored data, and no LocalBusiness or invented claims exist", () => {
+  it("the business entity contains only stored data and no invented claims", () => {
     const [org] = homeJsonLd(withMedia);
-    expect(Object.keys(org).sort()).toEqual(["@context", "@type", "legalName", "logo", "name", "url"]);
-    expect(JSON.stringify(org)).not.toMatch(/LocalBusiness|address|telephone|aggregateRating|award|employee/i);
+    expect(org["@type"]).toBe("ProfessionalService"); // a LocalBusiness subtype, justified by the staffed Kochi office (final audit)
+    expect(Object.keys(org).sort()).toEqual(expect.arrayContaining(["@context", "@id", "@type", "image", "legalName", "logo", "name", "url"]));
+    // No contact stored here, so none is emitted; nothing unverified (coordinates, hours, ratings, prices, areas) ever is.
+    expect(JSON.stringify(org)).not.toMatch(/address|telephone|geo|openingHours|aggregateRating|award|employee|priceRange|areaServed/i);
   });
   it("service pages are built from the record, not a shared object", async () => {
     const { db } = await createTestDb();

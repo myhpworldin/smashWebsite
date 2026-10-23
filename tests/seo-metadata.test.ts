@@ -8,7 +8,7 @@ import { formatTitle, resolveMetadata, truncateAtWord, type SeoSource, type Site
 import { buildBreadcrumbs } from "@/server/seo/breadcrumbs";
 import { LIVE_STATIC_ROUTES } from "@/lib/routes";
 import { staticPageSource } from "@/server/seo/static-pages";
-import { articleJsonLd, breadcrumbJsonLd, faqJsonLd, homeJsonLd, insightPageJsonLd, organizationJsonLd, serializeJsonLd, servicePageJsonLd, serviceJsonLd } from "@/server/seo/schema";
+import { articleJsonLd, breadcrumbJsonLd, faqJsonLd, homeJsonLd, insightPageJsonLd, organizationJsonLd, SCHEMA_LOGO, serializeJsonLd, servicePageJsonLd, serviceJsonLd } from "@/server/seo/schema";
 import { auditPublishedSeo, validateSeo } from "@/server/seo/validate";
 import { loadSiteSeoContext } from "@/server/seo/site-context";
 import { toNextMetadata } from "@/server/seo/to-next-metadata";
@@ -176,25 +176,40 @@ describe("static pages and breadcrumbs", () => {
 describe("structured data", () => {
   const org = { ...site, logo: img, socialLinks: [{ platform: "x", url: "https://x.com/smash" }, { platform: "bad", url: "/internal" }], contact: { email: "hello@smash.international" } };
 
-  it("Organization uses only stored values", () => {
+  it("the business entity (ProfessionalService) uses only stored values", () => {
     expect(organizationJsonLd(org)).toEqual({
       "@context": "https://schema.org",
-      "@type": "Organization",
+      "@type": "ProfessionalService",
+      "@id": "https://smash.international/#organization",
       name: "SMASH",
       legalName: "SMASH Digital Media Private Limited",
       url: "https://smash.international/",
       logo: "https://smash.international/img/a.png",
+      image: "https://smash.international/img/a.png",
+      email: "hello@smash.international",
       sameAs: ["https://x.com/smash"],
-      contactPoint: { "@type": "ContactPoint", email: "hello@smash.international" },
+      contactPoint: { "@type": "ContactPoint", contactType: "customer service", email: "hello@smash.international" },
     });
-    expect(organizationJsonLd(site)).toEqual({ "@context": "https://schema.org", "@type": "Organization", name: "SMASH", legalName: "SMASH Digital Media Private Limited", url: "https://smash.international/" });
+    // With no logo saved, the search logo is the white SMASH logo on deep blue (the site's own logo files are white on transparent).
+    expect(organizationJsonLd(site)).toEqual({
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "@id": "https://smash.international/#organization",
+      name: "SMASH",
+      legalName: "SMASH Digital Media Private Limited",
+      url: "https://smash.international/",
+      logo: `https://smash.international${SCHEMA_LOGO.url}`,
+      image: `https://smash.international${SCHEMA_LOGO.url}`,
+    });
     expect(homeJsonLd(site)).toHaveLength(1);
   });
-  it("Organization carries the stored office address, with only the PIN code and country split out", () => {
+  it("the business entity carries the stored office address, splitting out only what the line itself states", () => {
     const address = "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam 682020";
     expect(organizationJsonLd({ ...site, contact: { address } }).address).toEqual({
       "@type": "PostalAddress",
       streetAddress: "Ground Floor, Arthungal Residency, Lower, Cheruparambath Rd, Tagore Nagar, Giri Nagar, Kadavanthra, Kochi, Ernakulam, Keralam",
+      addressLocality: "Kochi",
+      addressRegion: "Kerala",
       postalCode: "682020",
       addressCountry: "IN",
     });
@@ -204,7 +219,7 @@ describe("structured data", () => {
   it("Service has no price, rating or area fields", () => {
     const s = serviceJsonLd(site, { name: "Performance Marketing", description: "d", path: "/services/performance-marketing" })!;
     expect(serviceJsonLd(site, { name: " ", path: "/services/x" })).toBeNull();
-    expect(s).toMatchObject({ "@type": "Service", url: "https://smash.international/services/performance-marketing", provider: { "@type": "Organization", name: "SMASH" } });
+    expect(s).toMatchObject({ "@type": "Service", url: "https://smash.international/services/performance-marketing", provider: { "@type": "ProfessionalService", "@id": "https://smash.international/#organization", name: "SMASH" } });
     for (const k of ["offers", "aggregateRating", "areaServed", "review"]) expect(s).not.toHaveProperty(k);
   });
   it("Article includes only supported fields", () => {

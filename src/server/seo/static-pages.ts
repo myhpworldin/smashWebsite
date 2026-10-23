@@ -1,5 +1,6 @@
 import { ROUTES } from "@/lib/routes";
 import type { SeoSource } from "@/server/seo/metadata";
+import type { Seo } from "@/server/validation/common";
 import type { searchIntentValues } from "@/server/validation/common";
 
 /**
@@ -90,3 +91,10 @@ export function staticPageSource(path: string): SeoSource | null {
   if (!page) return null;
   return { path, status: "published", title: page.title, seo: { searchIntent: page.searchIntent, robotsIndex: page.robotsIndex, metaTitle: page.metaTitle, metaDescription: page.metaDescription } };
 }
+
+/**
+ * The Insights hub while no article is published: it only says "No insights published yet", so it is kept out of search
+ * (noindex, still followed) and out of the sitemap until the first article goes live, then both switch back on their own.
+ * The page's metadata and the sitemap both use this, so they cannot disagree. Approved by the business, 2026-10-23.
+ */
+export const insightsHubSeo = (publishedCount: number): Partial<Seo> => (publishedCount > 0 ? {} : { robotsIndex: false });

@@ -5,6 +5,7 @@ import { insightSummaryDto } from "@/server/api/serializers";
 import { publicizeMedia } from "@/server/media/public";
 import { pageQuerySchema, pageMeta } from "@/server/api/query";
 import { staticPageMetadata } from "@/server/seo/next-metadata";
+import { insightsHubSeo } from "@/server/seo/static-pages";
 import { ROUTES } from "@/lib/routes";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
@@ -20,7 +21,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
   const raw = await searchParams;
   const parsed = pageQuerySchema.safeParse({ page: raw.page, limit: raw.limit });
-  return staticPageMetadata(ROUTES.INSIGHTS, parsed.success ? parsed.data.page : undefined);
+  const { total } = await listPublishedInsights(getDb(), { page: 1, limit: 1 });
+  return staticPageMetadata(ROUTES.INSIGHTS, parsed.success ? parsed.data.page : undefined, insightsHubSeo(total));
 }
 
 export default async function InsightsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

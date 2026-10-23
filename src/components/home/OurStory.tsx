@@ -4,8 +4,12 @@ import { HomeAsset } from "./home-ui";
 import { isLive, type HomeSection } from "./shared";
 import styles from "./OurStory.module.css";
 
-/** The design's photograph (Figma component "Rectangle 34625622": the same image in both variants, framed differently). */
+/**
+ * The design's photograph (Figma component "Rectangle 34625622": the same image in both variants, framed differently).
+ * It is an illustrative stock image, not the SMASH team, so its alt text describes the scene without naming anyone.
+ */
 const PHOTO = "/media/home/our-story-team.jpg";
+const PHOTO_ALT = "A team meeting around a glass table in front of a screen of growth charts";
 
 /**
  * "Our Story" (Figma New Homepage, group 671:660): on large screens the photo first fills the band edge to edge and,
@@ -24,7 +28,7 @@ export function OurStory({ data }: { data: HomeSection<"ourStory"> }) {
           <Image
             data-story-photo
             src={PHOTO}
-            alt=""
+            alt={PHOTO_ALT}
             width={736}
             height={736}
             sizes="100vw"
