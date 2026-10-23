@@ -37,7 +37,7 @@ export const careerMetadata = (slug: string) => build(async () => careerSource(a
 
 /**
  * For a static hub page (e.g. `/work`) whose SEO source has no database record — title/intent only, per
- * SEO_ARCHITECTURE.md. `page` (2+) is the listing's current page number, for a paginated hub like `/work`
+ * docs/SEO_ARCHITECTURE.md. `page` (2+) is the listing's current page number, for a paginated hub like `/work`
  * or `/insights`; omit for page 1 and for hubs with no pagination.
  */
 /** `seo` overrides the static page's own settings (e.g. the empty Insights hub's noindex, `insightsHubSeo`). */

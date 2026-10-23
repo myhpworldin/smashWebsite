@@ -54,6 +54,12 @@ export function fail(err: unknown, opts: { headers?: Record<string, string>; req
     if (appError.status === 400 || appError.status === 422 || appError.status === 409) {
       logger.info("Request rejected", { ...request, status: appError.status, code: PUBLIC_CODE[appError.code] });
     }
+    // A deliberate 5xx (e.g. "CRM admin authentication is not configured." when ADMIN_SESSION_SECRET is missing) is a
+    // server-side problem someone has to fix, so it is always logged with its message — before, these reached the
+    // client as a 500 and left nothing in the logs to find.
+    if (appError.status >= 500) {
+      logger.error("Server error", { ...request, status: appError.status, code: PUBLIC_CODE[appError.code], error: appError.message });
+    }
     return NextResponse.json(
       { success: false, message: appError.message, error: { code: PUBLIC_CODE[appError.code], ...(appError.fields ? { fields: appError.fields } : {}) } },
       { status: appError.status, headers },

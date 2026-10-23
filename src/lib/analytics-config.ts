@@ -19,7 +19,7 @@ export const analyticsConfig = {
   gtmContainerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID || undefined,
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || undefined,
   googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || undefined,
-  /** The one conversion action this codebase currently maps to (contact intent — see ANALYTICS_EVENTS.md). Additional actions need their own label var, following this same pattern, once they exist in a real Ads account. */
+  /** The one conversion action this codebase currently maps to (contact intent — see docs/ANALYTICS_EVENTS.md). Additional actions need their own label var, following this same pattern, once they exist in a real Ads account. */
   googleAdsContactConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONTACT_CONVERSION_LABEL || undefined,
   googleSiteVerification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
 };

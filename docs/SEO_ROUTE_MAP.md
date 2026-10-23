@@ -4,13 +4,13 @@ Every public route, its data source, and its current SEO status. "Verified" mean
 
 | Page Type | Route | Primary Topic | Slug Valid | Metadata | Canonical | Schema | Sitemap | Indexable |
 |---|---|---|---|---|---|---|---|---|
-| Home | `/` | Business homepage | n/a (singleton) | Verified — `homeMetadata()` | Verified — self, forced (hard publish block if it points elsewhere) | Organization, WebSite-level breadcrumb excluded (depth < 2) | Verified — included when published | Published + indexable tier only |
-| Services (hub) | `/services` | Service catalogue | n/a | Verified — `staticPageMetadata` | Verified — self | None (hub page) | Verified — static entry | Always (no draft concept for a hub) |
+| Home | `/` | Business homepage | n/a (singleton) | Verified — `homeMetadata()` | Verified — self, forced (hard publish block if it points elsewhere) | ProfessionalService (the business entity), WebSite-level breadcrumb excluded (depth < 2) | Verified — included when published | Published + indexable tier only |
+| Services (hub) | `/services` | Service catalogue | n/a | Verified — `staticPageMetadata` | Verified — self | BreadcrumbList (Home → Services) | Verified — static entry | Always (no draft concept for a hub) |
 | Service | `/services/[slug]` | One service | Verified — unique, lowercase, hyphenated, format+uniqueness enforced | Verified — `serviceMetadata(slug)` | Verified — self by default, editor override allowed | Service, BreadcrumbList, FAQPage (only if the service has FAQs) | Verified — published only | Published + `seo.robotsIndex !== false` |
-| Service offering | `/services/[category]/[offering]` | One deliverable's own page | Verified — same slug rules, nested to avoid collision with category slugs | Verified — `serviceOfferingMetadata` | Verified — self | BreadcrumbList (3-level) | Pending — not yet in the sitemap generator; low priority since offerings are reachable from their category page | Published category + offering has its own slug |
-| Work (hub) | `/work` | Case study catalogue | n/a | Verified — `staticPageMetadata`, pagination-aware (page 2+ gets its own canonical/title, noindex,follow) | Verified — self per page number | None (hub page) | Verified — static entry (page 1 only; later pages are intentionally noindex) | Page 1 always; page 2+ follow-only |
+| Service offering | `/services/[category]/[offering]` | One deliverable's own page | Verified — same slug rules, nested to avoid collision with category slugs | Verified — `serviceOfferingMetadata` | Verified — self | BreadcrumbList (3-level), FAQPage (the page's own FAQs) | Verified — included, `lastmod` = the category's `updatedAt` | Published category + offering has its own slug |
+| Work (hub) | `/work` | Case study catalogue | n/a | Verified — `staticPageMetadata`, pagination-aware (page 2+ gets its own canonical/title, noindex,follow) | Verified — self per page number | BreadcrumbList (Home → Our Work) | Verified — static entry (page 1 only; later pages are intentionally noindex) | Page 1 always; page 2+ follow-only |
 | Case Study | `/work/[slug]` | One case study | Verified | Verified — `caseStudyMetadata(slug)` | Verified | Service(s) referenced via BreadcrumbList; no dedicated CaseStudy/Article @type (see Pending) | Verified — published only | Published + indexable |
-| Insights (hub) | `/insights` | Article catalogue | n/a | Verified — `staticPageMetadata`, pagination-aware (same as Work) | Verified — self per page number | None (hub page) | Verified — static entry (page 1 only) | Page 1 always; page 2+ follow-only |
+| Insights (hub) | `/insights` | Article catalogue | n/a | Verified — `staticPageMetadata`, pagination-aware (same as Work) | Verified — self per page number | None (hub page) | Only once an article is published (`insightsHubSeo`); page 1 only | While no article is published: noindex,follow (approved 2026-10-23). Then page 1 indexable; page 2+ follow-only |
 | Article | `/insights/[slug]` | One article | Verified | Verified — `insightMetadata(slug)` | Verified | Article, BreadcrumbList | Verified — published only | Published + indexable |
 | About | `/about` | Company page | n/a | Verified — `staticPageMetadata`, own title and description (`static-pages.ts`) | Verified — self | None yet (no Organization schema emitted outside Home) | Verified — static entry | Always indexable |
 | Careers (hub) | `/careers` | Job listing catalogue | n/a | Verified — `staticPageMetadata` | Verified — self | None (hub page) | Verified — static entry | Always indexable |
@@ -34,7 +34,8 @@ Every "Verified" entry above traces to code read during this audit (Stage 7, Pha
 
 ## Pending (requires a content/business decision, not a code change)
 
-- Service offering pages (`/services/[category]/[offering]`) are not yet included in `sitemap.xml` — low priority, since they're already linked from their published category page, but worth adding once the frontend redesign confirms offering pages are a permanent, promoted part of the site rather than a secondary deep-link target.
+- Opening hours and map coordinates for the business entity: awaiting the business.
+- Official social profile URLs (Site Settings `socialLinks` → `sameAs` and the footer icons): awaiting the business.
 - Case Study detail pages have no dedicated Article/CaseStudy JSON-LD — add if/when a schema.org type for case studies is deemed worth the investment; Service and Article schema already cover the two highest-value page types.
 - Legal pages stay `noindex` until Legal/Compliance supplies approved copy — this is a content decision, not a technical one.
 

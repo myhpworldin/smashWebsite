@@ -14,7 +14,7 @@ Three deployment tiers, distinguished by `APP_ENV` (not `NODE_ENV`): `developmen
 | `MEDIA_ALLOWED_HOSTS` | server-only | optional | Additional external hosts Next's image optimizer may fetch from; empty by default (no external media host in use today) |
 | `ADMIN_API_TOKEN` | server-only, **secret** | optional | CMS admin bearer token, min 32 chars |
 | `CMS_EDITOR_API_TOKEN` | server-only, **secret** | optional, requires `ADMIN_API_TOKEN` to also be set | Must differ from it; min 32 chars |
-| `ADMIN_SESSION_SECRET` | server-only, **secret** | optional | CRM admin session signing secret, min 32 chars |
+| `ADMIN_SESSION_SECRET` | server-only, **secret** | **required in production** for any login | Signs the CRM admin session cookie, and (through a derived key) the client-portal session and reset codes. Min 32 chars; use a different value per tier (`openssl rand -base64 48`). Without it the site still serves pages, but every correct admin or client login fails with a 500 ("…authentication is not configured."), now logged as `Server error` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | server-only, **secret** (password) | optional, must be set together | Seed-script only (`scripts/seed-admin.ts`) — not read by the running application |
 | `RESEND_API_KEY` | server-only, **secret** | optional | Resend API key (`src/server/email/send.ts`). Unset = no email is sent; enquiries are still saved |
 | `EMAIL_FROM` | server-only | optional (needed with the key) | From address, `a@b.com` or `Name <a@b.com>`; its domain must be verified in Resend |

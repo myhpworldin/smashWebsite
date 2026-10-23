@@ -10,7 +10,7 @@ src/server/seo/
 ├── to-next-metadata.ts maps ResolvedMetadata onto Next.js's Metadata type (the only place that does)
 ├── static-pages.ts     SEO source for DB-less pages (About, Careers, Contact, legal pages, hubs)
 ├── validate.ts         validateSeo() (editorial warnings/errors) + assertNoCanonicalConflict / assertNoTitleConflict (write-time hard blocks) + auditPublishedSeo/auditSitemap (read-time reports)
-├── schema.ts           JSON-LD builders: Organization, Service, Article, BreadcrumbList, FAQPage
+├── schema.ts           JSON-LD builders: ProfessionalService (the business), Service, Article, BreadcrumbList, FAQPage
 ├── page-jsonld.ts       per-page-type JSON-LD assembly (what each page's <script> tag actually emits)
 ├── breadcrumbs.ts       buildBreadcrumbs() from canonical routes, never from a raw request URL
 ├── sitemap.ts           buildSitemap() / auditSitemap()
@@ -64,13 +64,13 @@ Only four schema.org types exist, each emitted only when the page's own real dat
 
 | Type | Source | Emitted on |
 |---|---|---|
-| `Organization` | Site Settings (brand name, registered `legalName`, URL, logo if set, `https://` social links only, contact point if email/phone exist, the business-confirmed office address as a `PostalAddress` — PIN code and country split out, nothing geocoded) | Home only |
+| `ProfessionalService` (a LocalBusiness, and so Organization, subtype) | Site Settings: brand name, registered `legalName`, description, URL, `@id` `…/#organization`, logo (Site Settings logo, else `/media/smash-logo-schema.png`, the white logo on deep blue so it shows on Google's white background), telephone and email, `https://` social links only, a customer-service contact point, and the business-confirmed office address as a `PostalAddress` (PIN code, country, and Kochi/Kerala only because the stored line names them; nothing geocoded) | Home only |
 | `Service` | The service's own name/description/URL | Service detail pages (fails safe — returns nothing without a name) |
 | `Article` | The insight's own headline/description/image/author/dates | Insight detail pages (fails safe without headline/publishedAt) |
-| `BreadcrumbList` | `buildBreadcrumbs()`, from canonical routes/slugs | Service, service-offering, case-study, insight, career detail pages |
-| `FAQPage` | The service's own `faqs[]` | Service detail pages only, only when `faqs` is non-empty |
+| `BreadcrumbList` | `buildBreadcrumbs()`, from canonical routes/slugs | Service, service-offering, case-study, insight, career detail pages; the FAQ page; the `/services` and `/work` listings (`listingPageSchemas`) |
+| `FAQPage` | Exactly the FAQs the page renders | Service category and offering pages when they have `faqs`; the FAQ page (`src/lib/faq-content.ts`) |
 
-No `LocalBusiness` (it needs opening hours, which have not been provided), no coordinates, no ratings/reviews/prices/employee-counts/awards schema exists anywhere, and none should be added without a real, approved data source for it (never fabricated to "add more schema").
+The business is a `ProfessionalService` (final audit, 2026-10-23), justified by its staffed Kochi office. Opening hours and coordinates are left out until the business supplies them. No ratings, reviews, prices, employee counts, awards or areas served exist anywhere, and none should be added without a real, approved data source (never fabricated to "add more schema"). Validated with the Schema.org validator: 0 errors, 0 warnings.
 
 ## Breadcrumbs
 

@@ -42,7 +42,7 @@ export function ContactForm({ services }: { services: ServiceOption[] }) {
   const [submitted, setSubmitted] = useState({ name: "", phone: "" });
   const inFlight = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
-  // No `contact_form_view` — that's already `page_view` scoped to /contact (ANALYTICS_EVENTS.md's
+  // No `contact_form_view` — that's already `page_view` scoped to /contact (docs/ANALYTICS_EVENTS.md's
   // own "one consistent naming convention" rule); this is the one genuinely distinct signal:
   // did a visitor who landed on the page actually start filling it in.
   const started = useRef(false);

@@ -221,6 +221,19 @@ describe("HTTP error handling", () => {
     expect(logged).not.toContain("hunter2"); // server log is redacted too
   });
 
+  it("logs a deliberate 5xx (e.g. a missing ADMIN_SESSION_SECRET) instead of failing silently", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const misconfigured = publicGet(async () => {
+      throw new AppError("INTERNAL_ERROR", 500, "CRM admin authentication is not configured.");
+    });
+    const r = await call(misconfigured, "/api/x");
+    expect(r.status).toBe(500);
+    expect(r.body.error.code).toBe("INTERNAL_SERVER_ERROR");
+    const logged = (console.error as any).mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
+    expect(logged).toContain("Server error");
+    expect(logged).toContain("CRM admin authentication is not configured.");
+  });
+
   it("supports the reserved 401/403/405/409 codes through the same envelope", async () => {
     const send = (e: AppError) => call(publicGet(async () => { throw e; }), "/api/x");
     expect((await send(AppError.unauthorized())).status).toBe(401);
@@ -386,7 +399,7 @@ describe("secrets and environment", () => {
     const readers = src.filter((f) => /process\.env/.test(readFileSync(f, "utf8"))).map((f) => relative(root, f));
     expect(readers.filter((f) => !allowed.has(f))).toEqual([]);
     const publicVars = new Set(src.flatMap((f) => readFileSync(f, "utf8").match(/NEXT_PUBLIC_[A-Z0-9_]+/g) ?? []));
-    // Stage 4, Phase 5: analytics/measurement ids are added here — each is a public identifier, not a secret (API.md/CMS_GUIDE.md do not apply; see analytics-config.ts's own comment for why).
+    // Stage 4, Phase 5: analytics/measurement ids are added here — each is a public identifier, not a secret (docs/API.md/CMS_GUIDE.md do not apply; see analytics-config.ts's own comment for why).
     expect([...publicVars].sort()).toEqual([
       "NEXT_PUBLIC_GA4_MEASUREMENT_ID",
       "NEXT_PUBLIC_GOOGLE_ADS_CONTACT_CONVERSION_LABEL",

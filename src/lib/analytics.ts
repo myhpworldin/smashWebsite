@@ -1,7 +1,7 @@
 /**
  * The one place any UI component reaches an analytics provider (phase brief
  * §9): `UI Component → trackEvent() → GTM / GA4 / Meta`, never per-component
- * provider code. See ANALYTICS_EVENTS.md for the event list and the GTM setup.
+ * provider code. See docs/ANALYTICS_EVENTS.md for the event list and the GTM setup.
  *
  * Two hard rules live here, so no caller can get them wrong:
  * 1. **Consent first.** Nothing third-party is loaded and no event is recorded
@@ -167,7 +167,7 @@ export function trackEvent(name: string, params: EventParams = {}, eventId?: str
   try {
     startTags(consent);
     if (viaGtm()) {
-      // GTM routes it to GA4 / Meta / Ads, each tag gated by its own consent type (see ANALYTICS_EVENTS.md).
+      // GTM routes it to GA4 / Meta / Ads, each tag gated by its own consent type (see docs/ANALYTICS_EVENTS.md).
       window.dataLayer!.push({ event: name, ...clean, ...(eventId ? { event_id: eventId } : {}) });
       return;
     }

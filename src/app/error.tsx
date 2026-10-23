@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 
 /**
  * Route-level error boundary. Never renders `error.message`/stack — the
- * backend already logs the real diagnostic server-side (SECURITY.md); this
+ * backend already logs the real diagnostic server-side (docs/SECURITY.md); this
  * only gives the visitor a safe, generic recovery path (phase brief §24).
  */
 export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {

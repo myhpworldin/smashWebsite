@@ -75,17 +75,20 @@ Security headers (`next.config.ts`) are already verified not to block legitimate
 
 ## DNS & email authentication (SPF/DKIM/DMARC)
 
-**There is no transactional email-sending code anywhere in this application** — the contact form only writes to MongoDB, it does not send a notification email. Because of this, SPF/DKIM/DMARC records are **not currently a technical requirement for this application to function**, and there is nothing in this codebase to configure for them.
+The site sends email through **Resend** (`src/server/email/send.ts`): the enquiry confirmation and team notification, and the client-portal emails. `EMAIL_FROM` uses the `smash.international` domain, which is verified in Resend. Mailboxes for `smash.international` are on **Google Workspace**. The public contact address is `smash@sysmantech.net` by the business's choice. DNS is at GoDaddy (`ns13/ns14.domaincontrol.com`).
 
-If/when email sending is added (e.g., a "new enquiry" notification), the following becomes a DNS-provider task, not a code task — document it here once email sending exists:
+State checked on 2026-10-23:
 
 | Record | Status | Notes |
 |---|---|---|
-| SPF | Not applicable — no email sending exists | Add once an email-sending provider is chosen, authorizing that provider's sending IPs/domain |
-| DKIM | Not applicable — no email sending exists | Add once a provider is chosen; the provider typically supplies the exact DNS record to add |
-| DMARC | Not applicable — no email sending exists | Add after SPF/DKIM are verified working, starting with a monitor-only policy before enforcing rejection |
+| MX `smash.international` | Google Workspace | `aspmx.l.google.com` and its alternates |
+| SPF `smash.international` | In place | `include:dc-…._spfm.smash.international` (GoDaddy-managed), which includes `_spf.google.com`; `~all` |
+| SPF/MX `send.smash.international` | In place | Resend's return-path: MX `feedback-smtp.ap-northeast-1.amazonses.com`, SPF `include:amazonses.com` |
+| DKIM `resend._domainkey` | In place | Signs everything the site sends |
+| DKIM Google Workspace | **Misplaced** | Google's DKIM key is published as a TXT record on the root domain instead of `google._domainkey.smash.international`, so mail sent from Gmail isn't DKIM-signed in a way receivers can check. Fix in GoDaddy: move the record to host `google._domainkey`, then press "Start authentication" in Google Admin → Gmail → Authenticate email |
+| DMARC `_dmarc` | In place | `p=quarantine; adkim=r; aspf=r`, reports to GoDaddy's `onsecureserver.net` |
 
-Do not add these DNS records speculatively — they protect a sending capability that doesn't exist yet, and an unused SPF/DMARC record pointing at nothing is itself a minor misconfiguration to avoid.
+To recheck: `dig +short TXT smash.international`, `dig +short TXT _dmarc.smash.international`, `dig +short TXT resend._domainkey.smash.international` (or a DNS-over-HTTPS lookup if a local resolver is unreliable).
 
 ## Dependency maintenance
 

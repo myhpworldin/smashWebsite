@@ -14,7 +14,7 @@ import type { PublicMedia } from "@/server/media/public";
 const DEFAULT_SIZES = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
 
 /**
- * The one place a public `Media` object (API.md "Media") becomes a rendered
+ * The one place a public `Media` object (docs/API.md "Media") becomes a rendered
  * image. Never render a raw `<img src={...}>` in a page/content component
  * (phase brief §20) — always go through this, so responsive sizing, lazy
  * loading and dimensions stay consistent everywhere. Types against

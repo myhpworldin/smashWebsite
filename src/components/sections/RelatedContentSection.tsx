@@ -13,7 +13,7 @@ const targetTypeOf = (path: string): string => (path.startsWith("/services/") ? 
 /**
  * Shared "related X" list for content that has no image in its compact
  * reference shape — a Service's relatedInsights, a CaseStudy's
- * relatedServices/relatedInsights (API.md: these are deliberately compact
+ * relatedServices/relatedInsights (docs/API.md: these are deliberately compact
  * refs, never the full record — phase brief §16/§17). Renders nothing when
  * there's no real relationship; never invents one.
  *
@@ -22,7 +22,7 @@ const targetTypeOf = (path: string): string => (path.startsWith("/services/") ? 
  * per-page-type event names some briefs suggest (`insight_related_service_click`,
  * etc.) — same event, different context every time it's reused across Service/
  * Case-study/Insight pages; multiplying names for one action is exactly what
- * ANALYTICS_EVENTS.md's "one consistent naming convention" rule (Stage 4,
+ * docs/ANALYTICS_EVENTS.md's "one consistent naming convention" rule (Stage 4,
  * Phase 5) exists to prevent. `sourceType` identifies the page this section
  * renders on; the target type is derived from the link itself, never guessed.
  */
